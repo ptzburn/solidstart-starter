@@ -1,0 +1,48 @@
+dist
+.wrangler
+.output
+.vercel
+.netlify
+.vite
+.nitro
+vite.config.ts.timestamp-*.mjs
+
+# Environment
+.env
+.env.prod
+.env*.local
+
+# dependencies
+/node_modules
+/docker-data
+
+## Local DB
+local.db*
+src/api/db/migrations/
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+*.launch
+.settings/
+
+# AI assistance
+CLAUDE.md
+.claude/
+AGENTS.md
+GEMINI.md
+.cursor/
+.cursorrules
+.cursorignore
+.github/copilot-instructions.md
+.aider*
+.windsurfrules
+.continue/
+
+# Temp
+gitignore
+
+# System Files
+.DS_Store
+Thumbs.db
