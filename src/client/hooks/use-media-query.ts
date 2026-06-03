@@ -1,7 +1,11 @@
 import { type Accessor, createSignal, onCleanup, onMount } from "solid-js";
 
 export function useMediaQuery(query: string): Accessor<boolean> {
-  const [matches, setMatches] = createSignal(false);
+  const [matches, setMatches] = createSignal(
+    typeof globalThis.matchMedia === "function"
+      ? globalThis.matchMedia(query).matches
+      : false,
+  );
 
   onMount(() => {
     const mediaQuery = globalThis.matchMedia(query);
