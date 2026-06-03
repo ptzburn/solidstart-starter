@@ -1,5 +1,4 @@
 import { A, useLocation } from "@solidjs/router";
-import { Collapsible } from "~/client/components/ui/collapsible.tsx";
 import {
   SidebarGroup,
   SidebarMenu,
@@ -33,37 +32,27 @@ export function NavMain(): JSX.Element {
       <SidebarMenu>
         <For each={items(location.pathname)}>
           {(item) => (
-            <Collapsible>
-              <A href={item.url}>
-                <SidebarMenuItem
-                  class={item.url === location.pathname
-                    ? "bg-accent rounded"
-                    : ""}
-                >
-                  <SidebarMenuButton tooltip={item.title}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </A>
-            </Collapsible>
+            <SidebarMenuItem
+              class={item.url === location.pathname ? "bg-accent rounded" : ""}
+            >
+              <SidebarMenuButton as={A} href={item.url} tooltip={item.title}>
+                <item.icon />
+                <span>{item.title}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           )}
         </For>
         <Show when={session.user.role === "admin"}>
-          <Collapsible>
-            <A href="/dashboard/users">
-              <SidebarMenuItem
-                class={"/dashboard/users" === location.pathname
-                  ? "bg-accent rounded"
-                  : ""}
-              >
-                <SidebarMenuButton tooltip="Users">
-                  <UsersIcon />
-                  <span>Users</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </A>
-          </Collapsible>
+          <SidebarMenuItem
+            class={"/dashboard/users" === location.pathname
+              ? "bg-accent rounded"
+              : ""}
+          >
+            <SidebarMenuButton as={A} href="/dashboard/users" tooltip="Users">
+              <UsersIcon />
+              <span>Users</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </Show>
       </SidebarMenu>
     </SidebarGroup>

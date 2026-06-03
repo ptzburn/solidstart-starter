@@ -62,26 +62,25 @@ export function NavUser(): JSX.Element {
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger class="w-full">
-            <SidebarMenuButton
-              size="lg"
-              class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Avatar class="h-8 w-8 rounded-full">
-                <AvatarImage
-                  src={getFileUrl(session.user.image)}
-                  alt={session.user.name}
-                />
-                <AvatarFallback class="rounded-lg">
-                  {getInitials(session.user.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div class="grid flex-1 text-left text-sm leading-tight">
-                <span class="truncate font-medium">{session.user.name}</span>
-                <span class="truncate text-xs">{session.user.email}</span>
-              </div>
-              <ChevronsUpDown class="ml-auto size-4" />
-            </SidebarMenuButton>
+          <DropdownMenuTrigger
+            as={SidebarMenuButton}
+            size="lg"
+            class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+          >
+            <Avatar class="h-8 w-8 rounded-full">
+              <AvatarImage
+                src={getFileUrl(session.user.image)}
+                alt={session.user.name}
+              />
+              <AvatarFallback class="rounded-lg">
+                {getInitials(session.user.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div class="grid flex-1 text-left text-sm leading-tight">
+              <span class="truncate font-medium">{session.user.name}</span>
+              <span class="truncate text-xs">{session.user.email}</span>
+            </div>
+            <ChevronsUpDown class="ml-auto size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent class="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg">
             <DropdownMenuItem

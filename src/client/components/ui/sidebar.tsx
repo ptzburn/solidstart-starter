@@ -16,6 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/client/components/ui/tooltip.tsx";
+import { useMediaQuery } from "~/client/hooks/use-media-query.ts";
 import { cn } from "~/client/lib/utils.ts";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
@@ -39,6 +40,7 @@ import {
   Switch,
   useContext,
 } from "solid-js";
+import { getRequestEvent, isServer } from "solid-js/web";
 
 const MOBILE_BREAKPOINT = 768;
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
@@ -87,6 +89,19 @@ export function useIsMobile(fallback = false): Accessor<boolean> {
   return isMobile;
 }
 
+function readSidebarOpenCookie(): boolean | undefined {
+  const cookieString = isServer
+    ? getRequestEvent()?.request.headers.get("cookie") ?? ""
+    : (typeof document !== "undefined" ? document.cookie : "");
+
+  const value = cookieString
+    .split("; ")
+    .find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
+    ?.split("=")[1];
+
+  return value === undefined ? undefined : value === "true";
+}
+
 type SidebarProviderProps = Omit<ComponentProps<"div">, "style"> & {
   defaultOpen?: boolean;
   open?: boolean;
@@ -105,22 +120,11 @@ const SidebarProvider: Component<SidebarProviderProps> = (rawProps) => {
     "children",
   ]);
 
-  const isMobile = useIsMobile();
+  const isMobile = useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
   const [openMobile, setOpenMobile] = createSignal(false);
 
-  let initialOpen = local.defaultOpen;
-
-  // Only run this in the browser (client-side)
-  if (typeof document !== "undefined") {
-    const cookieValue = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
-      ?.split("=")[1];
-
-    if (cookieValue !== undefined) {
-      initialOpen = cookieValue === "true";
-    }
-  }
+  const cookieOpen = readSidebarOpenCookie();
+  const initialOpen = cookieOpen ?? local.defaultOpen;
 
   // This is the internal state of the sidebar.
   // We use open and onOpenChange for control from outside the component.
@@ -134,9 +138,10 @@ const SidebarProvider: Component<SidebarProviderProps> = (rawProps) => {
     }
     _setOpen(value);
 
-    // This sets the cookie to keep the sidebar state.
-    document.cookie =
-      `${SIDEBAR_COOKIE_NAME}=${open()}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+    if (typeof document !== "undefined") {
+      document.cookie =
+        `${SIDEBAR_COOKIE_NAME}=${open()}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+    }
   };
 
   // Helper to toggle the sidebar.
@@ -323,25 +328,7 @@ const SidebarTrigger = <T extends ValidComponent = "button">(
       }}
       {...others}
     >
-      <Show
-        when={local.children}
-        fallback={
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="size-4"
-          >
-            <rect width="18" height="18" x="3" y="3" rx="2" />
-            <path d="M9 3v18" />
-          </svg>
-        }
-      >
-        {local.children}
-      </Show>
+      {local.children}
       <span class="sr-only">Toggle Sidebar</span>
     </Button>
   );
