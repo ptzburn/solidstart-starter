@@ -18,9 +18,11 @@ const Input: Component<ComponentProps<"input">> = (props) => {
         "md:text-sm",
         // Focus styles
         "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-        // Error states
+        // Error states (server-driven via aria-invalid, native via :user-invalid)
         "dark:aria-invalid:ring-destructive/40 aria-invalid:ring-destructive/20",
         "aria-invalid:border-destructive",
+        "dark:user-invalid:ring-destructive/40 user-invalid:ring-destructive/20",
+        "user-invalid:border-destructive",
         local.class,
       )}
       {...others}

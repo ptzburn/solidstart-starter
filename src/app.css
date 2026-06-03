@@ -293,3 +293,11 @@
     content: counter(step);
   }
 }
+
+@layer base {
+  form:has(:invalid) button[type="submit"] {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+}

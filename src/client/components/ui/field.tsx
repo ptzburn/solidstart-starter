@@ -88,7 +88,7 @@ const FieldGroup = <T extends ValidComponent = "div">(
 };
 
 const fieldVariants = cva(
-  "group/field flex w-full min-w-0 gap-3 data-[invalid=true]:text-destructive-foreground",
+  "group/field flex w-full min-w-0 gap-3 data-[invalid=true]:text-destructive-foreground has-[:user-invalid]:text-destructive-foreground",
   {
     variants: {
       orientation: {

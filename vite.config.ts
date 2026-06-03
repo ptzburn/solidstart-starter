@@ -1,9 +1,9 @@
-import { defineConfig } from "vite";
+import deno from "@deno/vite-plugin";
 import { solidStart } from "@solidjs/start/config";
 import { nitroV2Plugin as nitro } from "@solidjs/vite-plugin-nitro-2";
-import deno from "@deno/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import Icons from "unplugin-icons/vite";
+import { defineConfig } from "vite";
 
 import "./src/env.ts";
 
