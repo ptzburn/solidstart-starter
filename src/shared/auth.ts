@@ -24,6 +24,8 @@ import {
   twoFactor,
 } from "better-auth/plugins";
 
+export const COOKIE_PREFIX = "solid-starter-template";
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "sqlite",
@@ -202,7 +204,7 @@ export const auth = betterAuth({
     enabled: false,
   },
   advanced: {
-    cookiePrefix: "solid-starter-template",
+    cookiePrefix: COOKIE_PREFIX,
     database: {
       generateId: "serial",
     },

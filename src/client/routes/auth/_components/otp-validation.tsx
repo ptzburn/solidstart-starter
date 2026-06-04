@@ -1,21 +1,31 @@
+import { A, useAction, useSubmission } from "@solidjs/router";
+import { resendEmailOtp, verifyEmailOtp } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
-import { useAppForm } from "~/client/hooks/use-app-form.ts";
-import { authClient } from "~/client/lib/auth-client.ts";
-import { createSignal, type JSX, onCleanup, onMount, Show } from "solid-js";
+import {
+  OTPField,
+  OTPFieldGroup,
+  OTPFieldInput,
+  OTPFieldSlot,
+} from "~/client/components/ui/otp-field.tsx";
+import {
+  createEffect,
+  createSignal,
+  type JSX,
+  onCleanup,
+  onMount,
+} from "solid-js";
 import { toast } from "solid-sonner";
-import { z } from "zod";
-
-type OTPValidationProps = {
-  email: string;
-  onBack?: () => void;
-};
 
 const RESEND_COOLDOWN = 60;
 
-export function OTPValidation(props: OTPValidationProps): JSX.Element {
-  const [isResending, setIsResending] = createSignal(false);
+export function OTPValidation(props: { email: string }): JSX.Element {
+  const [otp, setOtp] = createSignal("");
   const [cooldown, setCooldown] = createSignal(RESEND_COOLDOWN);
   let timer: ReturnType<typeof setInterval> | undefined;
+
+  const verify = useSubmission(verifyEmailOtp);
+  const resend = useSubmission(resendEmailOtp);
+  const triggerResend = useAction(resendEmailOtp);
 
   function startCooldown(): void {
     setCooldown(RESEND_COOLDOWN);
@@ -34,106 +44,75 @@ export function OTPValidation(props: OTPValidationProps): JSX.Element {
   onMount(() => startCooldown());
   onCleanup(() => clearInterval(timer));
 
-  async function sendOtp(): Promise<void> {
-    await authClient.emailOtp.sendVerificationOtp({
-      email: props.email,
-      type: "email-verification",
-      fetchOptions: {
-        onSuccess: () => {
-          toast.success("OTP sent successfully");
-        },
-        onError: (error) => {
-          toast.error(error.error.message || "An error occurred");
-        },
-      },
-    });
-  }
+  createEffect(() => {
+    if (verify.error) {
+      toast.error(verify.error.message || "Verification failed");
+      verify.clear();
+    }
+  });
 
-  async function handleResend(): Promise<void> {
-    setIsResending(true);
-    await sendOtp();
-    setIsResending(false);
-    startCooldown();
-  }
-
-  const otpForm = useAppForm(() => ({
-    defaultValues: {
-      otp: "",
-    },
-    validators: {
-      onSubmit: z.object({
-        otp: z.string().length(6, "Invalid OTP"),
-      }),
-    },
-    onSubmit: async ({ value }) => {
-      await authClient.emailOtp.verifyEmail({
-        email: props.email,
-        otp: value.otp,
-        fetchOptions: {
-          onSuccess: () => {
-            toast.success("OTP verified successfully");
-            globalThis.location.href = "/";
-          },
-          onError: (error) => {
-            toast.error(
-              error.error.message || "An error occurred",
-            );
-          },
-        },
-      });
-    },
-  }));
+  createEffect(() => {
+    if (resend.result?.ok) {
+      toast.success("OTP sent successfully");
+      startCooldown();
+      resend.clear();
+    }
+    if (resend.error) {
+      toast.error(resend.error.message || "Failed to send OTP");
+      resend.clear();
+    }
+  });
 
   return (
     <div class="space-y-8">
       <div class="flex flex-col items-center gap-2 text-center">
-        <h1 class="font-bold text-2xl">
-          OTP Verification
-        </h1>
+        <h1 class="font-bold text-2xl">OTP Verification</h1>
         <p class="text-balance text-muted-foreground text-sm">
-          Enter the code sent to your email to verify your account.
+          Enter the code sent to {props.email} to verify your account.
         </p>
       </div>
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          otpForm.handleSubmit();
-        }}
+        method="post"
+        action={verifyEmailOtp}
         class="grid gap-6"
       >
-        <otpForm.AppField name="otp">
-          {(field) => <field.OTPField />}
-        </otpForm.AppField>
+        <div class="flex justify-center">
+          <OTPField
+            maxLength={6}
+            value={otp()}
+            onValueChange={(v) => setOtp(v.replace(/\D/g, "").slice(0, 6))}
+            autofocus
+          >
+            <OTPFieldGroup class="gap-2">
+              {[0, 1, 2, 3, 4, 5].map((i) => <OTPFieldSlot index={i} />)}
+            </OTPFieldGroup>
+            <OTPFieldInput name="otp" />
+          </OTPField>
+        </div>
         <div class="flex items-center justify-center gap-1 text-sm">
-          <span class="text-muted-foreground">
-            Didn't receive the code?
-          </span>
+          <span class="text-muted-foreground">Didn't receive the code?</span>
           <Button
             variant="link"
             type="button"
             class="h-auto p-0 text-sm"
-            onClick={handleResend}
-            disabled={isResending() || cooldown() > 0}
+            onClick={() => triggerResend()}
+            disabled={resend.pending || cooldown() > 0}
           >
             {cooldown() > 0 ? `Resend (${cooldown()}s)` : "Resend"}
           </Button>
         </div>
-        <otpForm.AppForm>
-          <otpForm.SubmitButton>
-            Verify
-          </otpForm.SubmitButton>
-        </otpForm.AppForm>
-        <Show when={props.onBack}>
-          <Button
-            variant="outline"
-            class="w-full"
-            type="button"
-            onClick={() => props.onBack?.()}
-          >
+        <Button
+          type="submit"
+          class="w-full"
+          disabled={verify.pending || otp().length !== 6}
+        >
+          Verify
+        </Button>
+        <A href="/auth/sign-in" class="w-full">
+          <Button variant="outline" class="w-full" type="button">
             Back
           </Button>
-        </Show>
+        </A>
       </form>
     </div>
   );

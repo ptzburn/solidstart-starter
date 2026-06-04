@@ -1,5 +1,7 @@
 import { query, redirect } from "@solidjs/router";
-import { auth } from "~/shared/auth.ts";
+import { parseCookies } from "@solidjs/start/http";
+import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts";
+import { auth, COOKIE_PREFIX } from "~/shared/auth.ts";
 import { getServerHeaders } from "~/shared/server-headers.ts";
 import type { SelectUser } from "~/shared/types/auth.ts";
 
@@ -16,6 +18,29 @@ export const getSessionQuery = query(async () => {
 
   return session;
 }, "session");
+
+export const getPendingSigninEmailQuery = query(async () => {
+  "use server";
+  const session = await usePendingSigninSession();
+  if (!session.data.email) throw redirect("/auth/sign-in");
+  return session.data.email;
+}, "pending-signin-email");
+
+// deno-lint-ignore require-await
+export const requireTwoFactorPendingQuery = query(async () => {
+  "use server";
+  // Better Auth sets a `${cookiePrefix}.two_factor` cookie during `signInEmail`
+  // when 2FA is required. Prefixed with `__Secure-` over HTTPS. Suffix match
+  // handles both dev and prod without re-deriving the prefix logic. Function
+  // must stay `async` so the synchronous throw becomes a rejected promise that
+  // `query()` can intercept and turn into a router redirect.
+  const cookies = parseCookies();
+  const hasTwoFactorCookie = Object.keys(cookies).some((name) =>
+    name.endsWith(`${COOKIE_PREFIX}.two_factor`)
+  );
+  if (!hasTwoFactorCookie) throw redirect("/auth/sign-in");
+  return true;
+}, "two-factor-pending");
 
 export const listSessionsQuery = query(async () => {
   "use server";

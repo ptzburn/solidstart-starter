@@ -115,6 +115,7 @@ export const twoFactors = snakeCase.table(
     }),
     secret: text().notNull(),
     backupCodes: text().notNull(),
+    verified: integer({ mode: "boolean" }).notNull(),
     userId: integer()
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
