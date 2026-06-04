@@ -1,19 +1,16 @@
 import { Turnstile, type TurnstileRef } from "@nerimity/solid-turnstile";
-import { A, useNavigate } from "@solidjs/router";
-
-import { useAppForm } from "~/client/hooks/use-app-form.ts";
-import { authClient } from "~/client/lib/auth-client.ts";
-import { createSignal, type JSX } from "solid-js";
+import { A, useSubmission } from "@solidjs/router";
+import { requestPasswordReset } from "~/client/actions/auth.ts";
+import { Button } from "~/client/components/ui/button.tsx";
+import { TextField } from "~/client/components/ui/form2/text-field.tsx";
+import { createEffect, createSignal, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
-import z from "zod";
 
-const formSchema = z.object({
-  email: z.email(),
-});
-
-function ForgotPasswordPage(): JSX.Element {
+export default function ForgotPasswordPage(): JSX.Element {
   const [turnstileToken, setTurnstileToken] = createSignal<string>();
-  const navigate = useNavigate();
+  const submission = useSubmission(requestPasswordReset);
+  const fieldErrors = (): Record<string, string | undefined> =>
+    submission.result?.fieldErrors ?? {};
   let turnstileRef: TurnstileRef | undefined;
 
   const resetTurnstile = (): void => {
@@ -21,46 +18,22 @@ function ForgotPasswordPage(): JSX.Element {
     turnstileRef?.reset();
   };
 
-  const form = useAppForm(() => ({
-    defaultValues: {
-      email: "",
-    },
-    validators: {
-      onSubmit: formSchema,
-    },
-    onSubmit: async ({ value }) => {
-      const { email } = value;
-      await authClient.requestPasswordReset({
-        email,
-        redirectTo: `${import.meta.env.VITE_HOST_URL}/auth/reset-password`,
-        fetchOptions: {
-          headers: {
-            "x-captcha-response": turnstileToken() ?? "",
-          },
-          onError: (error) => {
-            toast.error(
-              error.error.message ||
-                "An error occurred while requesting the password reset.",
-            );
-          },
-          onSuccess: () => {
-            toast.success("Password reset request sent successfully.");
-            navigate("/auth/sign-in");
-          },
-        },
-      });
+  createEffect(() => {
+    if (submission.error) {
+      toast.error(submission.error.message || "Password reset request failed");
       resetTurnstile();
-    },
-  }));
+      submission.clear();
+    }
+  });
 
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        form.handleSubmit();
-      }}
+      method="post"
+      action={requestPasswordReset}
       class="space-y-8"
+      onInput={() => {
+        if (submission.result) submission.clear();
+      }}
     >
       <div class="flex flex-col items-center gap-2 text-center">
         <h1 class="font-bold text-2xl">Forgot Password</h1>
@@ -69,15 +42,15 @@ function ForgotPasswordPage(): JSX.Element {
         </p>
       </div>
       <div class="grid gap-6">
-        <form.AppField name="email">
-          {(field) => (
-            <field.TextField
-              label="Email"
-              type="email"
-              placeholder="example@gmail.com"
-            />
-          )}
-        </form.AppField>
+        <TextField
+          name="email"
+          label="Email"
+          type="email"
+          required
+          placeholder="example@gmail.com"
+          error={fieldErrors().email}
+          disabled={submission.pending}
+        />
         <div class="flex justify-center">
           <Turnstile
             ref={(r) => (turnstileRef = r)}
@@ -86,11 +59,13 @@ function ForgotPasswordPage(): JSX.Element {
             autoResetOnExpire
           />
         </div>
-        <form.AppForm>
-          <form.SubmitButton disabled={!turnstileToken()}>
-            Request Password Reset
-          </form.SubmitButton>
-        </form.AppForm>
+        <Button
+          type="submit"
+          class="w-full"
+          disabled={submission.pending || !turnstileToken()}
+        >
+          Request Password Reset
+        </Button>
       </div>
       <div class="text-center text-sm">
         Remember your password?{" "}
@@ -101,5 +76,3 @@ function ForgotPasswordPage(): JSX.Element {
     </form>
   );
 }
-
-export default ForgotPasswordPage;

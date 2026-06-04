@@ -1,8 +1,12 @@
 import { action, redirect } from "@solidjs/router";
+import { usePendingForgotPasswordSession } from "~/client/lib/pending-forgot-password-session.ts";
 import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts";
 import {
+  type ForgotPasswordFieldErrors,
+  ForgotPasswordSchema,
   type SignInFieldErrors,
   SignInSchema,
+  SignInSocialSchema,
   type VerifyEmailOtpFieldErrors,
   VerifyEmailOtpSchema,
   VerifyTwoFactorBackupSchema,
@@ -11,6 +15,7 @@ import {
 } from "~/client/schemas/auth.ts";
 import { collectFieldErrors } from "~/client/utils/form-errors.ts";
 import { redirectWithCookies } from "~/client/utils/redirect.ts";
+import env from "~/env.ts";
 import { auth } from "~/shared/auth.ts";
 import { getServerHeaders } from "~/shared/server-headers.ts";
 import { APIError } from "better-auth/api";
@@ -56,6 +61,57 @@ export const signIn = action(async (formData: FormData) => {
     throw error;
   }
 }, "signIn");
+
+export const signInSocial = action(async (formData: FormData) => {
+  "use server";
+  const parsed = SignInSocialSchema.safeParse({
+    provider: formData.get("provider"),
+  });
+  if (!parsed.success) throw new Error("Invalid provider");
+
+  const { response, headers: authHeaders } = await auth.api.signInSocial({
+    body: {
+      provider: parsed.data.provider,
+      callbackURL: "/dashboard",
+    },
+    headers: getServerHeaders(),
+    returnHeaders: true,
+  });
+
+  if (!response.url) throw new Error("Failed to start sign-in");
+
+  throw redirectWithCookies(authHeaders, response.url);
+}, "signInSocial");
+
+export const requestPasswordReset = action(async (formData: FormData) => {
+  "use server";
+  const parsed = ForgotPasswordSchema.safeParse({
+    email: formData.get("email"),
+  });
+  if (!parsed.success) {
+    return {
+      fieldErrors: collectFieldErrors<keyof ForgotPasswordFieldErrors>(
+        parsed.error.issues,
+      ),
+    };
+  }
+
+  const captchaToken = (formData.get("cf-turnstile-response") as string) ?? "";
+  const headers = new Headers(getServerHeaders());
+  headers.set("x-captcha-response", captchaToken);
+
+  await auth.api.requestPasswordReset({
+    body: {
+      email: parsed.data.email,
+      redirectTo: `${env.VITE_HOST_URL}/auth/reset-password`,
+    },
+    headers,
+  });
+
+  const session = await usePendingForgotPasswordSession();
+  await session.update({ email: parsed.data.email });
+  throw redirect("/auth/forgot-password/sent");
+}, "requestPasswordReset");
 
 export const verifyEmailOtp = action(async (formData: FormData) => {
   "use server";

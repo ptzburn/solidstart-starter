@@ -9,6 +9,22 @@ export type SignInFieldErrors = Partial<
   Record<keyof z.infer<typeof SignInSchema>, string>
 >;
 
+export const SignInSocialSchema = z.object({
+  provider: z.enum(["github", "google"]),
+});
+
+export const ForgotPasswordSchema = z.object({
+  email: z.email("Invalid email"),
+});
+
+export type ForgotPasswordFieldErrors = Partial<
+  Record<keyof z.infer<typeof ForgotPasswordSchema>, string>
+>;
+
+export type SignInSocialProvider = z.infer<
+  typeof SignInSocialSchema
+>["provider"];
+
 export const VerifyEmailOtpSchema = z.object({
   otp: z.string().length(6, "Invalid OTP"),
 });

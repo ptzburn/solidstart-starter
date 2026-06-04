@@ -1,4 +1,5 @@
-import { A, useNavigate } from "@solidjs/router";
+import { A, useSubmission } from "@solidjs/router";
+import { signInSocial } from "~/client/actions/auth.ts";
 import { Badge } from "~/client/components/ui/badge.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import { Separator } from "~/client/components/ui/separator.tsx";
@@ -7,9 +8,8 @@ import { authClient } from "~/client/lib/auth-client.ts";
 import FingerprintPattern from "~icons/lucide/fingerprint-pattern";
 import SimpleIconsGithub from "~icons/simple-icons/github";
 import SimpleIconsGoogle from "~icons/simple-icons/google";
-import { createSignal, type JSX, onMount, Show } from "solid-js";
+import { createEffect, createSignal, type JSX, onMount, Show } from "solid-js";
 import { toast } from "solid-sonner";
-import SignInForm from "../_components/sign-in-form.tsx";
 
 function LastUsedBadge(): JSX.Element {
   return (
@@ -20,51 +20,25 @@ function LastUsedBadge(): JSX.Element {
 }
 
 function SignInPage(): JSX.Element {
-  const [isLoading, setIsLoading] = createSignal(false);
-  const [showEmailForm, setShowEmailForm] = createSignal(false);
+  const [passkeyLoading, setPasskeyLoading] = createSignal(false);
   const [lastLoginMethod, setLastLoginMethod] = createSignal<string | null>(
     null,
   );
-  const navigate = useNavigate();
+  const submission = useSubmission(signInSocial);
 
-  async function handleGoogleSignIn(): Promise<void> {
-    setIsLoading(true);
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: "/dashboard",
-      errorCallbackURL: "/auth/error",
-      fetchOptions: {
-        onError: (error) => {
-          navigate("/auth/sign-in");
-          toast.error(
-            error.error.message || "An error occurred while signing in",
-          );
-        },
-      },
-    });
-    setIsLoading(false);
-  }
+  const anyPending = (): boolean => submission.pending || passkeyLoading();
 
-  async function handleGitHubSignIn(): Promise<void> {
-    setIsLoading(true);
-    await authClient.signIn.social({
-      provider: "github",
-      callbackURL: "/dashboard",
-      errorCallbackURL: "/auth/error",
-      fetchOptions: {
-        onError: (error) => {
-          navigate("/auth/sign-in");
-          toast.error(
-            error.error.message || "An error occurred while signing in",
-          );
-        },
-      },
-    });
-    setIsLoading(false);
-  }
+  createEffect(() => {
+    if (submission.error) {
+      toast.error(
+        submission.error.message || "An error occurred while signing in",
+      );
+      submission.clear();
+    }
+  });
 
   async function handlePasskeySignIn(): Promise<void> {
-    setIsLoading(true);
+    setPasskeyLoading(true);
     await authClient.signIn.passkey({
       fetchOptions: {
         onSuccess: () => {
@@ -77,7 +51,7 @@ function SignInPage(): JSX.Element {
         },
       },
     });
-    setIsLoading(false);
+    setPasskeyLoading(false);
   }
 
   onMount(() => {
@@ -90,20 +64,17 @@ function SignInPage(): JSX.Element {
         <div class="flex flex-col items-center gap-2 text-center">
           <h1 class="font-bold text-2xl">Sign in</h1>
         </div>
-        <Show
-          when={!showEmailForm()}
-          fallback={<SignInForm setter={setShowEmailForm} />}
-        >
-          <div class="grid gap-6">
+        <div class="grid gap-6">
+          <form method="post" action={signInSocial}>
+            <input type="hidden" name="provider" value="github" />
             <Button
               variant="outline"
               class="relative w-full"
-              type="button"
-              onClick={handleGitHubSignIn}
-              disabled={isLoading()}
+              type="submit"
+              disabled={anyPending()}
             >
               <Show
-                when={isLoading()}
+                when={anyPending()}
                 fallback={<SimpleIconsGithub class="size-5" />}
               >
                 <Spinner />
@@ -113,16 +84,18 @@ function SignInPage(): JSX.Element {
                 <LastUsedBadge />
               </Show>
             </Button>
+          </form>
 
+          <form method="post" action={signInSocial}>
+            <input type="hidden" name="provider" value="google" />
             <Button
               variant="outline"
               class="relative w-full"
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={isLoading()}
+              type="submit"
+              disabled={anyPending()}
             >
               <Show
-                when={isLoading()}
+                when={anyPending()}
                 fallback={<SimpleIconsGoogle class="size-5" />}
               >
                 <Spinner />
@@ -132,42 +105,42 @@ function SignInPage(): JSX.Element {
                 <LastUsedBadge />
               </Show>
             </Button>
+          </form>
 
-            <Button
-              variant="outline"
-              class="relative w-full"
-              type="button"
-              onClick={handlePasskeySignIn}
-              disabled={isLoading()}
+          <Button
+            variant="outline"
+            class="relative w-full"
+            type="button"
+            onClick={handlePasskeySignIn}
+            disabled={anyPending()}
+          >
+            <Show
+              when={anyPending()}
+              fallback={<FingerprintPattern class="size-5" />}
             >
-              <Show
-                when={isLoading()}
-                fallback={<FingerprintPattern class="size-5" />}
-              >
-                <Spinner />
-              </Show>
-              Sign in with Passkey
-              <Show when={lastLoginMethod() === "passkey"}>
-                <LastUsedBadge />
-              </Show>
-            </Button>
+              <Spinner />
+            </Show>
+            Sign in with Passkey
+            <Show when={lastLoginMethod() === "passkey"}>
+              <LastUsedBadge />
+            </Show>
+          </Button>
 
-            <Separator />
+          <Separator />
 
-            <Button
-              variant="outline"
-              class="relative w-full"
-              type="button"
-              onClick={() => setShowEmailForm(true)}
-              disabled={isLoading()}
-            >
-              Continue with email
-              <Show when={lastLoginMethod() === "email"}>
-                <LastUsedBadge />
-              </Show>
-            </Button>
-          </div>
-        </Show>
+          <Button
+            as={A}
+            variant="outline"
+            class="relative w-full"
+            href="/auth/sign-in/email"
+            disabled={anyPending()}
+          >
+            Continue with email
+            <Show when={lastLoginMethod() === "email"}>
+              <LastUsedBadge />
+            </Show>
+          </Button>
+        </div>
 
         <div class="text-center text-sm">
           Don't have an account?{"  "}

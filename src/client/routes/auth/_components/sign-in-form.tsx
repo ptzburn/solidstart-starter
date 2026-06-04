@@ -3,14 +3,10 @@ import { A, useSubmission } from "@solidjs/router";
 import { signIn } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { TextField } from "~/client/components/ui/form2/text-field.tsx";
-import { createEffect, createSignal, type JSX, type Setter } from "solid-js";
+import { createEffect, createSignal, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
-type SignInFormProps = {
-  setter: Setter<boolean>;
-};
-
-export default function SignInForm(props: SignInFormProps): JSX.Element {
+export default function SignInForm(): JSX.Element {
   const [turnstileToken, setTurnstileToken] = createSignal<string>();
   const submission = useSubmission(signIn);
   const fieldErrors = () => submission.result?.fieldErrors ?? {};
@@ -85,10 +81,10 @@ export default function SignInForm(props: SignInFormProps): JSX.Element {
             Sign in
           </Button>
           <Button
+            as={A}
             variant="outline"
             class="w-full"
-            type="button"
-            onClick={() => props.setter(false)}
+            href="/auth/sign-in"
           >
             Back
           </Button>
