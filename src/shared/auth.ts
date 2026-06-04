@@ -94,6 +94,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: env.NODE_ENV !== "test",
+    revokeSessionsOnPasswordReset: true,
     // deno-lint-ignore require-await
     sendResetPassword: async ({ user, url }) => {
       void sendResetPassword({

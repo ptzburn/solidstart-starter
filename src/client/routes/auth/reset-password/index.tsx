@@ -1,136 +1,33 @@
-import { A, useLocation, useNavigate } from "@solidjs/router";
-import { useAppForm } from "~/client/hooks/use-app-form.ts";
-
-import { authClient } from "~/client/lib/auth-client.ts";
-import { createSignal, type JSX, Match, Switch } from "solid-js";
+import { A, useLocation, useSubmission } from "@solidjs/router";
+import { resetPassword } from "~/client/actions/auth.ts";
+import { Button } from "~/client/components/ui/button.tsx";
+import { TextField } from "~/client/components/ui/form2/text-field.tsx";
+import { createEffect, type JSX, Show } from "solid-js";
 import { toast } from "solid-sonner";
-import z from "zod";
 
-function ResetPasswordPage(): JSX.Element {
+export default function ResetPasswordPage(): JSX.Element {
   const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const token = params.get("token");
+  const token = (): string | null =>
+    new URLSearchParams(location.search).get("token");
 
-  const navigate = useNavigate();
-  const [isSuccess, setIsSuccess] = createSignal(false);
+  const submission = useSubmission(resetPassword);
+  const fieldErrors = (): Record<string, string | undefined> =>
+    submission.result?.fieldErrors ?? {};
 
-  const form = useAppForm(() => ({
-    defaultValues: {
-      password: "",
-      confirmPassword: "",
-    },
-    validators: {
-      onSubmit: z.object({
-        password: z.string().min(
-          8,
-          "Password must be at least 8 characters long",
-        ),
-        confirmPassword: z.string().min(
-          8,
-          "Password must be at least 8 characters long",
-        ),
-      }).superRefine((data, context) => {
-        if (data.password !== data.confirmPassword) {
-          context.addIssue({
-            code: "custom",
-            message: "Passwords do not match",
-            path: ["password"],
-          });
-          context.addIssue({
-            code: "custom",
-            message: "Passwords do not match",
-            path: ["confirmPassword"],
-          });
-        }
-      }),
-    },
-    onSubmit: async ({ value }) => {
-      if (!token) {
-        toast.error("Invalid link");
-        return;
-      }
-
-      const { password } = value;
-      await authClient.resetPassword({
-        newPassword: password,
-        token,
-        fetchOptions: {
-          onError: (error) => {
-            toast.error(
-              error.error.message ||
-                "An error occurred",
-            );
-          },
-          onSuccess: () => {
-            setIsSuccess(true);
-            toast.success("Password reset successfully");
-          },
-        },
-      });
-      navigate("/auth/sign-in");
-    },
-  }));
+  createEffect(() => {
+    if (submission.error) {
+      toast.error(submission.error.message || "Password reset failed");
+      submission.clear();
+    }
+  });
 
   return (
-    <Switch
+    <Show
+      when={token()}
       fallback={
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
-          class="space-y-8"
-        >
-          <div class="flex flex-col items-center gap-2 text-center">
-            <h1 class="font-bold text-2xl">Reset Password</h1>
-            <p class="text-balance text-muted-foreground text-sm">
-              Enter your new password below.
-            </p>
-          </div>
-          <div class="grid gap-6">
-            <form.AppField name="password">
-              {(field) => (
-                <field.TextField
-                  label="New Password"
-                  type="password"
-                  placeholder="Enter your new password"
-                />
-              )}
-            </form.AppField>
-            <form.AppField name="confirmPassword">
-              {(field) => (
-                <field.TextField
-                  label="Confirm Password"
-                  type="password"
-                  placeholder="Confirm your new password"
-                />
-              )}
-            </form.AppField>
-            <form.AppForm>
-              <form.SubmitButton>
-                Reset Password
-              </form.SubmitButton>
-            </form.AppForm>
-          </div>
-          <div class="text-center text-sm">
-            Remember your password?{" "}
-            <A
-              href="/auth/sign-in"
-              class="underline underline-offset-4"
-            >
-              Sign In
-            </A>
-          </div>
-        </form>
-      }
-    >
-      <Match when={!token}>
         <div class="space-y-6">
           <div class="flex flex-col items-center gap-2 text-center">
-            <h1 class="font-bold text-2xl">
-              Invalid Link
-            </h1>
+            <h1 class="font-bold text-2xl">Invalid Link</h1>
             <p class="text-balance text-muted-foreground text-sm">
               The link is invalid or has expired.
             </p>
@@ -144,21 +41,63 @@ function ResetPasswordPage(): JSX.Element {
             </A>
           </div>
         </div>
-      </Match>
-      <Match when={isSuccess()}>
-        <div class="space-y-6">
+      }
+    >
+      {(t) => (
+        <form
+          method="post"
+          action={resetPassword}
+          class="space-y-8"
+          onInput={() => {
+            if (submission.result) submission.clear();
+          }}
+        >
+          <input type="hidden" name="token" value={t()} />
           <div class="flex flex-col items-center gap-2 text-center">
-            <h1 class="font-bold text-2xl">
-              Password Reset Successfully
-            </h1>
+            <h1 class="font-bold text-2xl">Reset Password</h1>
             <p class="text-balance text-muted-foreground text-sm">
-              Your password has been reset successfully.
+              Enter your new password below.
             </p>
           </div>
-        </div>
-      </Match>
-    </Switch>
+          <div class="grid gap-6">
+            <TextField
+              name="password"
+              label="New Password"
+              type="password"
+              minlength={8}
+              required
+              placeholder="Enter your new password"
+              hint="Password must be at least 8 characters"
+              error={fieldErrors().password}
+              disabled={submission.pending}
+            />
+            <TextField
+              name="confirmPassword"
+              label="Confirm Password"
+              type="password"
+              minlength={8}
+              required
+              placeholder="Confirm your new password"
+              hint="Password must be at least 8 characters"
+              error={fieldErrors().confirmPassword}
+              disabled={submission.pending}
+            />
+            <Button
+              type="submit"
+              class="w-full"
+              disabled={submission.pending}
+            >
+              Reset Password
+            </Button>
+          </div>
+          <div class="text-center text-sm">
+            Remember your password?{" "}
+            <A href="/auth/sign-in" class="underline underline-offset-4">
+              Sign In
+            </A>
+          </div>
+        </form>
+      )}
+    </Show>
   );
 }
-
-export default ResetPasswordPage;

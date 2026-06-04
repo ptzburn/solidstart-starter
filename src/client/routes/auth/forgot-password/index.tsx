@@ -48,6 +48,7 @@ export default function ForgotPasswordPage(): JSX.Element {
           type="email"
           required
           placeholder="example@gmail.com"
+          hint="Enter a valid email address"
           error={fieldErrors().email}
           disabled={submission.pending}
         />

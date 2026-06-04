@@ -1,6 +1,7 @@
 import { query, redirect } from "@solidjs/router";
 import { parseCookies } from "@solidjs/start/http";
 import { usePendingForgotPasswordSession } from "~/client/lib/pending-forgot-password-session.ts";
+import { usePendingResetPasswordSession } from "~/client/lib/pending-reset-password-session.ts";
 import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts";
 import { auth, COOKIE_PREFIX } from "~/shared/auth.ts";
 import { getServerHeaders } from "~/shared/server-headers.ts";
@@ -35,6 +36,14 @@ export const getPasswordResetSentEmailQuery = query(async () => {
   await session.clear();
   return email;
 }, "password-reset-sent-email");
+
+export const requirePasswordResetCompletedQuery = query(async () => {
+  "use server";
+  const session = await usePendingResetPasswordSession();
+  if (!session.data.completed) throw redirect("/auth/sign-in");
+  await session.clear();
+  return true;
+}, "password-reset-completed");
 
 // deno-lint-ignore require-await
 export const requireTwoFactorPendingQuery = query(async () => {

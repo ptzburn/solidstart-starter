@@ -2,6 +2,7 @@ import type { DynamicProps, RootProps } from "@corvu/otp-field";
 import OtpField from "@corvu/otp-field";
 
 import { cn } from "~/client/lib/utils.ts";
+import Minus from "~icons/lucide/minus";
 import type { Component, ComponentProps, ValidComponent } from "solid-js";
 
 import { Show, splitProps } from "solid-js";
@@ -21,7 +22,7 @@ const OTPField = <T extends ValidComponent = "div">(
   return (
     <OtpField
       class={cn(
-        "flex items-center gap-2 disabled:cursor-not-allowed has-disabled:opacity-50",
+        "flex items-center gap-2 has-disabled:opacity-50",
         local.class,
       )}
       {...others}
@@ -50,9 +51,7 @@ const OTPFieldSlot: Component<ComponentProps<"div"> & { index: number }> = (
     <div
       data-active={isActive()}
       class={cn(
-        "relative flex h-9 w-9 items-center justify-center border-input border-r border-y text-sm shadow-xs outline-none transition-all first:rounded-l-md first:border-l last:rounded-r-md",
-        "data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:ring-ring/50 data-[active=true]:ring-[3px]",
-        "dark:bg-input/30",
+        "relative flex h-9 w-9 items-center justify-center border-input border-r border-y text-sm shadow-xs outline-none transition-all first:rounded-l-md first:border-l last:rounded-r-md dark:bg-input/30 dark:data-[active=true]:aria-invalid:ring-destructive/40 data-[active=true]:z-10 aria-invalid:border-destructive data-[active=true]:border-ring data-[active=true]:ring-ring/50 data-[active=true]:ring-[3px] data-[active=true]:aria-invalid:border-destructive data-[active=true]:aria-invalid:ring-destructive/20",
         local.class,
       )}
       {...others}
@@ -70,18 +69,7 @@ const OTPFieldSlot: Component<ComponentProps<"div"> & { index: number }> = (
 const OTPFieldSeparator: Component<ComponentProps<"div">> = (props) => {
   return (
     <div role="separator" {...props}>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="size-4"
-      >
-        <path d="M5 12h14" />
-      </svg>
+      <Minus />
     </div>
   );
 };

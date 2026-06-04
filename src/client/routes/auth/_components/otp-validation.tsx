@@ -5,6 +5,7 @@ import {
   OTPField,
   OTPFieldGroup,
   OTPFieldInput,
+  OTPFieldSeparator,
   OTPFieldSlot,
 } from "~/client/components/ui/otp-field.tsx";
 import {
@@ -83,8 +84,12 @@ export function OTPValidation(props: { email: string }): JSX.Element {
             onValueChange={(v) => setOtp(v.replace(/\D/g, "").slice(0, 6))}
             autofocus
           >
-            <OTPFieldGroup class="gap-2">
-              {[0, 1, 2, 3, 4, 5].map((i) => <OTPFieldSlot index={i} />)}
+            <OTPFieldGroup>
+              {[0, 1, 2].map((i) => <OTPFieldSlot index={i} />)}
+            </OTPFieldGroup>
+            <OTPFieldSeparator />
+            <OTPFieldGroup>
+              {[3, 4, 5].map((i) => <OTPFieldSlot index={i} />)}
             </OTPFieldGroup>
             <OTPFieldInput name="otp" />
           </OTPField>

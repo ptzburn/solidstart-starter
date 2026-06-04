@@ -1,9 +1,12 @@
 import { action, redirect } from "@solidjs/router";
 import { usePendingForgotPasswordSession } from "~/client/lib/pending-forgot-password-session.ts";
+import { usePendingResetPasswordSession } from "~/client/lib/pending-reset-password-session.ts";
 import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts";
 import {
   type ForgotPasswordFieldErrors,
   ForgotPasswordSchema,
+  type ResetPasswordFieldErrors,
+  ResetPasswordSchema,
   type SignInFieldErrors,
   SignInSchema,
   SignInSocialSchema,
@@ -112,6 +115,31 @@ export const requestPasswordReset = action(async (formData: FormData) => {
   await session.update({ email: parsed.data.email });
   throw redirect("/auth/forgot-password/sent");
 }, "requestPasswordReset");
+
+export const resetPassword = action(async (formData: FormData) => {
+  "use server";
+  const parsed = ResetPasswordSchema.safeParse({
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+    token: formData.get("token"),
+  });
+  if (!parsed.success) {
+    return {
+      fieldErrors: collectFieldErrors<keyof ResetPasswordFieldErrors>(
+        parsed.error.issues,
+      ),
+    };
+  }
+
+  await auth.api.resetPassword({
+    body: { newPassword: parsed.data.password, token: parsed.data.token },
+    headers: getServerHeaders(),
+  });
+
+  const session = await usePendingResetPasswordSession();
+  await session.update({ completed: true });
+  throw redirect("/auth/reset-password/success");
+}, "resetPassword");
 
 export const verifyEmailOtp = action(async (formData: FormData) => {
   "use server";

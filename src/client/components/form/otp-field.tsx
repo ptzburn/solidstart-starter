@@ -7,6 +7,7 @@ import {
   OTPField,
   OTPFieldGroup,
   OTPFieldInput,
+  OTPFieldSeparator,
   OTPFieldSlot,
 } from "../ui/otp-field.tsx";
 
@@ -39,8 +40,12 @@ export function OTPFieldComponent(
           autofocus
           aria-invalid={isInvalid()}
         >
-          <OTPFieldGroup class="gap-2">
-            {[0, 1, 2, 3, 4, 5].map((index) => <OTPFieldSlot index={index} />)}
+          <OTPFieldGroup>
+            {[0, 1, 2].map((index) => <OTPFieldSlot index={index} />)}
+          </OTPFieldGroup>
+          <OTPFieldSeparator />
+          <OTPFieldGroup>
+            {[3, 4, 5].map((index) => <OTPFieldSlot index={index} />)}
           </OTPFieldGroup>
 
           <OTPFieldInput

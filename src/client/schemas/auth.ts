@@ -21,6 +21,29 @@ export type ForgotPasswordFieldErrors = Partial<
   Record<keyof z.infer<typeof ForgotPasswordSchema>, string>
 >;
 
+export const ResetPasswordSchema = z.object({
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string().min(8, "Password must be at least 8 characters"),
+  token: z.string().min(1, "Invalid or missing token"),
+}).superRefine((data, ctx) => {
+  if (data.password !== data.confirmPassword) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Passwords do not match",
+      path: ["password"],
+    });
+    ctx.addIssue({
+      code: "custom",
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    });
+  }
+});
+
+export type ResetPasswordFieldErrors = Partial<
+  Record<"password" | "confirmPassword" | "token", string>
+>;
+
 export type SignInSocialProvider = z.infer<
   typeof SignInSocialSchema
 >["provider"];
