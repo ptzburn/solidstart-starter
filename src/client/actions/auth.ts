@@ -2,6 +2,7 @@ import { action, redirect } from "@solidjs/router";
 import { usePendingForgotPasswordSession } from "~/client/lib/pending-forgot-password-session.ts";
 import { usePendingResetPasswordSession } from "~/client/lib/pending-reset-password-session.ts";
 import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts";
+import { capitalize } from "~/client/lib/utils.ts";
 import {
   type ForgotPasswordFieldErrors,
   ForgotPasswordSchema,
@@ -10,6 +11,8 @@ import {
   type SignInFieldErrors,
   SignInSchema,
   SignInSocialSchema,
+  type SignUpFieldErrors,
+  SignUpSchema,
   type VerifyEmailOtpFieldErrors,
   VerifyEmailOtpSchema,
   VerifyTwoFactorBackupSchema,
@@ -85,6 +88,69 @@ export const signInSocial = action(async (formData: FormData) => {
 
   throw redirectWithCookies(authHeaders, response.url);
 }, "signInSocial");
+
+export const signUp = action(async (formData: FormData) => {
+  "use server";
+  const parsed = SignUpSchema.safeParse({
+    firstName: formData.get("firstName"),
+    lastName: formData.get("lastName"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+
+  if (!parsed.success) {
+    return {
+      fieldErrors: collectFieldErrors<keyof SignUpFieldErrors>(
+        parsed.error.issues,
+      ),
+    };
+  }
+
+  const captchaToken = (formData.get("cf-turnstile-response") as string) ?? "";
+  const headers = new Headers(getServerHeaders());
+  headers.set("x-captcha-response", captchaToken);
+
+  const name = `${capitalize(parsed.data.firstName)} ${
+    capitalize(parsed.data.lastName)
+  }`.trim();
+
+  const { headers: authHeaders } = await auth.api.signUpEmail({
+    body: {
+      email: parsed.data.email,
+      password: parsed.data.password,
+      name,
+    },
+    headers,
+    returnHeaders: true,
+  });
+
+  const session = await usePendingSigninSession();
+  await session.update({ email: parsed.data.email });
+  throw redirectWithCookies(authHeaders, "/auth/sign-in/verify-email");
+}, "signUp");
+
+export const signUpSocial = action(async (formData: FormData) => {
+  "use server";
+  const parsed = SignInSocialSchema.safeParse({
+    provider: formData.get("provider"),
+  });
+  if (!parsed.success) throw new Error("Invalid provider");
+
+  const { response, headers: authHeaders } = await auth.api.signInSocial({
+    body: {
+      provider: parsed.data.provider,
+      callbackURL: "/dashboard?signup=true",
+      requestSignUp: true,
+    },
+    headers: getServerHeaders(),
+    returnHeaders: true,
+  });
+
+  if (!response.url) throw new Error("Failed to start sign-up");
+
+  throw redirectWithCookies(authHeaders, response.url);
+}, "signUpSocial");
 
 export const requestPasswordReset = action(async (formData: FormData) => {
   "use server";

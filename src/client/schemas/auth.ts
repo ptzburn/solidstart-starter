@@ -13,6 +13,34 @@ export const SignInSocialSchema = z.object({
   provider: z.enum(["github", "google"]),
 });
 
+export const SignUpSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  email: z.email("Invalid email"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string().min(8, "Password must be at least 8 characters"),
+}).superRefine((data, ctx) => {
+  if (data.password !== data.confirmPassword) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Passwords do not match",
+      path: ["password"],
+    });
+    ctx.addIssue({
+      code: "custom",
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    });
+  }
+});
+
+export type SignUpFieldErrors = Partial<
+  Record<
+    "firstName" | "lastName" | "email" | "password" | "confirmPassword",
+    string
+  >
+>;
+
 export const ForgotPasswordSchema = z.object({
   email: z.email("Invalid email"),
 });
