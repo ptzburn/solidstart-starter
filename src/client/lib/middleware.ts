@@ -3,15 +3,13 @@ import { createMiddleware } from "@solidjs/start/middleware";
 import env from "~/env.ts";
 import { auth } from "~/shared/auth.ts";
 
-const PUBLIC_ROUTES = new Set([
-  "/",
-  "/auth/sign-in",
-  "/auth/sign-up",
-  "/auth/forgot-password",
-  "/auth/reset-password",
-]);
-
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS", "TRACE"]);
+
+function isGuestOnlyRoute(pathname: string): boolean {
+  if (pathname === "/") return true;
+  if (!pathname.startsWith("/auth/")) return false;
+  return !pathname.startsWith("/auth/sign-out");
+}
 
 const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 const S3_ORIGIN = new URL(env.VITE_S3_PUBLIC_URL).origin;
@@ -97,7 +95,7 @@ export default createMiddleware({
     const url = new URL(event.request.url);
     const { pathname } = url;
 
-    if (event.request.method === "GET" && PUBLIC_ROUTES.has(pathname)) {
+    if (event.request.method === "GET" && isGuestOnlyRoute(pathname)) {
       const session = await auth.api.getSession({
         headers: event.request.headers,
       });
