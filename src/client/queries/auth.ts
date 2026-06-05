@@ -56,6 +56,16 @@ export const requirePasswordResetCompletedQuery = query(async () => {
 }, "password-reset-completed");
 
 // deno-lint-ignore require-await
+export const getLastLoginMethodQuery = query(async () => {
+  "use server";
+  const cookies = parseCookies();
+  const entry = Object.entries(cookies).find(([name]) =>
+    name.endsWith(`${COOKIE_PREFIX}.last_login_method`)
+  );
+  return entry?.[1] ?? null;
+}, "last-login-method");
+
+// deno-lint-ignore require-await
 export const requireTwoFactorPendingQuery = query(async () => {
   "use server";
   // Better Auth sets a `${cookiePrefix}.two_factor` cookie during `signInEmail`

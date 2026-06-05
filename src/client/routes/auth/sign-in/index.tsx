@@ -1,14 +1,15 @@
-import { A, useSubmission } from "@solidjs/router";
+import { A, createAsync, useSubmission } from "@solidjs/router";
 import { signInSocial } from "~/client/actions/auth.ts";
 import { Badge } from "~/client/components/ui/badge.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import { Separator } from "~/client/components/ui/separator.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
 import { authClient } from "~/client/lib/auth-client.ts";
+import { getLastLoginMethodQuery } from "~/client/queries/auth.ts";
 import FingerprintPattern from "~icons/lucide/fingerprint-pattern";
 import SimpleIconsGithub from "~icons/simple-icons/github";
 import SimpleIconsGoogle from "~icons/simple-icons/google";
-import { createEffect, createSignal, type JSX, onMount, Show } from "solid-js";
+import { createEffect, createSignal, type JSX, Show } from "solid-js";
 import { toast } from "solid-sonner";
 
 function LastUsedBadge(): JSX.Element {
@@ -21,9 +22,7 @@ function LastUsedBadge(): JSX.Element {
 
 function SignInPage(): JSX.Element {
   const [passkeyLoading, setPasskeyLoading] = createSignal(false);
-  const [lastLoginMethod, setLastLoginMethod] = createSignal<string | null>(
-    null,
-  );
+  const lastLoginMethod = createAsync(() => getLastLoginMethodQuery());
   const submission = useSubmission(signInSocial);
 
   const anyPending = (): boolean => submission.pending || passkeyLoading();
@@ -53,10 +52,6 @@ function SignInPage(): JSX.Element {
     });
     setPasskeyLoading(false);
   }
-
-  onMount(() => {
-    setLastLoginMethod(authClient.getLastUsedLoginMethod());
-  });
 
   return (
     <>
