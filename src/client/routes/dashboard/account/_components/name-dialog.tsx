@@ -1,8 +1,9 @@
-import { useSubmission } from "@solidjs/router";
+import { revalidate, useSubmission } from "@solidjs/router";
 import { updateUserName } from "~/client/actions/users.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { TextField } from "~/client/components/ui/form2/text-field.tsx";
+import { getSessionQuery } from "~/client/queries/auth.ts";
 import { createEffect, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
@@ -35,6 +36,7 @@ export function NameEditDialog(props: NameEditDialogProps): JSX.Element {
     if (submission.result && "ok" in submission.result) {
       dialogRef.close();
       toast.success("Name updated");
+      revalidate(getSessionQuery.key);
       submission.clear();
     }
   });
