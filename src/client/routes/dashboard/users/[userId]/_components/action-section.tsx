@@ -1,4 +1,5 @@
-import { revalidate, useNavigate } from "@solidjs/router";
+import { revalidate, useNavigate, useSubmission } from "@solidjs/router";
+import { impersonateUser } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import {
@@ -14,7 +15,7 @@ import type { SelectUser } from "~/shared/types/auth.ts";
 import Drama from "~icons/lucide/drama";
 import LoaderCircle from "~icons/lucide/loader-circle";
 import Trash2 from "~icons/lucide/trash-2";
-import { createSignal, type JSX, Show } from "solid-js";
+import { createEffect, createSignal, type JSX, Show } from "solid-js";
 import type { Accessor } from "solid-js";
 import { toast } from "solid-sonner";
 
@@ -27,25 +28,20 @@ const DELETE_USER_DIALOG_ID = "admin-delete-user-dialog";
 export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
   const navigate = useNavigate();
 
-  const [isImpersonating, setIsImpersonating] = createSignal(false);
+  const impersonateSubmission = useSubmission(
+    impersonateUser,
+    ([formData]) => formData.get("userId") === props.user().id,
+  );
   const [isDeleting, setIsDeleting] = createSignal(false);
 
-  const handleImpersonate = async () => {
-    setIsImpersonating(true);
-
-    await authClient.admin.impersonateUser({
-      userId: props.user().id,
-    }, {
-      onError: (error) => {
-        toast.error(error.error.message);
-      },
-      onSuccess: () => {
-        globalThis.location.href = "/dashboard";
-      },
-    });
-
-    setIsImpersonating(false);
-  };
+  createEffect(() => {
+    if (impersonateSubmission.error) {
+      toast.error(
+        impersonateSubmission.error.message || "Failed to impersonate user",
+      );
+      impersonateSubmission.clear();
+    }
+  });
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -76,17 +72,24 @@ export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-3">
-        <Button
-          onClick={handleImpersonate}
-          disabled={isImpersonating() || (props.user().banned ?? false)}
-          class="w-full"
-          variant="outline"
-        >
-          <Drama class="mr-2 size-4" />
-          <Show when={isImpersonating()} fallback="Impersonate user">
-            <LoaderCircle class="size-4 animate-spin" />
-          </Show>
-        </Button>
+        <form method="post" action={impersonateUser}>
+          <input type="hidden" name="userId" value={props.user().id} />
+          <Button
+            type="submit"
+            disabled={impersonateSubmission.pending ||
+              (props.user().banned ?? false)}
+            class="w-full"
+            variant="outline"
+          >
+            <Drama class="mr-2 size-4" />
+            <Show
+              when={impersonateSubmission.pending}
+              fallback="Impersonate user"
+            >
+              <LoaderCircle class="size-4 animate-spin" />
+            </Show>
+          </Button>
+        </form>
 
         <Button
           variant="destructive"

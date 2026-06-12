@@ -1,5 +1,6 @@
 import { useColorMode } from "@kobalte/core";
-import { A } from "@solidjs/router";
+import { A, useSubmission } from "@solidjs/router";
+import { stopImpersonating } from "~/client/actions/auth.ts";
 
 import {
   Avatar,
@@ -20,7 +21,6 @@ import {
   SidebarMenuItem,
 } from "~/client/components/ui/sidebar.tsx";
 import { useSession } from "~/client/contexts/session-context.tsx";
-import { authClient } from "~/client/lib/auth-client.ts";
 import { getFileUrl, getInitials } from "~/client/lib/utils.ts";
 import ChevronsUpDown from "~icons/lucide/chevrons-up-down";
 import LogOut from "~icons/lucide/log-out";
@@ -28,13 +28,24 @@ import Moon from "~icons/lucide/moon";
 
 import Sun from "~icons/lucide/sun";
 import User from "~icons/lucide/user";
-import { type JSX, Show } from "solid-js";
+import { createEffect, type JSX, Show } from "solid-js";
 import { toast } from "solid-sonner";
 
 export function NavUser(): JSX.Element {
   const session = useSession();
 
   const { colorMode, setColorMode } = useColorMode();
+
+  const stopSubmission = useSubmission(stopImpersonating);
+
+  createEffect(() => {
+    if (stopSubmission.error) {
+      toast.error(
+        stopSubmission.error.message || "Failed to stop impersonating",
+      );
+      stopSubmission.clear();
+    }
+  });
 
   const toggleTheme = () => {
     const next = colorMode() === "light" ? "dark" : "light";
@@ -43,19 +54,6 @@ export function NavUser(): JSX.Element {
       return;
     }
     document.startViewTransition(() => setColorMode(next));
-  };
-
-  const handleStopImpersonating = async () => {
-    await authClient.admin.stopImpersonating({
-      fetchOptions: {
-        onError: (error) => {
-          toast.error(error.error.message);
-        },
-        onSuccess: () => {
-          globalThis.location.href = "/dashboard";
-        },
-      },
-    });
   };
 
   return (
@@ -106,16 +104,18 @@ export function NavUser(): JSX.Element {
             <Show
               when={!session.session.impersonatedBy}
               fallback={
-                <DropdownMenuItem
-                  as={Button}
-                  variant="ghost"
-                  class="w-full justify-start"
-                  size="sm"
-                  onClick={handleStopImpersonating}
-                >
-                  <LogOut class="size-4" />
-                  Stop Impersonating
-                </DropdownMenuItem>
+                <form method="post" action={stopImpersonating}>
+                  <DropdownMenuItem
+                    as={Button}
+                    type="submit"
+                    variant="ghost"
+                    class="w-full justify-start"
+                    size="sm"
+                  >
+                    <LogOut class="size-4" />
+                    Stop Impersonating
+                  </DropdownMenuItem>
+                </form>
               }
             >
               <DropdownMenuItem

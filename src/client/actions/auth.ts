@@ -11,6 +11,7 @@ import {
   EnableTwoFactorSchema,
   ForgotPasswordSchema,
   GenerateBackupCodesSchema,
+  ImpersonateUserSchema,
   ResetPasswordSchema,
   RevokeSessionSchema,
   SignInSchema,
@@ -253,6 +254,32 @@ export const verifyTwoFactorTotp = action(async (formData: FormData) => {
 
   return redirectWithCookies(authHeaders, "/dashboard");
 }, "verifyTwoFactorTotp");
+
+export const impersonateUser = action(async (formData: FormData) => {
+  "use server";
+  const result = parseFields(ImpersonateUserSchema, {
+    userId: formData.get("userId"),
+  });
+  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
+
+  const { headers: authHeaders } = await auth.api.impersonateUser({
+    body: { userId: result.data.userId },
+    headers: getServerHeaders(),
+    returnHeaders: true,
+  });
+
+  return redirectWithCookies(authHeaders, "/dashboard");
+}, "impersonateUser");
+
+export const stopImpersonating = action(async () => {
+  "use server";
+  const { headers: authHeaders } = await auth.api.stopImpersonating({
+    headers: getServerHeaders(),
+    returnHeaders: true,
+  });
+
+  return redirectWithCookies(authHeaders, "/dashboard");
+}, "stopImpersonating");
 
 export const revokeSession = action(async (formData: FormData) => {
   "use server";

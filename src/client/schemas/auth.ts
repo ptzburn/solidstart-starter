@@ -113,3 +113,7 @@ export const DeletePasskeySchema = z.object({
 export const RevokeSessionSchema = z.object({
   token: z.string().min(1),
 });
+
+export const ImpersonateUserSchema = z.object({
+  userId: z.string().min(1),
+});
