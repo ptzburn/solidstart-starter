@@ -4,6 +4,7 @@ import { usePendingResetPasswordSession } from "~/client/lib/pending-reset-passw
 import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts";
 import { capitalize } from "~/client/lib/utils.ts";
 import {
+  AdminUpdateUserNameSchema,
   ChangePasswordSchema,
   ConfirmTwoFactorTotpSchema,
   DeletePasskeySchema,
@@ -14,6 +15,7 @@ import {
   ImpersonateUserSchema,
   ResetPasswordSchema,
   RevokeSessionSchema,
+  SetUserRoleSchema,
   SignInSchema,
   SignInSocialSchema,
   SignUpSchema,
@@ -254,6 +256,43 @@ export const verifyTwoFactorTotp = action(async (formData: FormData) => {
 
   return redirectWithCookies(authHeaders, "/dashboard");
 }, "verifyTwoFactorTotp");
+
+export const adminUpdateUserName = action(async (formData: FormData) => {
+  "use server";
+  const result = parseFields(AdminUpdateUserNameSchema, {
+    userId: formData.get("userId"),
+    firstName: formData.get("firstName"),
+    lastName: formData.get("lastName"),
+  });
+  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
+
+  const name = `${capitalize(result.data.firstName)} ${
+    capitalize(result.data.lastName)
+  }`.trim();
+
+  await auth.api.adminUpdateUser({
+    body: { userId: result.data.userId, data: { name } },
+    headers: getServerHeaders(),
+  });
+
+  return { ok: true as const };
+}, "adminUpdateUserName");
+
+export const setUserRole = action(async (formData: FormData) => {
+  "use server";
+  const result = parseFields(SetUserRoleSchema, {
+    userId: formData.get("userId"),
+    role: formData.get("role"),
+  });
+  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
+
+  await auth.api.setRole({
+    body: { userId: result.data.userId, role: result.data.role },
+    headers: getServerHeaders(),
+  });
+
+  return { ok: true as const };
+}, "setUserRole");
 
 export const impersonateUser = action(async (formData: FormData) => {
   "use server";

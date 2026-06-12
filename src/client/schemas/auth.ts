@@ -117,3 +117,14 @@ export const RevokeSessionSchema = z.object({
 export const ImpersonateUserSchema = z.object({
   userId: z.string().min(1),
 });
+
+export const AdminUpdateUserNameSchema = z.object({
+  userId: z.string().min(1),
+  firstName: z.string().trim().min(2, "Enter first name"),
+  lastName: z.string().trim().min(2, "Enter last name"),
+});
+
+export const SetUserRoleSchema = z.object({
+  userId: z.string().min(1),
+  role: z.enum(["user", "admin"]),
+});

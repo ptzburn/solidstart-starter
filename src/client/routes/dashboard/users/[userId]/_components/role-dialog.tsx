@@ -1,21 +1,20 @@
-import { revalidate } from "@solidjs/router";
+import { revalidate, useSubmission } from "@solidjs/router";
+import { setUserRole } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { FieldGroup } from "~/client/components/ui/field.tsx";
-import { useAppForm } from "~/client/hooks/use-app-form.ts";
-
-import { authClient } from "~/client/lib/auth-client.ts";
+import { SelectField } from "~/client/components/ui/form2/select-field.tsx";
 
 import { getUserByIdQuery } from "~/client/queries/users.ts";
 import type { SelectUser } from "~/shared/types/auth.ts";
-import { createMemo } from "solid-js";
+import { createEffect } from "solid-js";
 import type { Accessor, JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
-const ROLE_OPTIONS = ["user", "admin"].map((r) => ({
-  value: r,
-  label: r.charAt(0).toUpperCase() + r.slice(1),
-}));
+const ROLE_OPTIONS = [
+  { value: "user", label: "User" },
+  { value: "admin", label: "Admin" },
+];
 
 const DIALOG_ID = "admin-edit-role-dialog";
 
@@ -25,32 +24,31 @@ type RoleDialogProps = {
 
 export function RoleDialog(props: RoleDialogProps): JSX.Element {
   let dialogRef!: HTMLDialogElement;
-  const roleOptions = createMemo(() => ROLE_OPTIONS);
+  const submission = useSubmission(
+    setUserRole,
+    ([formData]) => formData.get("userId") === props.user().id,
+  );
 
-  const form = useAppForm(() => ({
-    defaultValues: {
-      role: props.user().role ?? "user",
-    },
-    validators: {},
-    onSubmit: async ({ value }) => {
-      await authClient.admin.setRole(
-        {
-          userId: String(props.user().id),
-          role: value.role,
-        },
-        {
-          onSuccess: () => {
-            revalidate(getUserByIdQuery.keyFor(props.user().id));
-            dialogRef.close();
-            toast.success("Role updated");
-          },
-          onError: (error) => {
-            toast.error(error.error?.message ?? "Failed to update role");
-          },
-        },
-      );
-    },
-  }));
+  const fieldErrors = (): Record<string, string | undefined> =>
+    submission.result && "fieldErrors" in submission.result
+      ? submission.result.fieldErrors ?? {}
+      : {};
+
+  createEffect(() => {
+    if (submission.result && "ok" in submission.result) {
+      dialogRef.close();
+      toast.success("Role updated");
+      revalidate(getUserByIdQuery.keyFor(props.user().id));
+      submission.clear();
+    }
+  });
+
+  createEffect(() => {
+    if (submission.error) {
+      toast.error(submission.error.message || "Failed to update role");
+      submission.clear();
+    }
+  });
 
   return (
     <>
@@ -59,7 +57,6 @@ export function RoleDialog(props: RoleDialogProps): JSX.Element {
         size="sm"
         command="show-modal"
         commandfor={DIALOG_ID}
-        onClick={() => form.reset({ role: props.user().role ?? "user" })}
       >
         Change
       </Button>
@@ -71,27 +68,31 @@ export function RoleDialog(props: RoleDialogProps): JSX.Element {
         description="Select a new role for this user."
       >
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
+          method="post"
+          action={setUserRole}
           class="space-y-4 py-2"
+          onInput={() => {
+            if (submission.result) submission.clear();
+          }}
         >
+          <input type="hidden" name="userId" value={props.user().id} />
           <FieldGroup>
-            <form.AppField name="role">
-              {(field) => (
-                <field.SelectField
-                  label="Role"
-                  placeholder="Select role"
-                  options={roleOptions()}
-                />
-              )}
-            </form.AppField>
+            <SelectField
+              name="role"
+              label="Role"
+              value={props.user().role ?? "user"}
+              options={ROLE_OPTIONS}
+              error={fieldErrors().role}
+              disabled={submission.pending}
+            />
           </FieldGroup>
-          <form.AppForm>
-            <form.SubmitButton>Save</form.SubmitButton>
-          </form.AppForm>
+          <Button
+            type="submit"
+            class="w-full"
+            disabled={submission.pending}
+          >
+            Save
+          </Button>
         </form>
       </ResponsiveDialog>
     </>

@@ -1,13 +1,13 @@
-import { revalidate } from "@solidjs/router";
+import { revalidate, useSubmission } from "@solidjs/router";
+import { adminUpdateUserName } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
-import { useAppForm } from "~/client/hooks/use-app-form.ts";
-import { authClient } from "~/client/lib/auth-client.ts";
+import { TextField } from "~/client/components/ui/form2/text-field.tsx";
 import { getUserByIdQuery } from "~/client/queries/users.ts";
 import type { SelectUser } from "~/shared/types/auth.ts";
-import type { Accessor, JSX } from "solid-js";
+import { createEffect, type JSX } from "solid-js";
+import type { Accessor } from "solid-js";
 import { toast } from "solid-sonner";
-import z from "zod";
 
 const DIALOG_ID = "admin-edit-name-dialog";
 
@@ -26,39 +26,36 @@ function splitName(fullName: string): { firstName: string; lastName: string } {
 
 export function NameDialog(props: NameDialogProps): JSX.Element {
   let dialogRef!: HTMLDialogElement;
+  let formRef!: HTMLFormElement;
+  const submission = useSubmission(
+    adminUpdateUserName,
+    ([formData]) => formData.get("userId") === props.user().id,
+  );
 
-  const form = useAppForm(() => ({
-    defaultValues: splitName(props.user().name),
-    validators: {
-      onSubmit: z.object({
-        firstName: z.string().trim().min(1),
-        lastName: z.string().trim().min(1),
-      }),
-    },
-    onSubmit: async ({ formApi, value }) => {
-      const fullName = [value.firstName.trim(), value.lastName.trim()]
-        .filter(Boolean)
-        .join(" ");
+  const initial = (): { firstName: string; lastName: string } =>
+    splitName(props.user().name);
 
-      await authClient.admin.updateUser(
-        {
-          userId: props.user().id,
-          data: { name: fullName },
-        },
-        {
-          onSuccess: () => {
-            formApi.reset();
-            revalidate(getUserByIdQuery.keyFor(props.user().id));
-            dialogRef.close();
-            toast.success("Name updated");
-          },
-          onError: (error) => {
-            toast.error(error.error.message || "Failed to update name");
-          },
-        },
-      );
-    },
-  }));
+  const fieldErrors = (): Record<string, string | undefined> =>
+    submission.result && "fieldErrors" in submission.result
+      ? submission.result.fieldErrors ?? {}
+      : {};
+
+  createEffect(() => {
+    if (submission.result && "ok" in submission.result) {
+      formRef.reset();
+      dialogRef.close();
+      toast.success("Name updated");
+      revalidate(getUserByIdQuery.keyFor(props.user().id));
+      submission.clear();
+    }
+  });
+
+  createEffect(() => {
+    if (submission.error) {
+      toast.error(submission.error.message || "Failed to update name");
+      submission.clear();
+    }
+  });
 
   return (
     <>
@@ -77,34 +74,46 @@ export function NameDialog(props: NameDialogProps): JSX.Element {
         title="Edit name"
       >
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
+          ref={(el) => formRef = el}
+          method="post"
+          action={adminUpdateUserName}
           class="space-y-4"
+          onInput={() => {
+            if (submission.result) submission.clear();
+          }}
         >
+          <input type="hidden" name="userId" value={props.user().id} />
           <div class="grid gap-4 md:grid-cols-2">
-            <form.AppField name="firstName">
-              {(field) => (
-                <field.TextField
-                  label="First name"
-                  placeholder="First name"
-                />
-              )}
-            </form.AppField>
-            <form.AppField name="lastName">
-              {(field) => (
-                <field.TextField
-                  label="Last name"
-                  placeholder="Last name"
-                />
-              )}
-            </form.AppField>
+            <TextField
+              name="firstName"
+              label="First name"
+              placeholder="First name"
+              value={initial().firstName}
+              minlength={2}
+              required
+              hint="Enter first name"
+              error={fieldErrors().firstName}
+              disabled={submission.pending}
+            />
+            <TextField
+              name="lastName"
+              label="Last name"
+              placeholder="Last name"
+              value={initial().lastName}
+              minlength={2}
+              required
+              hint="Enter last name"
+              error={fieldErrors().lastName}
+              disabled={submission.pending}
+            />
           </div>
-          <form.AppForm>
-            <form.SubmitButton>Save</form.SubmitButton>
-          </form.AppForm>
+          <Button
+            type="submit"
+            class="w-full"
+            disabled={submission.pending}
+          >
+            Save
+          </Button>
         </form>
       </ResponsiveDialog>
     </>
