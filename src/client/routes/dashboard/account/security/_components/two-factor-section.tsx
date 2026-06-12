@@ -1,8 +1,13 @@
-import { createAsync, revalidate } from "@solidjs/router";
+import { createAsync, revalidate, useSubmission } from "@solidjs/router";
+import {
+  confirmTwoFactorTotp,
+  enableTwoFactor,
+} from "~/client/actions/auth.ts";
 import { Badge } from "~/client/components/ui/badge.tsx";
-
 import { Button } from "~/client/components/ui/button.tsx";
 import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
+import { OTPField } from "~/client/components/ui/form2/otp-field.tsx";
+import { TextField } from "~/client/components/ui/form2/text-field.tsx";
 import {
   Item,
   ItemActions,
@@ -13,13 +18,13 @@ import {
 } from "~/client/components/ui/item.tsx";
 import { Skeleton } from "~/client/components/ui/skeleton.tsx";
 import { useSession } from "~/client/contexts/session-context.tsx";
-import { authClient } from "~/client/lib/auth-client.ts";
 import {
   getSessionQuery,
   viewNumberOfBackupCodesQuery,
 } from "~/client/queries/auth.ts";
 import {
-  createSignal,
+  createEffect,
+  createMemo,
   ErrorBoundary,
   type JSX,
   Match,
@@ -27,12 +32,11 @@ import {
   Suspense,
   Switch,
 } from "solid-js";
+import { QRCodeSVG } from "solid-qr-code";
 import { toast } from "solid-sonner";
 import { BackupCodesStep } from "./backup-codes-step.tsx";
 import { DisableTwoFactorDialog } from "./disable-two-factor-dialog.tsx";
-import { PasswordForm } from "./password-form.tsx";
 import { RegenerateBackupCodesDialog } from "./regenerate-backup-codes-dialog.tsx";
-import { VerifyTotpStep } from "./verify-totp-step.tsx";
 
 const ENABLE_DIALOG_ID = "enable-two-factor-dialog";
 
@@ -48,56 +52,75 @@ export function TwoFactorSection(): JSX.Element {
   });
 
   let enableDialogRef!: HTMLDialogElement;
-  const [enableStep, setEnableStep] = createSignal<EnableStep>("password");
-  const [totpUri, setTotpUri] = createSignal("");
-  const [backupCodes, setBackupCodes] = createSignal<string[]>([]);
+  let passwordFormRef: HTMLFormElement | undefined;
+  let verifyFormRef: HTMLFormElement | undefined;
 
-  async function handlePasswordSubmit(password: string): Promise<void> {
-    const { data } = await authClient.twoFactor.enable({
-      password,
-      fetchOptions: {
-        onError: (ctx) => {
-          toast.error(
-            ctx.error.message || "Failed to enable two-factor authentication",
-          );
-        },
-      },
-    });
+  const enableSubmission = useSubmission(enableTwoFactor);
+  const verifySubmission = useSubmission(confirmTwoFactorTotp);
 
-    if (data) {
-      setTotpUri(data.totpURI);
-      setBackupCodes(data.backupCodes);
-      setEnableStep("verify");
+  const enableData = createMemo(() =>
+    enableSubmission.result && "ok" in enableSubmission.result
+      ? enableSubmission.result
+      : undefined
+  );
+
+  const passwordFieldErrors = (): Record<string, string | undefined> =>
+    enableSubmission.result && "fieldErrors" in enableSubmission.result
+      ? enableSubmission.result.fieldErrors ?? {}
+      : {};
+
+  const codeFieldErrors = (): Record<string, string | undefined> =>
+    verifySubmission.result && "fieldErrors" in verifySubmission.result
+      ? verifySubmission.result.fieldErrors ?? {}
+      : {};
+
+  const verified = (): boolean =>
+    !!(verifySubmission.result && "ok" in verifySubmission.result);
+
+  const enableStep = (): EnableStep => {
+    if (verified()) return "backup-codes";
+    if (enableData()) return "verify";
+    return "password";
+  };
+
+  createEffect(() => {
+    if (enableSubmission.error) {
+      toast.error(
+        enableSubmission.error.message ||
+          "Failed to enable two-factor authentication",
+      );
+      enableSubmission.clear();
     }
-  }
+  });
 
-  async function handleVerifyTotpSubmit(code: string): Promise<void> {
-    await authClient.twoFactor.verifyTotp({
-      code,
-      fetchOptions: {
-        onError: (ctx) => {
-          toast.error(
-            ctx.error.message || "Failed to verify two-factor authentication",
-          );
-        },
-        onSuccess: () => {
-          revalidate(getSessionQuery.key);
-          setEnableStep("backup-codes");
-        },
-      },
-    });
-  }
+  createEffect(() => {
+    if (verifySubmission.error) {
+      toast.error(
+        verifySubmission.error.message ||
+          "Failed to verify two-factor authentication",
+      );
+      verifySubmission.clear();
+    }
+  });
+
+  createEffect(() => {
+    if (verified()) {
+      revalidate(getSessionQuery.key);
+    }
+  });
 
   function resetEnableState(): void {
-    setEnableStep("password");
-    setTotpUri("");
-    setBackupCodes([]);
+    passwordFormRef?.reset();
+    verifyFormRef?.reset();
+    enableSubmission.clear();
+    verifySubmission.clear();
   }
 
   function handleEnableClose(): void {
-    if (enableStep() === "backup-codes") {
+    if (verified()) {
       toast.success("Two-factor authentication enabled");
     }
+    resetEnableState();
   }
 
   return (
@@ -183,20 +206,80 @@ export function TwoFactorSection(): JSX.Element {
       >
         <Switch>
           <Match when={enableStep() === "password"}>
-            <PasswordForm
-              submitLabel="Continue"
-              onSubmit={handlePasswordSubmit}
-            />
+            <form
+              ref={(el) => passwordFormRef = el}
+              method="post"
+              action={enableTwoFactor}
+              class="space-y-4"
+              onInput={() => {
+                if (enableSubmission.result) enableSubmission.clear();
+              }}
+            >
+              <TextField
+                name="password"
+                label="Password"
+                type="password"
+                placeholder="Current password"
+                required
+                hint="Enter your current password"
+                error={passwordFieldErrors().password}
+                disabled={enableSubmission.pending}
+              />
+              <Button
+                type="submit"
+                class="w-full"
+                disabled={enableSubmission.pending}
+              >
+                Continue
+              </Button>
+            </form>
           </Match>
           <Match when={enableStep() === "verify"}>
-            <VerifyTotpStep
-              totpUri={totpUri()}
-              onSubmit={handleVerifyTotpSubmit}
-            />
+            <form
+              ref={(el) => verifyFormRef = el}
+              method="post"
+              action={confirmTwoFactorTotp}
+              class="space-y-6"
+              onInput={() => {
+                if (verifySubmission.result) verifySubmission.clear();
+              }}
+            >
+              <Show when={enableData()?.totpURI}>
+                {(uri) => (
+                  <div class="flex justify-center">
+                    <div class="rounded-lg bg-white p-3">
+                      <QRCodeSVG
+                        value={uri()}
+                        width={200}
+                        height={200}
+                        level="medium"
+                        backgroundColor="#ffffff"
+                        backgroundAlpha={1}
+                        foregroundColor="#000000"
+                        foregroundAlpha={1}
+                      />
+                    </div>
+                  </div>
+                )}
+              </Show>
+              <OTPField
+                name="code"
+                label="Verification code"
+                error={codeFieldErrors().code}
+                disabled={verifySubmission.pending}
+              />
+              <Button
+                type="submit"
+                class="w-full"
+                disabled={verifySubmission.pending}
+              >
+                Verify
+              </Button>
+            </form>
           </Match>
           <Match when={enableStep() === "backup-codes"}>
             <BackupCodesStep
-              backupCodes={backupCodes()}
+              backupCodes={enableData()?.backupCodes ?? []}
               onDone={() => enableDialogRef.close()}
             />
           </Match>

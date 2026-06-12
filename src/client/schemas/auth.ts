@@ -89,3 +89,23 @@ export const VerifyTwoFactorBackupSchema = z.object({
   code: z.string().min(1, "Invalid code"),
   trustDevice: z.boolean().optional(),
 });
+
+export const EnableTwoFactorSchema = z.object({
+  password: z.string().min(1, "Enter your password"),
+});
+
+export const DisableTwoFactorSchema = z.object({
+  password: z.string().min(1, "Enter your password"),
+});
+
+export const GenerateBackupCodesSchema = z.object({
+  password: z.string().min(1, "Enter your password"),
+});
+
+export const ConfirmTwoFactorTotpSchema = z.object({
+  code: z.string().length(6, "Enter a 6-digit code"),
+});
+
+export const DeletePasskeySchema = z.object({
+  id: z.string().min(1),
+});

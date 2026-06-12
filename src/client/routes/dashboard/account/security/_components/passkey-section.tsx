@@ -1,4 +1,5 @@
-import { createAsync, revalidate } from "@solidjs/router";
+import { createAsync, revalidate, useAction } from "@solidjs/router";
+import { deletePasskey } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
@@ -36,6 +37,7 @@ export function PasskeySection(): JSX.Element {
   const [adding, setAdding] = createSignal(false);
   const [deletingId, setDeletingId] = createSignal<string | null>(null);
   const [deleting, setDeleting] = createSignal(false);
+  const triggerDelete = useAction(deletePasskey);
 
   const handleAdd = async () => {
     setAdding(true);
@@ -57,20 +59,22 @@ export function PasskeySection(): JSX.Element {
     const id = deletingId();
     if (!id) return;
     setDeleting(true);
-    await authClient.passkey.deletePasskey({
-      id,
-      fetchOptions: {
-        onSuccess: () => {
-          revalidate(listPasskeysQuery.key);
-          toast.success("Passkey deleted");
-          dialogRef.close();
-        },
-        onError: (ctx) => {
-          toast.error(ctx.error.message || "Failed to delete passkey");
-        },
-      },
-    });
-    setDeleting(false);
+    try {
+      const formData = new FormData();
+      formData.set("id", id);
+      const result = await triggerDelete(formData);
+      if (result && "ok" in result) {
+        revalidate(listPasskeysQuery.key);
+        toast.success("Passkey deleted");
+        dialogRef.close();
+      }
+    } catch (error) {
+      toast.error(
+        Error.isError(error) ? error.message : "Failed to delete passkey",
+      );
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (

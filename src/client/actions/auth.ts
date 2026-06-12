@@ -5,7 +5,12 @@ import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts"
 import { capitalize } from "~/client/lib/utils.ts";
 import {
   ChangePasswordSchema,
+  ConfirmTwoFactorTotpSchema,
+  DeletePasskeySchema,
+  DisableTwoFactorSchema,
+  EnableTwoFactorSchema,
   ForgotPasswordSchema,
+  GenerateBackupCodesSchema,
   ResetPasswordSchema,
   SignInSchema,
   SignInSocialSchema,
@@ -247,6 +252,81 @@ export const verifyTwoFactorTotp = action(async (formData: FormData) => {
 
   return redirectWithCookies(authHeaders, "/dashboard");
 }, "verifyTwoFactorTotp");
+
+export const enableTwoFactor = action(async (formData: FormData) => {
+  "use server";
+  const result = parseFields(EnableTwoFactorSchema, {
+    password: formData.get("password"),
+  });
+  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
+
+  const { totpURI, backupCodes } = await auth.api.enableTwoFactor({
+    body: { password: result.data.password },
+    headers: getServerHeaders(),
+  });
+
+  return { ok: true as const, totpURI, backupCodes };
+}, "enableTwoFactor");
+
+export const confirmTwoFactorTotp = action(async (formData: FormData) => {
+  "use server";
+  const result = parseFields(ConfirmTwoFactorTotpSchema, {
+    code: formData.get("code"),
+  });
+  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
+
+  await auth.api.verifyTOTP({
+    body: { code: result.data.code },
+    headers: getServerHeaders(),
+  });
+
+  return { ok: true as const };
+}, "confirmTwoFactorTotp");
+
+export const disableTwoFactor = action(async (formData: FormData) => {
+  "use server";
+  const result = parseFields(DisableTwoFactorSchema, {
+    password: formData.get("password"),
+  });
+  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
+
+  await auth.api.disableTwoFactor({
+    body: { password: result.data.password },
+    headers: getServerHeaders(),
+  });
+
+  return { ok: true as const };
+}, "disableTwoFactor");
+
+export const generateBackupCodes = action(async (formData: FormData) => {
+  "use server";
+  const result = parseFields(GenerateBackupCodesSchema, {
+    password: formData.get("password"),
+  });
+  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
+
+  const { backupCodes } = await auth.api.generateBackupCodes({
+    body: { password: result.data.password },
+    headers: getServerHeaders(),
+  });
+
+  return { ok: true as const, backupCodes };
+}, "generateBackupCodes");
+
+export const deletePasskey = action(async (formData: FormData) => {
+  "use server";
+  const result = parseFields(DeletePasskeySchema, {
+    id: formData.get("id"),
+  });
+  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
+
+  await auth.api.deletePasskey({
+    body: { id: result.data.id },
+    headers: getServerHeaders(),
+  });
+
+  return { ok: true as const };
+}, "deletePasskey");
 
 export const verifyTwoFactorBackup = action(async (formData: FormData) => {
   "use server";

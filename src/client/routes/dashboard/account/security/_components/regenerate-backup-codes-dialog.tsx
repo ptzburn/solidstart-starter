@@ -1,47 +1,51 @@
-import { revalidate } from "@solidjs/router";
+import { revalidate, useSubmission } from "@solidjs/router";
+import { generateBackupCodes } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
-import { authClient } from "~/client/lib/auth-client.ts";
-
+import { TextField } from "~/client/components/ui/form2/text-field.tsx";
 import { viewNumberOfBackupCodesQuery } from "~/client/queries/auth.ts";
-import { createSignal, type JSX, Match, Switch } from "solid-js";
+import { createEffect, type JSX, Match, Switch } from "solid-js";
 import { toast } from "solid-sonner";
 import { BackupCodesStep } from "./backup-codes-step.tsx";
-import { PasswordForm } from "./password-form.tsx";
 
 const DIALOG_ID = "regenerate-backup-codes-dialog";
 
-type Step = "password" | "codes";
-
 export function RegenerateBackupCodesDialog(): JSX.Element {
   let dialogRef!: HTMLDialogElement;
-  const [step, setStep] = createSignal<Step>("password");
-  const [codes, setCodes] = createSignal<string[]>([]);
+  let formRef!: HTMLFormElement;
+  const submission = useSubmission(generateBackupCodes);
 
-  async function handlePasswordSubmit(password: string): Promise<void> {
-    const { data } = await authClient.twoFactor.generateBackupCodes({
-      password,
-      fetchOptions: {
-        onSuccess: () => {
-          revalidate(viewNumberOfBackupCodesQuery.key);
-        },
-        onError: (ctx) => {
-          toast.error(
-            ctx.error.message || "Failed to regenerate backup codes",
-          );
-        },
-      },
-    });
+  const fieldErrors = (): Record<string, string | undefined> =>
+    submission.result && "fieldErrors" in submission.result
+      ? submission.result.fieldErrors ?? {}
+      : {};
 
-    if (data && data.backupCodes && data.status) {
-      setCodes(data.backupCodes);
-      setStep("codes");
+  const codes = (): string[] =>
+    submission.result && "ok" in submission.result
+      ? submission.result.backupCodes ?? []
+      : [];
+
+  const step = (): "password" | "codes" =>
+    codes().length > 0 ? "codes" : "password";
+
+  createEffect(() => {
+    if (submission.result && "ok" in submission.result) {
+      revalidate(viewNumberOfBackupCodesQuery.key);
     }
-  }
+  });
+
+  createEffect(() => {
+    if (submission.error) {
+      toast.error(
+        submission.error.message || "Failed to regenerate backup codes",
+      );
+      submission.clear();
+    }
+  });
 
   function handleDialogClose(): void {
-    setStep("password");
-    setCodes([]);
+    formRef?.reset();
+    submission.clear();
   }
 
   return (
@@ -68,10 +72,33 @@ export function RegenerateBackupCodesDialog(): JSX.Element {
       >
         <Switch>
           <Match when={step() === "password"}>
-            <PasswordForm
-              submitLabel="Regenerate"
-              onSubmit={handlePasswordSubmit}
-            />
+            <form
+              ref={(el) => formRef = el}
+              method="post"
+              action={generateBackupCodes}
+              class="space-y-4"
+              onInput={() => {
+                if (submission.result) submission.clear();
+              }}
+            >
+              <TextField
+                name="password"
+                label="Password"
+                type="password"
+                placeholder="Current password"
+                required
+                hint="Enter your current password"
+                error={fieldErrors().password}
+                disabled={submission.pending}
+              />
+              <Button
+                type="submit"
+                class="w-full"
+                disabled={submission.pending}
+              >
+                Regenerate
+              </Button>
+            </form>
           </Match>
           <Match when={step() === "codes"}>
             <BackupCodesStep
