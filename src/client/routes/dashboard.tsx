@@ -9,7 +9,7 @@ import AppSidebar from "../routes/dashboard/_components/app-sidebar.tsx";
 import MobileHeader from "../routes/dashboard/_components/mobile-header.tsx";
 
 export default function DashboardLayout(props: RouteSectionProps): JSX.Element {
-  const session = createAsync(() => getSessionQuery());
+  const session = createAsync(() => getSessionQuery(), { deferStream: true });
 
   return (
     <div class="flex min-h-0 flex-1 flex-col">
