@@ -3,7 +3,7 @@ nixPkgs = ["curl", "unzip"]
 
 [phases.install]
 cmds = [
-  "curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s v2.7.11 && /usr/local/bin/deno install"
+  "curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s v2.8.3 && /usr/local/bin/deno install"
 ]
 
 [phases.build]

@@ -43,5 +43,16 @@ export default defineConfig({
         };
       },
     },
+    {
+      // Workaround for @solidjs/start@2.0.0-alpha.3: its manifest plugin
+      // reads the asset id from a query string in the resolved id, but Vite
+      // strips the query before calling load. Returning the id verbatim from
+      // resolveId keeps the query intact through to start's load hook.
+      name: "solid-start-manifest-query-preserve",
+      enforce: "pre",
+      resolveId(id) {
+        if (id.startsWith("/@manifest/")) return id;
+      },
+    },
   ],
 });

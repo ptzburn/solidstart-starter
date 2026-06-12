@@ -72,15 +72,15 @@
     "@corvu/calendar": "npm:@corvu/calendar@^0.1.2",
     "@corvu/drawer": "npm:@corvu/drawer@^0.2.4",
     "@corvu/otp-field": "npm:@corvu/otp-field@^0.1.4",
-    "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.6",
+    "@deno/vite-plugin": "npm:@deno/vite-plugin@^2.0.2",
     "@kobalte/core": "npm:@kobalte/core@^0.13.11",
     "@kobalte/tailwindcss": "npm:@kobalte/tailwindcss@^0.9.0",
     "@libsql/client": "npm:@libsql/client@^0.17.3",
     "@seven.io/client": "npm:@seven.io/client@^5.6.0",
     "@solidjs/meta": "npm:@solidjs/meta@^0.29.4",
     "@solidjs/router": "npm:@solidjs/router@^0.16.1",
-    "@solidjs/start": "npm:@solidjs/start@^2.0.0-alpha.2",
-    "@solidjs/vite-plugin-nitro-2": "npm:@solidjs/vite-plugin-nitro-2@^0.1.0",
+    "@solidjs/start": "npm:@solidjs/start@2.0.0-alpha.3",
+    "@solidjs/vite-plugin-nitro-2": "npm:@solidjs/vite-plugin-nitro-2@0.3.0",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.3.0",
     "@tanstack/solid-form": "npm:@tanstack/solid-form@^1.31.0",
     "better-auth": "npm:better-auth@^1.6.10",
@@ -121,7 +121,10 @@
     "types": [
       "vite/client",
       "unplugin-icons/types/solid"
-    ]
+    ],
+    "paths": {
+      "~icons/*": ["./node_modules/unplugin-icons/types/solid.d.ts"]
+    }
   },
   "allowScripts": ["npm:lefthook"]
 }
