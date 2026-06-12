@@ -8,3 +8,11 @@ export const UpdateUserNameSchema = z.object({
 export type UpdateUserNameFieldErrors = Partial<
   Record<keyof z.infer<typeof UpdateUserNameSchema>, string>
 >;
+
+export const RequestEmailChangeSchema = z.object({
+  email: z.email("Enter a valid email"),
+});
+
+export type RequestEmailChangeFieldErrors = Partial<
+  Record<keyof z.infer<typeof RequestEmailChangeSchema>, string>
+>;
