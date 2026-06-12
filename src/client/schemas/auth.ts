@@ -109,3 +109,7 @@ export const ConfirmTwoFactorTotpSchema = z.object({
 export const DeletePasskeySchema = z.object({
   id: z.string().min(1),
 });
+
+export const RevokeSessionSchema = z.object({
+  token: z.string().min(1),
+});

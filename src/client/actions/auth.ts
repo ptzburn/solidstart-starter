@@ -12,6 +12,7 @@ import {
   ForgotPasswordSchema,
   GenerateBackupCodesSchema,
   ResetPasswordSchema,
+  RevokeSessionSchema,
   SignInSchema,
   SignInSocialSchema,
   SignUpSchema,
@@ -252,6 +253,29 @@ export const verifyTwoFactorTotp = action(async (formData: FormData) => {
 
   return redirectWithCookies(authHeaders, "/dashboard");
 }, "verifyTwoFactorTotp");
+
+export const revokeSession = action(async (formData: FormData) => {
+  "use server";
+  const result = parseFields(RevokeSessionSchema, {
+    token: formData.get("token"),
+  });
+  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
+
+  await auth.api.revokeSession({
+    body: { token: result.data.token },
+    headers: getServerHeaders(),
+  });
+
+  return { ok: true as const };
+}, "revokeSession");
+
+export const revokeOtherSessions = action(async () => {
+  "use server";
+  await auth.api.revokeOtherSessions({
+    headers: getServerHeaders(),
+  });
+  return { ok: true as const };
+}, "revokeOtherSessions");
 
 export const deleteAccount = action(async () => {
   "use server";

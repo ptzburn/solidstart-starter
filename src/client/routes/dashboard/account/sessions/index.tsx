@@ -1,4 +1,5 @@
-import { createAsync, revalidate } from "@solidjs/router";
+import { createAsync, revalidate, useSubmission } from "@solidjs/router";
+import { revokeOtherSessions, revokeSession } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
 import { Badge } from "~/client/components/ui/badge.tsx";
@@ -14,12 +15,12 @@ import {
   TableRow,
 } from "~/client/components/ui/table.tsx";
 import { useSession } from "~/client/contexts/session-context.tsx";
-import { authClient } from "~/client/lib/auth-client.ts";
 import { listSessionsQuery } from "~/client/queries/auth.ts";
 import Monitor from "~icons/lucide/monitor";
 import Smartphone from "~icons/lucide/smartphone";
 import Tablet from "~icons/lucide/tablet";
 import {
+  createEffect,
   createSignal,
   ErrorBoundary,
   For,
@@ -96,46 +97,49 @@ export default function SessionsRoute(): JSX.Element {
   const sessions = createAsync(() => listSessionsQuery());
   const session = useSession();
   const [revokingToken, setRevokingToken] = createSignal<string | null>(null);
-  const [revokingAll, setRevokingAll] = createSignal(false);
+
+  const revokeSubmission = useSubmission(revokeSession);
+  const revokeAllSubmission = useSubmission(revokeOtherSessions);
 
   const hasOtherSessions = () =>
     (sessions() ?? []).some((s) => s.token !== session.session.token);
 
-  const handleRevoke = async () => {
-    const token = revokingToken();
-    if (!token) return;
+  createEffect(() => {
+    if (revokeSubmission.result && "ok" in revokeSubmission.result) {
+      revalidate(listSessionsQuery.key);
+      toast.success("Session revoked successfully");
+      revokeDialogRef.close();
+      setRevokingToken(null);
+      revokeSubmission.clear();
+    }
+  });
 
-    await authClient.revokeSession({
-      token,
-      fetchOptions: {
-        onSuccess: () => {
-          revalidate(listSessionsQuery.key);
-          toast.success("Session revoked successfully");
-          revokeDialogRef.close();
-        },
-        onError: (ctx) => {
-          toast.error(ctx.error.message || "Failed to revoke session");
-        },
-      },
-    });
-  };
+  createEffect(() => {
+    if (revokeSubmission.error) {
+      toast.error(
+        revokeSubmission.error.message || "Failed to revoke session",
+      );
+      revokeSubmission.clear();
+    }
+  });
 
-  const handleRevokeAll = async () => {
-    setRevokingAll(true);
-    await authClient.revokeOtherSessions({
-      fetchOptions: {
-        onSuccess: () => {
-          revalidate(listSessionsQuery.key);
-          toast.success("All other sessions have been revoked");
-          revokeAllDialogRef.close();
-        },
-        onError: (ctx) => {
-          toast.error(ctx.error.message || "Failed to revoke sessions");
-        },
-      },
-    });
-    setRevokingAll(false);
-  };
+  createEffect(() => {
+    if (revokeAllSubmission.result && "ok" in revokeAllSubmission.result) {
+      revalidate(listSessionsQuery.key);
+      toast.success("All other sessions have been revoked");
+      revokeAllDialogRef.close();
+      revokeAllSubmission.clear();
+    }
+  });
+
+  createEffect(() => {
+    if (revokeAllSubmission.error) {
+      toast.error(
+        revokeAllSubmission.error.message || "Failed to revoke sessions",
+      );
+      revokeAllSubmission.clear();
+    }
+  });
 
   return (
     <div class="flex flex-1 flex-col gap-4">
@@ -272,11 +276,11 @@ export default function SessionsRoute(): JSX.Element {
             <Button
               variant="secondary"
               class="w-fit"
-              disabled={revokingAll()}
+              disabled={revokeAllSubmission.pending}
               command="show-modal"
               commandfor={REVOKE_ALL_DIALOG_ID}
             >
-              <Show when={revokingAll()}>
+              <Show when={revokeAllSubmission.pending}>
                 <Spinner class="size-4" />
               </Show>
               Revoke all other sessions
@@ -292,8 +296,8 @@ export default function SessionsRoute(): JSX.Element {
         title="Revoke all other sessions?"
         description="This will sign out all devices except the current one. This action cannot be undone."
         confirmText="Revoke all"
-        isPending={revokingAll()}
-        onConfirm={handleRevokeAll}
+        isPending={revokeAllSubmission.pending}
+        action={revokeOtherSessions}
       />
 
       <ConfirmDialog
@@ -303,7 +307,9 @@ export default function SessionsRoute(): JSX.Element {
         title="Revoke session?"
         description="This will sign out the device associated with this session. This action cannot be undone."
         confirmText="Revoke"
-        onConfirm={handleRevoke}
+        isPending={revokeSubmission.pending}
+        action={revokeSession}
+        hiddenFields={{ token: revokingToken() ?? "" }}
         onClose={() => setRevokingToken(null)}
       />
     </div>
