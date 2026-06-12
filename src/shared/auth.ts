@@ -12,7 +12,7 @@ import {
 } from "~/api/services/emails.ts";
 
 import env from "~/env.ts";
-import { betterAuth } from "better-auth";
+import { betterAuth } from "better-auth/minimal";
 import {
   admin,
   captcha,
@@ -114,7 +114,21 @@ export const auth = betterAuth({
   emailVerification: {
     autoSignInAfterVerification: true,
     sendOnSignIn: true,
-    sendOnSignUp: true,
+    sendVerificationEmail: async ({ user, url, token }) => {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload.requestType === "change-email-verification") {
+        void sendEmailChangeConfirmation({
+          email: user.email,
+          userName: user.name,
+          newEmail: user.email,
+          verificationUrl: url,
+        });
+        return;
+      }
+      await auth.api.sendVerificationOTP({
+        body: { email: user.email, type: "email-verification" },
+      });
+    },
   },
   socialProviders: {
     github: {
@@ -149,10 +163,6 @@ export const auth = betterAuth({
       allowedAttempts: 3,
       storeOTP: "encrypted",
       sendVerificationOnSignUp: true,
-      changeEmail: {
-        enabled: true,
-      },
-      overrideDefaultEmailVerification: true,
       // deno-lint-ignore require-await
       async sendVerificationOTP({ email, otp, type }): Promise<void> {
         if (env.NODE_ENV !== "test") {
@@ -162,7 +172,7 @@ export const auth = betterAuth({
         } else {
           // deno-lint-ignore no-console
           console.log(
-            `Sending email verification code to ${email} with code ${otp}`,
+            `Sending ${type} code to ${email} with code ${otp}`,
           );
         }
       },

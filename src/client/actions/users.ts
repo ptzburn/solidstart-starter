@@ -53,7 +53,9 @@ export const requestEmailChange = action(async (formData: FormData) => {
   await auth.api.changeEmail({
     body: {
       newEmail: result.data.email,
-      callbackURL: `/account?newEmail=${encodeURIComponent(result.data.email)}`,
+      callbackURL: `/dashboard/account?newEmail=${
+        encodeURIComponent(result.data.email)
+      }`,
     },
     headers,
   });

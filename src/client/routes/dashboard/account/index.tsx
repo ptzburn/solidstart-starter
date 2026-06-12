@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from "@solidjs/router";
+import { useSearchParams } from "@solidjs/router";
 import { AvatarUpload } from "~/client/components/avatar-upload.tsx";
 
 import {
@@ -14,25 +14,30 @@ import {
 import { useSession } from "~/client/contexts/session-context.tsx";
 
 import { format } from "date-fns";
-import { createMemo, type JSX } from "solid-js";
-import { EmailChangeOTPDialog } from "./_components/email-change-otp-dialog.tsx";
+import { createEffect, type JSX } from "solid-js";
+import { toast } from "solid-sonner";
 import { EmailDialog } from "./_components/email-dialog.tsx";
 import { NameEditDialog } from "./_components/name-dialog.tsx";
 import { PhoneDialog } from "./_components/phone-dialog.tsx";
 
 export default function AccountIndexRoute(): JSX.Element {
   const session = useSession();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const newEmail = createMemo(() => {
-    const email = searchParams.newEmail;
-    return typeof email === "string" ? email : null;
+  let handled = false;
+  createEffect(() => {
+    const requested = searchParams.newEmail;
+    if (typeof requested !== "string" || handled) return;
+    handled = true;
+    if (session.user.email === requested) {
+      toast.success("Email changed");
+    } else {
+      toast.info(
+        "Confirmation link sent to your new email. Click it to complete the change.",
+      );
+    }
+    setSearchParams({ newEmail: undefined }, { replace: true });
   });
-
-  const handleOTPDialogClose = () => {
-    navigate("/account", { replace: true });
-  };
 
   return (
     <div class="flex flex-1 flex-col gap-10">
@@ -103,11 +108,6 @@ export default function AccountIndexRoute(): JSX.Element {
           </ItemContent>
         </Item>
       </ItemGroup>
-
-      <EmailChangeOTPDialog
-        newEmail={newEmail()}
-        onClose={handleOTPDialogClose}
-      />
     </div>
   );
 }
