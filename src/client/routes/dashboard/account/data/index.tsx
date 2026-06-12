@@ -1,3 +1,5 @@
+import { useAction, useSubmission } from "@solidjs/router";
+import { deleteAccount } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import {
@@ -8,28 +10,29 @@ import {
   ItemGroup,
   ItemTitle,
 } from "~/client/components/ui/item.tsx";
-import { authClient } from "~/client/lib/auth-client.ts";
 import Mail from "~icons/lucide/mail";
-import { createSignal, type JSX } from "solid-js";
+import type { JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
 const DELETE_ACCOUNT_DIALOG_ID = "delete-account-dialog";
 
 function AccountDataPage(): JSX.Element {
   let dialogRef!: HTMLDialogElement;
-  const [isAccountDeleting, setIsAccountDeleting] = createSignal(false);
+  const triggerDelete = useAction(deleteAccount);
+  const submission = useSubmission(deleteAccount);
 
   const handleAccountDelete = async () => {
-    setIsAccountDeleting(true);
-    await authClient.deleteUser({}, {
-      onSuccess: () => {
+    try {
+      const result = await triggerDelete();
+      if (result && "ok" in result) {
         dialogRef.close();
-      },
-      onError: (error) => {
-        toast.error(error.error.message || "Failed to delete account");
-      },
-    });
-    setIsAccountDeleting(false);
+        toast.success("Deletion link sent to your email");
+      }
+    } catch (error) {
+      toast.error(
+        Error.isError(error) ? error.message : "Failed to delete account",
+      );
+    }
   };
 
   return (
@@ -54,7 +57,7 @@ function AccountDataPage(): JSX.Element {
               size="sm"
               command="show-modal"
               commandfor={DELETE_ACCOUNT_DIALOG_ID}
-              disabled={isAccountDeleting()}
+              disabled={submission.pending}
             >
               Delete account
             </Button>
@@ -70,7 +73,7 @@ function AccountDataPage(): JSX.Element {
         description="We will send you an email with a link to delete your account. Clicking the link will permanently delete your account and all associated data. This action cannot be undone."
         confirmText="Send deletion link"
         icon={<Mail />}
-        isPending={isAccountDeleting()}
+        isPending={submission.pending}
         onConfirm={handleAccountDelete}
       />
     </div>

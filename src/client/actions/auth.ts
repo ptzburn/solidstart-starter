@@ -253,6 +253,15 @@ export const verifyTwoFactorTotp = action(async (formData: FormData) => {
   return redirectWithCookies(authHeaders, "/dashboard");
 }, "verifyTwoFactorTotp");
 
+export const deleteAccount = action(async () => {
+  "use server";
+  await auth.api.deleteUser({
+    body: {},
+    headers: getServerHeaders(),
+  });
+  return { ok: true as const };
+}, "deleteAccount");
+
 export const enableTwoFactor = action(async (formData: FormData) => {
   "use server";
   const result = parseFields(EnableTwoFactorSchema, {
