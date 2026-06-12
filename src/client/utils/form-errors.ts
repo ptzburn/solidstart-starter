@@ -10,3 +10,25 @@ export function collectFieldErrors<T extends string>(
   }
   return fieldErrors;
 }
+
+type ParseFieldsResult<T extends z.ZodObject> =
+  | { data: z.infer<T>; fieldErrors?: undefined }
+  | {
+    data?: undefined;
+    fieldErrors: Partial<Record<keyof z.infer<T> & string, string>>;
+  };
+
+export function parseFields<T extends z.ZodObject>(
+  schema: T,
+  input: Record<string, unknown>,
+): ParseFieldsResult<T> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      fieldErrors: collectFieldErrors<keyof z.infer<T> & string>(
+        parsed.error.issues,
+      ),
+    };
+  }
+  return { data: parsed.data };
+}

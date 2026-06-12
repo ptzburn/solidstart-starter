@@ -5,10 +5,6 @@ export const SignInSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
-export type SignInFieldErrors = Partial<
-  Record<keyof z.infer<typeof SignInSchema>, string>
->;
-
 export const SignInSocialSchema = z.object({
   provider: z.enum(["github", "google"]),
 });
@@ -34,20 +30,9 @@ export const SignUpSchema = z.object({
   }
 });
 
-export type SignUpFieldErrors = Partial<
-  Record<
-    "firstName" | "lastName" | "email" | "password" | "confirmPassword",
-    string
-  >
->;
-
 export const ForgotPasswordSchema = z.object({
   email: z.email("Invalid email"),
 });
-
-export type ForgotPasswordFieldErrors = Partial<
-  Record<keyof z.infer<typeof ForgotPasswordSchema>, string>
->;
 
 export const ResetPasswordSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -68,10 +53,6 @@ export const ResetPasswordSchema = z.object({
   }
 });
 
-export type ResetPasswordFieldErrors = Partial<
-  Record<"password" | "confirmPassword" | "token", string>
->;
-
 export type SignInSocialProvider = z.infer<
   typeof SignInSocialSchema
 >["provider"];
@@ -79,10 +60,6 @@ export type SignInSocialProvider = z.infer<
 export const VerifyEmailOtpSchema = z.object({
   otp: z.string().length(6, "Invalid OTP"),
 });
-
-export type VerifyEmailOtpFieldErrors = Partial<
-  Record<keyof z.infer<typeof VerifyEmailOtpSchema>, string>
->;
 
 export const VerifyTwoFactorTotpSchema = z.object({
   code: z.string().length(6, "Invalid code"),
@@ -93,7 +70,3 @@ export const VerifyTwoFactorBackupSchema = z.object({
   code: z.string().min(1, "Invalid code"),
   trustDevice: z.boolean().optional(),
 });
-
-export type VerifyTwoFactorFieldErrors = Partial<
-  Record<keyof z.infer<typeof VerifyTwoFactorTotpSchema>, string>
->;

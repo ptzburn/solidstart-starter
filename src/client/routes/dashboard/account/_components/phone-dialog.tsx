@@ -1,28 +1,42 @@
-import { revalidate } from "@solidjs/router";
+import { revalidate, useAction, useSubmission } from "@solidjs/router";
+import { sendPhoneOtp, verifyPhoneNumber } from "~/client/actions/users.ts";
 import { ResponsiveEditDialog } from "~/client/components/responsive-edit-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
-import { useSession } from "~/client/contexts/session-context.tsx";
-import { useAppForm } from "~/client/hooks/use-app-form.ts";
-import { authClient } from "~/client/lib/auth-client.ts";
+import { OTPField } from "~/client/components/ui/form2/otp-field.tsx";
+import { TextField } from "~/client/components/ui/form2/text-field.tsx";
 import { getSessionQuery } from "~/client/queries/auth.ts";
-import { createSignal, type JSX, Match, onCleanup, Switch } from "solid-js";
+import { createEffect, createSignal, type JSX, onCleanup } from "solid-js";
 import { toast } from "solid-sonner";
-import z from "zod";
 
 type PhoneDialogProps = {
   currentPhoneNumber: string | null | undefined;
 };
 
-export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
-  const session = useSession();
-  const RESEND_COOLDOWN = 60;
+const RESEND_COOLDOWN = 60;
 
+export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
   const [open, setOpen] = createSignal(false);
-  const [step, setStep] = createSignal<"phone" | "otp">("phone");
-  const [phoneNumber, setPhoneNumber] = createSignal("");
-  const [isResending, setIsResending] = createSignal(false);
   const [cooldown, setCooldown] = createSignal(0);
   let timer: ReturnType<typeof setInterval> | undefined;
+
+  const sendSubmission = useSubmission(sendPhoneOtp);
+  const verifySubmission = useSubmission(verifyPhoneNumber);
+  const triggerSend = useAction(sendPhoneOtp);
+
+  const sentPhoneNumber = (): string | undefined =>
+    sendSubmission.result && "ok" in sendSubmission.result
+      ? sendSubmission.result.phoneNumber
+      : undefined;
+
+  const sendFieldErrors = (): Record<string, string | undefined> =>
+    sendSubmission.result && "fieldErrors" in sendSubmission.result
+      ? sendSubmission.result.fieldErrors ?? {}
+      : {};
+
+  const verifyFieldErrors = (): Record<string, string | undefined> =>
+    verifySubmission.result && "fieldErrors" in verifySubmission.result
+      ? verifySubmission.result.fieldErrors ?? {}
+      : {};
 
   function startCooldown(): void {
     setCooldown(RESEND_COOLDOWN);
@@ -40,94 +54,52 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
 
   onCleanup(() => clearInterval(timer));
 
-  const handleClose = (next: boolean) => {
-    if (!next) {
-      setStep("phone");
+  createEffect(() => {
+    if (sendSubmission.result && "ok" in sendSubmission.result) {
+      startCooldown();
+      toast.success("Code sent to the phone number");
+    }
+  });
+
+  createEffect(() => {
+    if (sendSubmission.error) {
+      toast.error(
+        sendSubmission.error.message ||
+          "Failed to send code to the phone number",
+      );
+      sendSubmission.clear();
+    }
+  });
+
+  createEffect(() => {
+    if (verifySubmission.result && "ok" in verifySubmission.result) {
+      setOpen(false);
       clearInterval(timer);
       setCooldown(0);
+      toast.success("Phone number updated");
+      revalidate(getSessionQuery.key);
+      sendSubmission.clear();
+      verifySubmission.clear();
+    }
+  });
+
+  createEffect(() => {
+    if (verifySubmission.error) {
+      toast.error(
+        verifySubmission.error.message || "Failed to update phone number",
+      );
+      verifySubmission.clear();
+    }
+  });
+
+  const handleClose = (next: boolean): void => {
+    if (!next) {
+      clearInterval(timer);
+      setCooldown(0);
+      sendSubmission.clear();
+      verifySubmission.clear();
     }
     setOpen(next);
-  };
-
-  const phoneForm = useAppForm(() => ({
-    defaultValues: {
-      phoneNumber: props.currentPhoneNumber ?? "",
-    },
-    onSubmit: async ({ value }) => {
-      if (value.phoneNumber === session.user.phoneNumber) {
-        toast.info("The phone number is the same as the current one");
-        return;
-      }
-
-      await authClient.phoneNumber.sendOtp(
-        { phoneNumber: value.phoneNumber },
-        {
-          onSuccess: () => {
-            setPhoneNumber(value.phoneNumber);
-            setStep("otp");
-            startCooldown();
-            toast.success("Code sent to the phone number");
-          },
-          onError: (error) => {
-            toast.error(
-              error.error.message || "Failed to send code to the phone number",
-            );
-          },
-        },
-      );
-    },
-  }));
-
-  const otpForm = useAppForm(() => ({
-    defaultValues: {
-      otp: "",
-    },
-    validators: {
-      onSubmit: z.object({
-        otp: z.string().length(6),
-      }),
-    },
-    onSubmit: async ({ value }) => {
-      await authClient.phoneNumber.verify(
-        {
-          phoneNumber: phoneNumber(),
-          code: value.otp,
-          updatePhoneNumber: true,
-          disableSession: true,
-        },
-        {
-          onSuccess: () => {
-            handleClose(false);
-            revalidate(getSessionQuery.key);
-            toast.success("Phone number updated");
-          },
-          onError: (error) => {
-            toast.error(
-              error.error.message || "Failed to update phone number",
-            );
-          },
-        },
-      );
-    },
-  }));
-
-  const resendOtp = async () => {
-    setIsResending(true);
-    await authClient.phoneNumber.sendOtp(
-      { phoneNumber: phoneNumber() },
-      {
-        onSuccess: () => {
-          toast.success("Code sent to the phone number");
-        },
-        onError: (ctx) => {
-          toast.error(
-            ctx.error.message || "Failed to send code to the phone number",
-          );
-        },
-      },
-    );
-    setIsResending(false);
-    startCooldown();
   };
 
   return (
@@ -145,83 +117,80 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
         setIsOpen={handleClose}
         title="Edit phone number"
       >
-        {() => (
-          <Switch>
-            <Match when={step() === "phone"}>
+        {() => {
+          const phone = sentPhoneNumber();
+          if (!phone) {
+            return (
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  phoneForm.handleSubmit();
-                }}
+                method="post"
+                action={sendPhoneOtp}
                 class="space-y-4"
+                onInput={() => {
+                  if (sendSubmission.result) sendSubmission.clear();
+                }}
               >
-                <phoneForm.AppField
+                <TextField
                   name="phoneNumber"
-                  validators={{
-                    onChange: ({ value }) => {
-                      if (value.trim() === session.user.phoneNumber) {
-                        return {
-                          message:
-                            "The phone number is the same as the current one",
-                        };
-                      }
-                      if (!/^\+358\d{9}$/.test(value.trim())) {
-                        return {
-                          message: "The phone number is invalid",
-                        };
-                      }
-                      return undefined;
-                    },
-                  }}
-                >
-                  {(field) => (
-                    <field.TextField
-                      label="Phone number"
-                      placeholder="+358401234567"
-                    />
-                  )}
-                </phoneForm.AppField>
-                <phoneForm.AppForm>
-                  <phoneForm.SubmitButton>
-                    Send code
-                  </phoneForm.SubmitButton>
-                </phoneForm.AppForm>
-              </form>
-            </Match>
-
-            <Match when={step() === "otp"}>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  otpForm.handleSubmit();
-                }}
-                class="space-y-4"
-              >
-                <otpForm.AppField name="otp">
-                  {(field) => <field.OTPField label="Verification code" />}
-                </otpForm.AppField>
+                  label="Phone number"
+                  placeholder="+358401234567"
+                  value={props.currentPhoneNumber ?? ""}
+                  required
+                  error={sendFieldErrors().phoneNumber}
+                  disabled={sendSubmission.pending}
+                />
                 <Button
-                  type="button"
-                  variant="ghost"
+                  type="submit"
                   class="w-full"
-                  onClick={resendOtp}
-                  disabled={isResending() || cooldown() > 0}
+                  disabled={sendSubmission.pending}
                 >
-                  {cooldown() > 0
-                    ? `Resend code (${cooldown()}s)`
-                    : "Resend code"}
+                  Send code
                 </Button>
-                <otpForm.AppForm>
-                  <otpForm.SubmitButton>
-                    Verify
-                  </otpForm.SubmitButton>
-                </otpForm.AppForm>
               </form>
-            </Match>
-          </Switch>
-        )}
+            );
+          }
+
+          return (
+            <form
+              method="post"
+              action={verifyPhoneNumber}
+              class="space-y-4"
+              onInput={() => {
+                if (verifySubmission.result) verifySubmission.clear();
+              }}
+            >
+              <input type="hidden" name="phoneNumber" value={phone} />
+              <OTPField
+                name="otp"
+                label="Verification code"
+                error={verifyFieldErrors().otp}
+                disabled={verifySubmission.pending}
+                autofocus
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                class="w-full"
+                onClick={() => {
+                  const fd = new FormData();
+                  fd.set("phoneNumber", phone);
+                  void triggerSend(fd);
+                }}
+                disabled={sendSubmission.pending || cooldown() > 0}
+              >
+                {cooldown() > 0
+                  ? `Resend code (${cooldown()}s)`
+                  : "Resend code"}
+              </Button>
+              <Button
+                type="submit"
+                class="w-full"
+                disabled={verifySubmission.pending}
+              >
+                Verify
+              </Button>
+            </form>
+          );
+        }}
       </ResponsiveEditDialog>
     </>
   );
