@@ -34,6 +34,25 @@ export const ForgotPasswordSchema = z.object({
   email: z.email("Invalid email"),
 });
 
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Enter your current password"),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string().min(8, "Password must be at least 8 characters"),
+}).superRefine((data, ctx) => {
+  if (data.newPassword !== data.confirmPassword) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Passwords do not match",
+      path: ["newPassword"],
+    });
+    ctx.addIssue({
+      code: "custom",
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    });
+  }
+});
+
 export const ResetPasswordSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string().min(8, "Password must be at least 8 characters"),

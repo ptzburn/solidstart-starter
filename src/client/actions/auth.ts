@@ -4,6 +4,7 @@ import { usePendingResetPasswordSession } from "~/client/lib/pending-reset-passw
 import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts";
 import { capitalize } from "~/client/lib/utils.ts";
 import {
+  ChangePasswordSchema,
   ForgotPasswordSchema,
   ResetPasswordSchema,
   SignInSchema,
@@ -208,6 +209,27 @@ export const resendEmailOtp = action(async () => {
   });
   return { ok: true };
 }, "resendEmailOtp");
+
+export const changePassword = action(async (formData: FormData) => {
+  "use server";
+  const result = parseFields(ChangePasswordSchema, {
+    currentPassword: formData.get("currentPassword"),
+    newPassword: formData.get("newPassword"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
+
+  await auth.api.changePassword({
+    body: {
+      currentPassword: result.data.currentPassword,
+      newPassword: result.data.newPassword,
+      revokeOtherSessions: true,
+    },
+    headers: getServerHeaders(),
+  });
+
+  return { ok: true as const };
+}, "changePassword");
 
 export const verifyTwoFactorTotp = action(async (formData: FormData) => {
   "use server";

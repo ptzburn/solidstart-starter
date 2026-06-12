@@ -1,75 +1,40 @@
-import { revalidateLogic } from "@tanstack/solid-form";
+import { revalidate, useSubmission } from "@solidjs/router";
+import { changePassword } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
-import { useAppForm } from "~/client/hooks/use-app-form.ts";
-
-import { authClient } from "~/client/lib/auth-client.ts";
-import type { JSX } from "solid-js";
+import { TextField } from "~/client/components/ui/form2/text-field.tsx";
+import { listSessionsQuery } from "~/client/queries/auth.ts";
+import { createEffect, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
-import z from "zod";
 
 const DIALOG_ID = "change-password-dialog";
 
 export function ChangePasswordDialog(): JSX.Element {
   let dialogRef!: HTMLDialogElement;
+  let formRef!: HTMLFormElement;
+  const submission = useSubmission(changePassword);
 
-  const form = useAppForm(() => ({
-    defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    },
-    validationLogic: revalidateLogic(),
-    validators: {
-      onDynamic: z
-        .object({
-          currentPassword: z.string().min(1),
-          newPassword: z.string().min(
-            8,
-            "Password must be at least 8 characters long",
-          ),
-          confirmPassword: z.string().min(
-            8,
-            "Password must be at least 8 characters long",
-          ),
-        })
-        .superRefine((data, ctx) => {
-          if (data.newPassword !== data.confirmPassword) {
-            ctx.addIssue({
-              code: "custom",
-              message: "Passwords do not match",
-              path: ["newPassword"],
-            });
-            ctx.addIssue({
-              code: "custom",
-              message: "Passwords do not match",
-              path: ["confirmPassword"],
-            });
-          }
-        }),
-    },
-    onSubmit: async ({ formApi, value }) => {
-      await authClient.changePassword(
-        {
-          currentPassword: value.currentPassword,
-          newPassword: value.newPassword,
-          revokeOtherSessions: true,
-        },
-        {
-          onSuccess: () => {
-            formApi.reset();
-            dialogRef.close();
-            toast.success("Password changed successfully");
-          },
-          onError: (error) => {
-            toast.error(
-              error.error.message || "Failed to change password",
-            );
-          },
-        },
-      );
-    },
-  }));
+  const fieldErrors = (): Record<string, string | undefined> =>
+    submission.result && "fieldErrors" in submission.result
+      ? submission.result.fieldErrors ?? {}
+      : {};
+
+  createEffect(() => {
+    if (submission.result && "ok" in submission.result) {
+      formRef.reset();
+      dialogRef.close();
+      toast.success("Password changed successfully");
+      revalidate(listSessionsQuery.key);
+      submission.clear();
+    }
+  });
+
+  createEffect(() => {
+    if (submission.error) {
+      toast.error(submission.error.message || "Failed to change password");
+      submission.clear();
+    }
+  });
 
   return (
     <>
@@ -89,43 +54,53 @@ export function ChangePasswordDialog(): JSX.Element {
         description="Update your account password"
       >
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
+          ref={(el) => formRef = el}
+          method="post"
+          action={changePassword}
           class="space-y-4"
+          onInput={() => {
+            if (submission.result) submission.clear();
+          }}
         >
-          <form.AppField name="currentPassword">
-            {(field) => (
-              <field.TextField
-                label="Current password"
-                type="password"
-                placeholder="Enter your current password"
-              />
-            )}
-          </form.AppField>
-          <form.AppField name="newPassword">
-            {(field) => (
-              <field.TextField
-                label="New password"
-                type="password"
-                placeholder="Enter your new password"
-              />
-            )}
-          </form.AppField>
-          <form.AppField name="confirmPassword">
-            {(field) => (
-              <field.TextField
-                label="Confirm password"
-                type="password"
-                placeholder="Re-enter your new password"
-              />
-            )}
-          </form.AppField>
-          <form.AppForm>
-            <form.SubmitButton>Change password</form.SubmitButton>
-          </form.AppForm>
+          <TextField
+            name="currentPassword"
+            label="Current password"
+            type="password"
+            placeholder="Enter your current password"
+            required
+            hint="Enter your current password"
+            error={fieldErrors().currentPassword}
+            disabled={submission.pending}
+          />
+          <TextField
+            name="newPassword"
+            label="New password"
+            type="password"
+            placeholder="Enter your new password"
+            minlength={8}
+            required
+            hint="At least 8 characters"
+            error={fieldErrors().newPassword}
+            disabled={submission.pending}
+          />
+          <TextField
+            name="confirmPassword"
+            label="Confirm password"
+            type="password"
+            placeholder="Re-enter your new password"
+            minlength={8}
+            required
+            hint="Re-enter your new password"
+            error={fieldErrors().confirmPassword}
+            disabled={submission.pending}
+          />
+          <Button
+            type="submit"
+            class="w-full"
+            disabled={submission.pending}
+          >
+            Change password
+          </Button>
         </form>
       </ResponsiveDialog>
     </>
