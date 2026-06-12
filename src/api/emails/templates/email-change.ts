@@ -144,7 +144,6 @@ export function emailChangeTemplate(
                                               class="button"
                                               href="${emailChangeUrl}"
                                               style="line-height:100%;text-decoration:none;display:inline-block;max-width:100%;mso-padding-alt:0px;margin:0;padding:14px;background-color:#000000;color:#ffffff;border-radius:4px;padding-top:7px;padding-right:12px;padding-bottom:7px;padding-left:12px;font-size:20px"
-                                              target="_blank"
                                               ><span
                                                 ><!--[if mso]><i style="mso-font-width:300%;mso-text-raise:10.5" hidden>&#8202;&#8202;</i><![endif]--></span
                                               ><span
