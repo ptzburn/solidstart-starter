@@ -1,7 +1,7 @@
 import { revalidate, useAction, useSubmission } from "@solidjs/router";
 import { sendPhoneOtp, verifyPhoneNumber } from "~/client/actions/users.ts";
-import { ResponsiveEditDialog } from "~/client/components/responsive-edit-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
+import { Dialog } from "~/client/components/ui/dialog.tsx";
 import { OTPField } from "~/client/components/ui/form2/otp-field.tsx";
 import { TextField } from "~/client/components/ui/form2/text-field.tsx";
 import { getSessionQuery } from "~/client/queries/auth.ts";
@@ -12,10 +12,11 @@ type PhoneDialogProps = {
   currentPhoneNumber: string | null | undefined;
 };
 
+const DIALOG_ID = "edit-phone-dialog";
 const RESEND_COOLDOWN = 60;
 
 export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
-  const [open, setOpen] = createSignal(false);
+  let dialogRef!: HTMLDialogElement;
   const [cooldown, setCooldown] = createSignal(0);
   let timer: ReturnType<typeof setInterval> | undefined;
 
@@ -73,13 +74,9 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
 
   createEffect(() => {
     if (verifySubmission.result && "ok" in verifySubmission.result) {
-      setOpen(false);
-      clearInterval(timer);
-      setCooldown(0);
+      dialogRef.close();
       toast.success("Phone number updated");
       revalidate(getSessionQuery.key);
-      sendSubmission.clear();
-      verifySubmission.clear();
     }
   });
 
@@ -92,64 +89,59 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
     }
   });
 
-  const handleClose = (next: boolean): void => {
-    if (!next) {
-      clearInterval(timer);
-      setCooldown(0);
-      sendSubmission.clear();
-      verifySubmission.clear();
-    }
-    setOpen(next);
-  };
+  function handleClose(): void {
+    clearInterval(timer);
+    setCooldown(0);
+    sendSubmission.clear();
+    verifySubmission.clear();
+  }
 
   return (
     <>
       <Button
         variant="outline"
         size="sm"
-        onClick={() => setOpen(true)}
+        command="show-modal"
+        commandfor={DIALOG_ID}
       >
         {props.currentPhoneNumber ? "Edit phone number" : "Add phone number"}
       </Button>
 
-      <ResponsiveEditDialog
-        isOpen={open}
-        setIsOpen={handleClose}
+      <Dialog
+        id={DIALOG_ID}
+        ref={(el) => dialogRef = el}
+        onClose={handleClose}
         title="Edit phone number"
       >
-        {() => {
-          const phone = sentPhoneNumber();
-          if (!phone) {
-            return (
-              <form
-                method="post"
-                action={sendPhoneOtp}
-                class="space-y-4"
-                onInput={() => {
-                  if (sendSubmission.result) sendSubmission.clear();
-                }}
+        {sentPhoneNumber() === undefined
+          ? (
+            <form
+              method="post"
+              action={sendPhoneOtp}
+              class="space-y-4"
+              onInput={() => {
+                if (sendSubmission.result) sendSubmission.clear();
+              }}
+            >
+              <TextField
+                name="phoneNumber"
+                label="Phone number"
+                placeholder="+358401234567"
+                value={props.currentPhoneNumber ?? ""}
+                required
+                error={sendFieldErrors().phoneNumber}
+                disabled={sendSubmission.pending}
+              />
+              <Button
+                type="submit"
+                class="w-full"
+                disabled={sendSubmission.pending}
               >
-                <TextField
-                  name="phoneNumber"
-                  label="Phone number"
-                  placeholder="+358401234567"
-                  value={props.currentPhoneNumber ?? ""}
-                  required
-                  error={sendFieldErrors().phoneNumber}
-                  disabled={sendSubmission.pending}
-                />
-                <Button
-                  type="submit"
-                  class="w-full"
-                  disabled={sendSubmission.pending}
-                >
-                  Send code
-                </Button>
-              </form>
-            );
-          }
-
-          return (
+                Send code
+              </Button>
+            </form>
+          )
+          : (
             <form
               method="post"
               action={verifyPhoneNumber}
@@ -158,7 +150,11 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
                 if (verifySubmission.result) verifySubmission.clear();
               }}
             >
-              <input type="hidden" name="phoneNumber" value={phone} />
+              <input
+                type="hidden"
+                name="phoneNumber"
+                value={sentPhoneNumber()}
+              />
               <OTPField
                 name="otp"
                 label="Verification code"
@@ -171,6 +167,8 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
                 variant="ghost"
                 class="w-full"
                 onClick={() => {
+                  const phone = sentPhoneNumber();
+                  if (!phone) return;
                   const fd = new FormData();
                   fd.set("phoneNumber", phone);
                   void triggerSend(fd);
@@ -189,9 +187,8 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
                 Verify
               </Button>
             </form>
-          );
-        }}
-      </ResponsiveEditDialog>
+          )}
+      </Dialog>
     </>
   );
 }

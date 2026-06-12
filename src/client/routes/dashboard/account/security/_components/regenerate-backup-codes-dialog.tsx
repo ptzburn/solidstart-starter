@@ -1,30 +1,20 @@
 import { revalidate } from "@solidjs/router";
-import { ResponsiveEditDialog } from "~/client/components/responsive-edit-dialog.tsx";
+import { Button } from "~/client/components/ui/button.tsx";
+import { Dialog } from "~/client/components/ui/dialog.tsx";
 import { authClient } from "~/client/lib/auth-client.ts";
 
 import { viewNumberOfBackupCodesQuery } from "~/client/queries/auth.ts";
-import {
-  type Accessor,
-  createSignal,
-  type JSX,
-  Match,
-  type Setter,
-  Switch,
-} from "solid-js";
+import { createSignal, type JSX, Match, Switch } from "solid-js";
 import { toast } from "solid-sonner";
 import { BackupCodesStep } from "./backup-codes-step.tsx";
 import { PasswordForm } from "./password-form.tsx";
 
-type RegenerateBackupCodesDialogProps = {
-  isOpen: Accessor<boolean>;
-  setIsOpen: Setter<boolean>;
-};
+const DIALOG_ID = "regenerate-backup-codes-dialog";
 
 type Step = "password" | "codes";
 
-export function RegenerateBackupCodesDialog(
-  props: RegenerateBackupCodesDialogProps,
-): JSX.Element {
+export function RegenerateBackupCodesDialog(): JSX.Element {
+  let dialogRef!: HTMLDialogElement;
   const [step, setStep] = createSignal<Step>("password");
   const [codes, setCodes] = createSignal<string[]>([]);
 
@@ -49,26 +39,33 @@ export function RegenerateBackupCodesDialog(
     }
   }
 
-  function handleClose(open: boolean): void {
-    if (!open) {
-      setStep("password");
-      setCodes([]);
-    }
-    props.setIsOpen(open);
+  function handleDialogClose(): void {
+    setStep("password");
+    setCodes([]);
   }
 
   return (
-    <ResponsiveEditDialog
-      isOpen={props.isOpen}
-      setIsOpen={handleClose}
-      title={step() === "codes"
-        ? "Save your new backup codes"
-        : "Regenerate backup codes"}
-      description={step() === "codes"
-        ? "Your old codes have been replaced. Store these codes in a safe place."
-        : "Enter your password to regenerate backup codes. This will invalidate your old codes."}
-    >
-      {() => (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        command="show-modal"
+        commandfor={DIALOG_ID}
+      >
+        Regenerate
+      </Button>
+
+      <Dialog
+        id={DIALOG_ID}
+        ref={(el) => dialogRef = el}
+        onClose={handleDialogClose}
+        title={step() === "codes"
+          ? "Save your new backup codes"
+          : "Regenerate backup codes"}
+        description={step() === "codes"
+          ? "Your old codes have been replaced. Store these codes in a safe place."
+          : "Enter your password to regenerate backup codes. This will invalidate your old codes."}
+      >
         <Switch>
           <Match when={step() === "password"}>
             <PasswordForm
@@ -79,11 +76,11 @@ export function RegenerateBackupCodesDialog(
           <Match when={step() === "codes"}>
             <BackupCodesStep
               backupCodes={codes()}
-              onDone={() => handleClose(false)}
+              onDone={() => dialogRef.close()}
             />
           </Match>
         </Switch>
-      )}
-    </ResponsiveEditDialog>
+      </Dialog>
+    </>
   );
 }

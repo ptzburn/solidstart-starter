@@ -1,5 +1,6 @@
 import { revalidate } from "@solidjs/router";
-import { ResponsiveEditDialog } from "~/client/components/responsive-edit-dialog.tsx";
+import { Button } from "~/client/components/ui/button.tsx";
+import { Dialog } from "~/client/components/ui/dialog.tsx";
 import { FieldGroup } from "~/client/components/ui/field.tsx";
 import { useAppForm } from "~/client/hooks/use-app-form.ts";
 
@@ -7,7 +8,7 @@ import { authClient } from "~/client/lib/auth-client.ts";
 
 import { getUserByIdQuery } from "~/client/queries/users.ts";
 import type { SelectUser } from "~/shared/types/auth.ts";
-import { createEffect, createMemo } from "solid-js";
+import { createMemo } from "solid-js";
 import type { Accessor, JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
@@ -16,13 +17,14 @@ const ROLE_OPTIONS = ["user", "admin"].map((r) => ({
   label: r.charAt(0).toUpperCase() + r.slice(1),
 }));
 
+const DIALOG_ID = "admin-edit-role-dialog";
+
 type RoleDialogProps = {
   user: Accessor<SelectUser>;
-  isOpen: Accessor<boolean>;
-  setIsOpen: (open: boolean) => void;
 };
 
 export function RoleDialog(props: RoleDialogProps): JSX.Element {
+  let dialogRef!: HTMLDialogElement;
   const roleOptions = createMemo(() => ROLE_OPTIONS);
 
   const form = useAppForm(() => ({
@@ -39,7 +41,7 @@ export function RoleDialog(props: RoleDialogProps): JSX.Element {
         {
           onSuccess: () => {
             revalidate(getUserByIdQuery.keyFor(props.user().id));
-            props.setIsOpen(false);
+            dialogRef.close();
             toast.success("Role updated");
           },
           onError: (error) => {
@@ -50,22 +52,24 @@ export function RoleDialog(props: RoleDialogProps): JSX.Element {
     },
   }));
 
-  createEffect(() => {
-    if (props.isOpen()) {
-      form.reset({
-        role: props.user().role ?? "user",
-      });
-    }
-  });
-
   return (
-    <ResponsiveEditDialog
-      isOpen={props.isOpen}
-      setIsOpen={props.setIsOpen}
-      title="Change role"
-      description="Select a new role for this user."
-    >
-      {() => (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        command="show-modal"
+        commandfor={DIALOG_ID}
+        onClick={() => form.reset({ role: props.user().role ?? "user" })}
+      >
+        Change
+      </Button>
+
+      <Dialog
+        id={DIALOG_ID}
+        ref={(el) => dialogRef = el}
+        title="Change role"
+        description="Select a new role for this user."
+      >
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -89,7 +93,7 @@ export function RoleDialog(props: RoleDialogProps): JSX.Element {
             <form.SubmitButton>Save</form.SubmitButton>
           </form.AppForm>
         </form>
-      )}
-    </ResponsiveEditDialog>
+      </Dialog>
+    </>
   );
 }

@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "~/client/components/ui/dialog.tsx";
+} from "~/client/components/ui/old-dialog.tsx";
 import { useAppForm } from "~/client/hooks/use-app-form.ts";
 import { authClient } from "~/client/lib/auth-client.ts";
 import { createEffect, createSignal, type JSX, on } from "solid-js";

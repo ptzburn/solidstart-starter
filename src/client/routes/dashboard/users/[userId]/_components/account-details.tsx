@@ -1,4 +1,3 @@
-import { Button } from "~/client/components/ui/button.tsx";
 import {
   Item,
   ItemActions,
@@ -17,7 +16,7 @@ import UserKey from "~icons/lucide/user-key";
 
 import { format } from "date-fns";
 
-import { createSignal, type JSX, Match, Switch } from "solid-js";
+import { type JSX, Match, Switch } from "solid-js";
 import type { Accessor } from "solid-js";
 import { NameDialog } from "./name-dialog.tsx";
 import { RoleDialog } from "./role-dialog.tsx";
@@ -27,9 +26,6 @@ type AccountDetailsProps = {
 };
 
 export function AccountDetails(props: AccountDetailsProps): JSX.Element {
-  const [roleDialogOpen, setRoleDialogOpen] = createSignal(false);
-  const [nameDialogOpen, setNameDialogOpen] = createSignal(false);
-
   return (
     <div class="flex flex-col gap-2">
       <ItemGroup class="rounded-lg border bg-card">
@@ -46,13 +42,7 @@ export function AccountDetails(props: AccountDetailsProps): JSX.Element {
             </p>
           </ItemContent>
           <ItemActions>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setNameDialogOpen(true)}
-            >
-              Change
-            </Button>
+            <NameDialog user={props.user} />
           </ItemActions>
         </Item>
         <ItemSeparator />
@@ -90,13 +80,7 @@ export function AccountDetails(props: AccountDetailsProps): JSX.Element {
             </p>
           </ItemContent>
           <ItemActions>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setRoleDialogOpen(true)}
-            >
-              Change
-            </Button>
+            <RoleDialog user={props.user} />
           </ItemActions>
         </Item>
         <ItemSeparator />
@@ -114,17 +98,6 @@ export function AccountDetails(props: AccountDetailsProps): JSX.Element {
           </ItemContent>
         </Item>
       </ItemGroup>
-
-      <RoleDialog
-        user={props.user}
-        isOpen={roleDialogOpen}
-        setIsOpen={setRoleDialogOpen}
-      />
-      <NameDialog
-        user={props.user}
-        isOpen={nameDialogOpen}
-        setIsOpen={setNameDialogOpen}
-      />
     </div>
   );
 }

@@ -1,26 +1,24 @@
 import { revalidate } from "@solidjs/router";
-import { ResponsiveEditDialog } from "~/client/components/responsive-edit-dialog.tsx";
+import { Button } from "~/client/components/ui/button.tsx";
+import { Dialog } from "~/client/components/ui/dialog.tsx";
 import { authClient } from "~/client/lib/auth-client.ts";
 
 import { getSessionQuery } from "~/client/queries/auth.ts";
-import type { Accessor, JSX, Setter } from "solid-js";
+import type { JSX } from "solid-js";
 import { toast } from "solid-sonner";
 import { PasswordForm } from "./password-form.tsx";
 
-type DisableTwoFactorDialogProps = {
-  isOpen: Accessor<boolean>;
-  setIsOpen: Setter<boolean>;
-};
+const DIALOG_ID = "disable-two-factor-dialog";
 
-export function DisableTwoFactorDialog(
-  props: DisableTwoFactorDialogProps,
-): JSX.Element {
+export function DisableTwoFactorDialog(): JSX.Element {
+  let dialogRef!: HTMLDialogElement;
+
   async function handlePasswordSubmit(password: string): Promise<void> {
     await authClient.twoFactor.disable({
       password,
       fetchOptions: {
         onSuccess: () => {
-          props.setIsOpen(false);
+          dialogRef.close();
           revalidate(getSessionQuery.key);
           toast.success("Two-factor authentication disabled");
         },
@@ -34,18 +32,27 @@ export function DisableTwoFactorDialog(
   }
 
   return (
-    <ResponsiveEditDialog
-      isOpen={props.isOpen}
-      setIsOpen={props.setIsOpen}
-      title="Disable two-factor authentication"
-      description="Enter your password to disable two-factor authentication"
-    >
-      {() => (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        command="show-modal"
+        commandfor={DIALOG_ID}
+      >
+        Disable
+      </Button>
+
+      <Dialog
+        id={DIALOG_ID}
+        ref={(el) => dialogRef = el}
+        title="Disable two-factor authentication"
+        description="Enter your password to disable two-factor authentication"
+      >
         <PasswordForm
           submitLabel="Disable"
           onSubmit={handlePasswordSubmit}
         />
-      )}
-    </ResponsiveEditDialog>
+      </Dialog>
+    </>
   );
 }

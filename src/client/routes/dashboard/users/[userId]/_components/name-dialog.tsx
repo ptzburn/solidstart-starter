@@ -1,17 +1,18 @@
 import { revalidate } from "@solidjs/router";
-import { ResponsiveEditDialog } from "~/client/components/responsive-edit-dialog.tsx";
+import { Button } from "~/client/components/ui/button.tsx";
+import { Dialog } from "~/client/components/ui/dialog.tsx";
 import { useAppForm } from "~/client/hooks/use-app-form.ts";
 import { authClient } from "~/client/lib/auth-client.ts";
 import { getUserByIdQuery } from "~/client/queries/users.ts";
 import type { SelectUser } from "~/shared/types/auth.ts";
-import type { Accessor, JSX, Setter } from "solid-js";
+import type { Accessor, JSX } from "solid-js";
 import { toast } from "solid-sonner";
 import z from "zod";
 
+const DIALOG_ID = "admin-edit-name-dialog";
+
 type NameDialogProps = {
   user: Accessor<SelectUser>;
-  isOpen: Accessor<boolean>;
-  setIsOpen: Setter<boolean>;
 };
 
 function splitName(fullName: string): { firstName: string; lastName: string } {
@@ -24,6 +25,8 @@ function splitName(fullName: string): { firstName: string; lastName: string } {
 }
 
 export function NameDialog(props: NameDialogProps): JSX.Element {
+  let dialogRef!: HTMLDialogElement;
+
   const form = useAppForm(() => ({
     defaultValues: splitName(props.user().name),
     validators: {
@@ -46,7 +49,7 @@ export function NameDialog(props: NameDialogProps): JSX.Element {
           onSuccess: () => {
             formApi.reset();
             revalidate(getUserByIdQuery.keyFor(props.user().id));
-            props.setIsOpen(false);
+            dialogRef.close();
             toast.success("Name updated");
           },
           onError: (error) => {
@@ -58,12 +61,21 @@ export function NameDialog(props: NameDialogProps): JSX.Element {
   }));
 
   return (
-    <ResponsiveEditDialog
-      isOpen={props.isOpen}
-      setIsOpen={props.setIsOpen}
-      title="Edit name"
-    >
-      {() => (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        command="show-modal"
+        commandfor={DIALOG_ID}
+      >
+        Change
+      </Button>
+
+      <Dialog
+        id={DIALOG_ID}
+        ref={(el) => dialogRef = el}
+        title="Edit name"
+      >
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -94,7 +106,7 @@ export function NameDialog(props: NameDialogProps): JSX.Element {
             <form.SubmitButton>Save</form.SubmitButton>
           </form.AppForm>
         </form>
-      )}
-    </ResponsiveEditDialog>
+      </Dialog>
+    </>
   );
 }

@@ -1,15 +1,17 @@
 import { revalidateLogic } from "@tanstack/solid-form";
-import { ResponsiveEditDialog } from "~/client/components/responsive-edit-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
+import { Dialog } from "~/client/components/ui/dialog.tsx";
 import { useAppForm } from "~/client/hooks/use-app-form.ts";
 
 import { authClient } from "~/client/lib/auth-client.ts";
-import { createSignal, type JSX } from "solid-js";
+import type { JSX } from "solid-js";
 import { toast } from "solid-sonner";
 import z from "zod";
 
+const DIALOG_ID = "change-password-dialog";
+
 export function ChangePasswordDialog(): JSX.Element {
-  const [open, setOpen] = createSignal(false);
+  let dialogRef!: HTMLDialogElement;
 
   const form = useAppForm(() => ({
     defaultValues: {
@@ -56,7 +58,7 @@ export function ChangePasswordDialog(): JSX.Element {
         {
           onSuccess: () => {
             formApi.reset();
-            setOpen(false);
+            dialogRef.close();
             toast.success("Password changed successfully");
           },
           onError: (error) => {
@@ -74,59 +76,58 @@ export function ChangePasswordDialog(): JSX.Element {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => setOpen(true)}
+        command="show-modal"
+        commandfor={DIALOG_ID}
       >
         Change password
       </Button>
 
-      <ResponsiveEditDialog
-        isOpen={open}
-        setIsOpen={setOpen}
+      <Dialog
+        id={DIALOG_ID}
+        ref={(el) => dialogRef = el}
         title="Change password"
         description="Update your account password"
       >
-        {() => (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              form.handleSubmit();
-            }}
-            class="space-y-4"
-          >
-            <form.AppField name="currentPassword">
-              {(field) => (
-                <field.TextField
-                  label="Current password"
-                  type="password"
-                  placeholder="Enter your current password"
-                />
-              )}
-            </form.AppField>
-            <form.AppField name="newPassword">
-              {(field) => (
-                <field.TextField
-                  label="New password"
-                  type="password"
-                  placeholder="Enter your new password"
-                />
-              )}
-            </form.AppField>
-            <form.AppField name="confirmPassword">
-              {(field) => (
-                <field.TextField
-                  label="Confirm password"
-                  type="password"
-                  placeholder="Re-enter your new password"
-                />
-              )}
-            </form.AppField>
-            <form.AppForm>
-              <form.SubmitButton>Change password</form.SubmitButton>
-            </form.AppForm>
-          </form>
-        )}
-      </ResponsiveEditDialog>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+          class="space-y-4"
+        >
+          <form.AppField name="currentPassword">
+            {(field) => (
+              <field.TextField
+                label="Current password"
+                type="password"
+                placeholder="Enter your current password"
+              />
+            )}
+          </form.AppField>
+          <form.AppField name="newPassword">
+            {(field) => (
+              <field.TextField
+                label="New password"
+                type="password"
+                placeholder="Enter your new password"
+              />
+            )}
+          </form.AppField>
+          <form.AppField name="confirmPassword">
+            {(field) => (
+              <field.TextField
+                label="Confirm password"
+                type="password"
+                placeholder="Re-enter your new password"
+              />
+            )}
+          </form.AppField>
+          <form.AppForm>
+            <form.SubmitButton>Change password</form.SubmitButton>
+          </form.AppForm>
+        </form>
+      </Dialog>
     </>
   );
 }

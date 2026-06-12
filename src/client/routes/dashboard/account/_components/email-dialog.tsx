@@ -1,17 +1,19 @@
 import { useSubmission } from "@solidjs/router";
 import { requestEmailChange } from "~/client/actions/users.ts";
-import { ResponsiveEditDialog } from "~/client/components/responsive-edit-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
+import { Dialog } from "~/client/components/ui/dialog.tsx";
 import { TextField } from "~/client/components/ui/form2/text-field.tsx";
-import { createEffect, createSignal, type JSX } from "solid-js";
+import { createEffect, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
 type EmailDialogProps = {
   currentEmail: string;
 };
 
+const DIALOG_ID = "edit-email-dialog";
+
 export function EmailDialog(props: EmailDialogProps): JSX.Element {
-  const [open, setOpen] = createSignal(false);
+  let dialogRef!: HTMLDialogElement;
   const submission = useSubmission(requestEmailChange);
   const fieldErrors = (): Record<string, string | undefined> =>
     submission.result && "fieldErrors" in submission.result
@@ -20,7 +22,7 @@ export function EmailDialog(props: EmailDialogProps): JSX.Element {
 
   createEffect(() => {
     if (submission.result && "ok" in submission.result) {
-      setOpen(false);
+      dialogRef.close();
       toast.success("Code sent to the new email");
       submission.clear();
     }
@@ -38,45 +40,44 @@ export function EmailDialog(props: EmailDialogProps): JSX.Element {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => setOpen(true)}
+        command="show-modal"
+        commandfor={DIALOG_ID}
       >
         Edit email
       </Button>
 
-      <ResponsiveEditDialog
-        isOpen={open}
-        setIsOpen={setOpen}
+      <Dialog
+        id={DIALOG_ID}
+        ref={(el) => dialogRef = el}
         title="Edit email"
       >
-        {() => (
-          <form
-            method="post"
-            action={requestEmailChange}
-            class="space-y-4"
-            onInput={() => {
-              if (submission.result) submission.clear();
-            }}
+        <form
+          method="post"
+          action={requestEmailChange}
+          class="space-y-4"
+          onInput={() => {
+            if (submission.result) submission.clear();
+          }}
+        >
+          <TextField
+            name="email"
+            type="email"
+            label="Email"
+            placeholder="johndoe@example.com"
+            value={props.currentEmail}
+            required
+            error={fieldErrors().email}
+            disabled={submission.pending}
+          />
+          <Button
+            type="submit"
+            class="w-full"
+            disabled={submission.pending}
           >
-            <TextField
-              name="email"
-              type="email"
-              label="Email"
-              placeholder="johndoe@example.com"
-              value={props.currentEmail}
-              required
-              error={fieldErrors().email}
-              disabled={submission.pending}
-            />
-            <Button
-              type="submit"
-              class="w-full"
-              disabled={submission.pending}
-            >
-              Save
-            </Button>
-          </form>
-        )}
-      </ResponsiveEditDialog>
+            Save
+          </Button>
+        </form>
+      </Dialog>
     </>
   );
 }

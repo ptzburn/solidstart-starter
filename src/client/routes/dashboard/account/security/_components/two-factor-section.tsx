@@ -1,8 +1,8 @@
 import { createAsync, revalidate } from "@solidjs/router";
-import { ResponsiveEditDialog } from "~/client/components/responsive-edit-dialog.tsx";
-
 import { Badge } from "~/client/components/ui/badge.tsx";
+
 import { Button } from "~/client/components/ui/button.tsx";
+import { Dialog } from "~/client/components/ui/dialog.tsx";
 import {
   Item,
   ItemActions,
@@ -34,6 +34,8 @@ import { PasswordForm } from "./password-form.tsx";
 import { RegenerateBackupCodesDialog } from "./regenerate-backup-codes-dialog.tsx";
 import { VerifyTotpStep } from "./verify-totp-step.tsx";
 
+const ENABLE_DIALOG_ID = "enable-two-factor-dialog";
+
 type EnableStep = "password" | "verify" | "backup-codes";
 
 export function TwoFactorSection(): JSX.Element {
@@ -45,9 +47,7 @@ export function TwoFactorSection(): JSX.Element {
     return undefined;
   });
 
-  const [enableOpen, setEnableOpen] = createSignal(false);
-  const [disableOpen, setDisableOpen] = createSignal(false);
-  const [regenerateOpen, setRegenerateOpen] = createSignal(false);
+  let enableDialogRef!: HTMLDialogElement;
   const [enableStep, setEnableStep] = createSignal<EnableStep>("password");
   const [totpUri, setTotpUri] = createSignal("");
   const [backupCodes, setBackupCodes] = createSignal<string[]>([]);
@@ -88,18 +88,16 @@ export function TwoFactorSection(): JSX.Element {
     });
   }
 
-  function handleEnableOpen(): void {
+  function resetEnableState(): void {
     setEnableStep("password");
     setTotpUri("");
     setBackupCodes([]);
-    setEnableOpen(true);
   }
 
-  function handleEnableDialogClose(open: boolean): void {
-    if (!open && enableStep() === "backup-codes") {
+  function handleEnableClose(): void {
+    if (enableStep() === "backup-codes") {
       toast.success("Two-factor authentication enabled");
     }
-    setEnableOpen(open);
   }
 
   return (
@@ -129,18 +127,18 @@ export function TwoFactorSection(): JSX.Element {
           <Show
             when={session.user.twoFactorEnabled}
             fallback={
-              <Button variant="outline" size="sm" onClick={handleEnableOpen}>
+              <Button
+                variant="outline"
+                size="sm"
+                command="show-modal"
+                commandfor={ENABLE_DIALOG_ID}
+                onClick={resetEnableState}
+              >
                 Enable
               </Button>
             }
           >
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDisableOpen(true)}
-            >
-              Disable
-            </Button>
+            <DisableTwoFactorDialog />
           </Show>
         </ItemActions>
       </Item>
@@ -165,20 +163,15 @@ export function TwoFactorSection(): JSX.Element {
             </ItemDescription>
           </ItemContent>
           <ItemActions>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setRegenerateOpen(true)}
-            >
-              Regenerate
-            </Button>
+            <RegenerateBackupCodesDialog />
           </ItemActions>
         </Item>
       </Show>
 
-      <ResponsiveEditDialog
-        isOpen={enableOpen}
-        setIsOpen={handleEnableDialogClose}
+      <Dialog
+        id={ENABLE_DIALOG_ID}
+        ref={(el) => enableDialogRef = el}
+        onClose={handleEnableClose}
         title={enableStep() === "backup-codes"
           ? "Save backup codes"
           : "Enable two-factor authentication"}
@@ -188,39 +181,27 @@ export function TwoFactorSection(): JSX.Element {
           ? "Scan the QR code with your authenticator app, then enter the verification code"
           : "Store these codes in a safe place. You can use them to access your account if you lose your authenticator device."}
       >
-        {() => (
-          <Switch>
-            <Match when={enableStep() === "password"}>
-              <PasswordForm
-                submitLabel="Continue"
-                onSubmit={handlePasswordSubmit}
-              />
-            </Match>
-            <Match when={enableStep() === "verify"}>
-              <VerifyTotpStep
-                totpUri={totpUri()}
-                onSubmit={handleVerifyTotpSubmit}
-              />
-            </Match>
-            <Match when={enableStep() === "backup-codes"}>
-              <BackupCodesStep
-                backupCodes={backupCodes()}
-                onDone={() => handleEnableDialogClose(false)}
-              />
-            </Match>
-          </Switch>
-        )}
-      </ResponsiveEditDialog>
-
-      <DisableTwoFactorDialog
-        isOpen={disableOpen}
-        setIsOpen={setDisableOpen}
-      />
-
-      <RegenerateBackupCodesDialog
-        isOpen={regenerateOpen}
-        setIsOpen={setRegenerateOpen}
-      />
+        <Switch>
+          <Match when={enableStep() === "password"}>
+            <PasswordForm
+              submitLabel="Continue"
+              onSubmit={handlePasswordSubmit}
+            />
+          </Match>
+          <Match when={enableStep() === "verify"}>
+            <VerifyTotpStep
+              totpUri={totpUri()}
+              onSubmit={handleVerifyTotpSubmit}
+            />
+          </Match>
+          <Match when={enableStep() === "backup-codes"}>
+            <BackupCodesStep
+              backupCodes={backupCodes()}
+              onDone={() => enableDialogRef.close()}
+            />
+          </Match>
+        </Switch>
+      </Dialog>
     </>
   );
 }

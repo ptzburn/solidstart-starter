@@ -1,12 +1,14 @@
-import { ResponsiveEditDialog } from "~/client/components/responsive-edit-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
+import { Dialog } from "~/client/components/ui/dialog.tsx";
 import { FieldGroup, FieldSet } from "~/client/components/ui/field.tsx";
 
 import { Separator } from "~/client/components/ui/separator.tsx";
 import { useAppForm } from "~/client/hooks/use-app-form.ts";
 import Plus from "~icons/lucide/plus";
 import Search from "~icons/lucide/search";
-import { createSignal, type JSX, Show } from "solid-js";
+import { type JSX, Show } from "solid-js";
+
+const DIALOG_ID = "user-search-filters-dialog";
 
 const getRoleOptions = () => [
   { value: "admin", label: "Admin" },
@@ -27,12 +29,12 @@ type UserSearchProps = {
 const defaultValues: UserFilters = { name: "", email: "", role: "" };
 
 export function UserSearch(props: UserSearchProps): JSX.Element {
-  const [isDialogOpen, setIsDialogOpen] = createSignal(false);
+  let dialogRef!: HTMLDialogElement;
 
   const form = useAppForm(() => ({
     defaultValues,
     onSubmit: ({ value }) => {
-      setIsDialogOpen(false);
+      dialogRef.close();
       props.onSubmit(value);
     },
   }));
@@ -81,7 +83,8 @@ export function UserSearch(props: UserSearchProps): JSX.Element {
                 variant="ghost"
                 class="w-full justify-center sm:w-auto"
                 type="button"
-                onClick={() => setIsDialogOpen(true)}
+                command="show-modal"
+                commandfor={DIALOG_ID}
               >
                 <Plus class="h-4 w-4" />
                 Filters all criteria
@@ -117,51 +120,49 @@ export function UserSearch(props: UserSearchProps): JSX.Element {
         </div>
       </div>
 
-      <ResponsiveEditDialog
-        isOpen={isDialogOpen}
-        setIsOpen={setIsDialogOpen}
+      <Dialog
+        id={DIALOG_ID}
+        ref={(el) => dialogRef = el}
         title="Filters all criteria"
         description="Select a role to filter users by."
       >
-        {() => (
-          <div class="space-y-6 pb-4">
-            <FieldSet>
-              <FieldGroup>
-                <form.AppField name="role">
-                  {(field) => (
-                    <field.SelectField
-                      label="Role"
-                      placeholder="Select role"
-                      options={getRoleOptions()}
-                    />
-                  )}
-                </form.AppField>
-              </FieldGroup>
-            </FieldSet>
+        <div class="space-y-6 pb-4">
+          <FieldSet>
+            <FieldGroup>
+              <form.AppField name="role">
+                {(field) => (
+                  <field.SelectField
+                    label="Role"
+                    placeholder="Select role"
+                    options={getRoleOptions()}
+                  />
+                )}
+              </form.AppField>
+            </FieldGroup>
+          </FieldSet>
 
-            <Separator />
+          <Separator />
 
-            <div class="flex items-center justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  form.setFieldValue("role", "");
-                }}
-              >
-                Clear
-              </Button>
-              <Button
-                type="button"
-                onClick={() => form.handleSubmit()}
-              >
-                <Search class="h-4 w-4" />
-                Apply filters
-              </Button>
-            </div>
+          <div class="flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                form.setFieldValue("role", "");
+              }}
+            >
+              Clear
+            </Button>
+            <Button
+              type="button"
+              onClick={() => form.handleSubmit()}
+            >
+              <Search class="h-4 w-4" />
+              Apply filters
+            </Button>
           </div>
-        )}
-      </ResponsiveEditDialog>
+        </div>
+      </Dialog>
     </form>
   );
 }

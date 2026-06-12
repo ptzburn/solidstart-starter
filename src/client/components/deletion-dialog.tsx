@@ -3,15 +3,6 @@ import Trash from "~icons/lucide/trash";
 import { type Accessor, type JSX, type Setter, Show } from "solid-js";
 import { Button } from "./ui/button.tsx";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "./ui/dialog.tsx";
-
-import {
   Drawer,
   DrawerContent,
   DrawerDescription,
@@ -19,6 +10,15 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "./ui/drawer.tsx";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/old-dialog.tsx";
 import { Spinner } from "./ui/spinner.tsx";
 
 type DeletionDialogProps = {

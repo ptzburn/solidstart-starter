@@ -5,7 +5,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "~/client/components/ui/dialog.tsx";
+} from "~/client/components/ui/old-dialog.tsx";
 
 import { cn } from "~/client/lib/utils.ts";
 import SearchIcon from "~icons/lucide/search";
