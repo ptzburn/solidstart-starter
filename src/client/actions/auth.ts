@@ -53,16 +53,16 @@ export const signIn = action(async (formData: FormData) => {
     });
 
     if ("twoFactorRedirect" in response && response.twoFactorRedirect) {
-      throw redirectWithCookies(authHeaders, "/auth/sign-in/two-factor");
+      return redirectWithCookies(authHeaders, "/auth/sign-in/two-factor");
     }
-    throw redirectWithCookies(authHeaders, "/dashboard");
+    return redirectWithCookies(authHeaders, "/dashboard");
   } catch (error) {
     if (
       error instanceof APIError && error.body?.code === "EMAIL_NOT_VERIFIED"
     ) {
       const session = await usePendingSigninSession();
       await session.update({ email: parsed.data.email });
-      throw redirect("/auth/sign-in/verify-email");
+      return redirect("/auth/sign-in/verify-email");
     }
     throw error;
   }
@@ -86,7 +86,7 @@ export const signInSocial = action(async (formData: FormData) => {
 
   if (!response.url) throw new Error("Failed to start sign-in");
 
-  throw redirectWithCookies(authHeaders, response.url);
+  return redirectWithCookies(authHeaders, response.url);
 }, "signInSocial");
 
 export const signUp = action(async (formData: FormData) => {
@@ -127,7 +127,7 @@ export const signUp = action(async (formData: FormData) => {
 
   const session = await usePendingSigninSession();
   await session.update({ email: parsed.data.email });
-  throw redirectWithCookies(authHeaders, "/auth/sign-in/verify-email");
+  return redirectWithCookies(authHeaders, "/auth/sign-in/verify-email");
 }, "signUp");
 
 export const signUpSocial = action(async (formData: FormData) => {
@@ -149,7 +149,7 @@ export const signUpSocial = action(async (formData: FormData) => {
 
   if (!response.url) throw new Error("Failed to start sign-up");
 
-  throw redirectWithCookies(authHeaders, response.url);
+  return redirectWithCookies(authHeaders, response.url);
 }, "signUpSocial");
 
 export const requestPasswordReset = action(async (formData: FormData) => {
@@ -179,7 +179,7 @@ export const requestPasswordReset = action(async (formData: FormData) => {
 
   const session = await usePendingForgotPasswordSession();
   await session.update({ email: parsed.data.email });
-  throw redirect("/auth/forgot-password/sent");
+  return redirect("/auth/forgot-password/sent");
 }, "requestPasswordReset");
 
 export const resetPassword = action(async (formData: FormData) => {
@@ -204,7 +204,7 @@ export const resetPassword = action(async (formData: FormData) => {
 
   const session = await usePendingResetPasswordSession();
   await session.update({ completed: true });
-  throw redirect("/auth/reset-password/success");
+  return redirect("/auth/reset-password/success");
 }, "resetPassword");
 
 export const verifyEmailOtp = action(async (formData: FormData) => {
@@ -222,7 +222,7 @@ export const verifyEmailOtp = action(async (formData: FormData) => {
 
   const session = await usePendingSigninSession();
   const email = session.data.email;
-  if (!email) throw redirect("/auth/sign-in");
+  if (!email) return redirect("/auth/sign-in");
 
   const { headers: authHeaders } = await auth.api.verifyEmailOTP({
     body: { email, otp: parsed.data.otp },
@@ -231,14 +231,14 @@ export const verifyEmailOtp = action(async (formData: FormData) => {
   });
 
   await session.clear();
-  throw redirectWithCookies(authHeaders, "/dashboard");
+  return redirectWithCookies(authHeaders, "/dashboard");
 }, "verifyEmailOtp");
 
 export const resendEmailOtp = action(async () => {
   "use server";
   const session = await usePendingSigninSession();
   const email = session.data.email;
-  if (!email) throw redirect("/auth/sign-in");
+  if (!email) return redirect("/auth/sign-in");
 
   await auth.api.sendVerificationOTP({
     body: { email, type: "email-verification" },
@@ -267,7 +267,7 @@ export const verifyTwoFactorTotp = action(async (formData: FormData) => {
     returnHeaders: true,
   });
 
-  throw redirectWithCookies(authHeaders, "/dashboard");
+  return redirectWithCookies(authHeaders, "/dashboard");
 }, "verifyTwoFactorTotp");
 
 export const verifyTwoFactorBackup = action(async (formData: FormData) => {
@@ -290,5 +290,5 @@ export const verifyTwoFactorBackup = action(async (formData: FormData) => {
     returnHeaders: true,
   });
 
-  throw redirectWithCookies(authHeaders, "/dashboard");
+  return redirectWithCookies(authHeaders, "/dashboard");
 }, "verifyTwoFactorBackup");
