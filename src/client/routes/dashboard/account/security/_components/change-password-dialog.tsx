@@ -1,6 +1,6 @@
 import { revalidateLogic } from "@tanstack/solid-form";
 import { Button } from "~/client/components/ui/button.tsx";
-import { Dialog } from "~/client/components/ui/dialog.tsx";
+import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { useAppForm } from "~/client/hooks/use-app-form.ts";
 
 import { authClient } from "~/client/lib/auth-client.ts";
@@ -82,7 +82,7 @@ export function ChangePasswordDialog(): JSX.Element {
         Change password
       </Button>
 
-      <Dialog
+      <ResponsiveDialog
         id={DIALOG_ID}
         ref={(el) => dialogRef = el}
         title="Change password"
@@ -127,7 +127,7 @@ export function ChangePasswordDialog(): JSX.Element {
             <form.SubmitButton>Change password</form.SubmitButton>
           </form.AppForm>
         </form>
-      </Dialog>
+      </ResponsiveDialog>
     </>
   );
 }

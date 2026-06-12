@@ -1,5 +1,5 @@
 import { createAsync, revalidate } from "@solidjs/router";
-import { DeletionDialog } from "~/client/components/deletion-dialog.tsx";
+import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 
@@ -28,11 +28,13 @@ import {
 } from "solid-js";
 import { toast } from "solid-sonner";
 
+const DELETE_PASSKEY_DIALOG_ID = "delete-passkey-dialog";
+
 export function PasskeySection(): JSX.Element {
+  let dialogRef!: HTMLDialogElement;
   const passkeys = createAsync(() => listPasskeysQuery());
   const [adding, setAdding] = createSignal(false);
   const [deletingId, setDeletingId] = createSignal<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = createSignal(false);
   const [deleting, setDeleting] = createSignal(false);
 
   const handleAdd = async () => {
@@ -61,8 +63,7 @@ export function PasskeySection(): JSX.Element {
         onSuccess: () => {
           revalidate(listPasskeysQuery.key);
           toast.success("Passkey deleted");
-          setDeleteDialogOpen(false);
-          setDeletingId(null);
+          dialogRef.close();
         },
         onError: (ctx) => {
           toast.error(ctx.error.message || "Failed to delete passkey");
@@ -153,10 +154,9 @@ export function PasskeySection(): JSX.Element {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                setDeletingId(pk.id);
-                                setDeleteDialogOpen(true);
-                              }}
+                              command="show-modal"
+                              commandfor={DELETE_PASSKEY_DIALOG_ID}
+                              onClick={() => setDeletingId(pk.id)}
                             >
                               <Trash class="size-4 text-destructive" />
                             </Button>
@@ -172,11 +172,13 @@ export function PasskeySection(): JSX.Element {
         </Suspense>
       </ErrorBoundary>
 
-      <DeletionDialog
-        isOpen={deleteDialogOpen}
-        setIsOpen={setDeleteDialogOpen}
+      <ConfirmDialog
+        id={DELETE_PASSKEY_DIALOG_ID}
+        ref={(el) => dialogRef = el}
+        variant="destructive"
         isPending={deleting()}
-        onDelete={handleDelete}
+        onConfirm={handleDelete}
+        onClose={() => setDeletingId(null)}
       />
     </ItemGroup>
   );

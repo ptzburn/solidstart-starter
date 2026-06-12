@@ -1,7 +1,7 @@
 import { revalidate, useAction, useSubmission } from "@solidjs/router";
 import { sendPhoneOtp, verifyPhoneNumber } from "~/client/actions/users.ts";
 import { Button } from "~/client/components/ui/button.tsx";
-import { Dialog } from "~/client/components/ui/dialog.tsx";
+import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { OTPField } from "~/client/components/ui/form2/otp-field.tsx";
 import { TextField } from "~/client/components/ui/form2/text-field.tsx";
 import { getSessionQuery } from "~/client/queries/auth.ts";
@@ -107,7 +107,7 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
         {props.currentPhoneNumber ? "Edit phone number" : "Add phone number"}
       </Button>
 
-      <Dialog
+      <ResponsiveDialog
         id={DIALOG_ID}
         ref={(el) => dialogRef = el}
         onClose={handleClose}
@@ -188,7 +188,7 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
               </Button>
             </form>
           )}
-      </Dialog>
+      </ResponsiveDialog>
     </>
   );
 }

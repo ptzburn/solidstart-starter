@@ -2,7 +2,7 @@ import { createAsync, revalidate } from "@solidjs/router";
 import { Badge } from "~/client/components/ui/badge.tsx";
 
 import { Button } from "~/client/components/ui/button.tsx";
-import { Dialog } from "~/client/components/ui/dialog.tsx";
+import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import {
   Item,
   ItemActions,
@@ -168,7 +168,7 @@ export function TwoFactorSection(): JSX.Element {
         </Item>
       </Show>
 
-      <Dialog
+      <ResponsiveDialog
         id={ENABLE_DIALOG_ID}
         ref={(el) => enableDialogRef = el}
         onClose={handleEnableClose}
@@ -201,7 +201,7 @@ export function TwoFactorSection(): JSX.Element {
             />
           </Match>
         </Switch>
-      </Dialog>
+      </ResponsiveDialog>
     </>
   );
 }

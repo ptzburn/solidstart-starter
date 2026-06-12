@@ -1,6 +1,6 @@
 import { revalidate } from "@solidjs/router";
 import { Button } from "~/client/components/ui/button.tsx";
-import { Dialog } from "~/client/components/ui/dialog.tsx";
+import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { authClient } from "~/client/lib/auth-client.ts";
 
 import { viewNumberOfBackupCodesQuery } from "~/client/queries/auth.ts";
@@ -55,7 +55,7 @@ export function RegenerateBackupCodesDialog(): JSX.Element {
         Regenerate
       </Button>
 
-      <Dialog
+      <ResponsiveDialog
         id={DIALOG_ID}
         ref={(el) => dialogRef = el}
         onClose={handleDialogClose}
@@ -80,7 +80,7 @@ export function RegenerateBackupCodesDialog(): JSX.Element {
             />
           </Match>
         </Switch>
-      </Dialog>
+      </ResponsiveDialog>
     </>
   );
 }

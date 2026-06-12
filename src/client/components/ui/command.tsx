@@ -1,11 +1,10 @@
-import type { DialogRootProps } from "@kobalte/core/dialog";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "~/client/components/ui/old-dialog.tsx";
+} from "~/client/components/ui/dialog.tsx";
 
 import { cn } from "~/client/lib/utils.ts";
 import SearchIcon from "~icons/lucide/search";
@@ -14,6 +13,7 @@ import * as CommandPrimitive from "cmdk-solid";
 import type {
   Component,
   ComponentProps,
+  JSX,
   ParentProps,
   VoidProps,
 } from "solid-js";
@@ -35,19 +35,20 @@ const Command: Component<ParentProps<CommandPrimitive.CommandRootProps>> = (
   );
 };
 
-interface CommandDialogProps extends DialogRootProps {
+interface CommandDialogProps {
+  id: string;
+  ref?: (el: HTMLDialogElement) => void;
   title?: string;
   description?: string;
-  className?: string;
-  // deno-lint-ignore no-explicit-any
-  children?: any;
+  class?: string;
+  children?: JSX.Element;
 }
 
 const CommandDialog: Component<CommandDialogProps> = (props) => {
   const [local, dialogProps] = splitProps(props, [
     "title",
     "description",
-    "className",
+    "class",
     "children",
   ]);
 
@@ -60,9 +61,7 @@ const CommandDialog: Component<CommandDialogProps> = (props) => {
         </DialogDescription>
       </DialogHeader>
 
-      <DialogContent
-        class={cn("overflow-hidden p-0", local.className)}
-      >
+      <DialogContent class={cn("overflow-hidden p-0", local.class)}>
         <Command class="\ &_[cmdk-input-wrapper]_svg:h-5 &_[cmdk-input]:h-12 &_[cmdk-item]_svg:h-5 &[data-slot='command-input-wrapper']:h-12 &_[cmdk-input-wrapper]_svg:w-5 &_[cmdk-item]_svg:w-5 &_[cmdk-group-heading]:px-2 &_[cmdk-group]:px-2 &_[cmdk-item]:px-2 &_[cmdk-item]:py-3 &_[cmdk-group-heading]:font-medium &_[cmdk-group-heading]:text-muted-foreground &_[cmdk-group]:not([hidden])_~[cmdk-group]:pt-0">
           {local.children}
         </Command>

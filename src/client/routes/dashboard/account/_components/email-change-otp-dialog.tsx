@@ -1,19 +1,14 @@
 import { revalidate } from "@solidjs/router";
 
 import { Button } from "~/client/components/ui/button.tsx";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "~/client/components/ui/old-dialog.tsx";
+import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { useAppForm } from "~/client/hooks/use-app-form.ts";
 import { authClient } from "~/client/lib/auth-client.ts";
-import { createEffect, createSignal, type JSX, on } from "solid-js";
+import { createEffect, type JSX, on } from "solid-js";
 import { toast } from "solid-sonner";
 import { z } from "zod";
+
+const DIALOG_ID = "email-change-otp-dialog";
 
 type EmailChangeOTPDialogProps = {
   newEmail: string | null;
@@ -23,7 +18,7 @@ type EmailChangeOTPDialogProps = {
 export function EmailChangeOTPDialog(
   props: EmailChangeOTPDialogProps,
 ): JSX.Element {
-  const [open, setOpen] = createSignal(false);
+  let dialogRef!: HTMLDialogElement;
   let dialogOpened = false;
 
   createEffect(
@@ -32,7 +27,7 @@ export function EmailChangeOTPDialog(
       (email) => {
         if (email && !dialogOpened) {
           dialogOpened = true;
-          setOpen(true);
+          dialogRef.showModal();
         }
       },
     ),
@@ -49,11 +44,6 @@ export function EmailChangeOTPDialog(
         toast.error("Failed to send code to the new email");
       },
     });
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    props.onClose();
   };
 
   const form = useAppForm(() => ({
@@ -74,7 +64,7 @@ export function EmailChangeOTPDialog(
         fetchOptions: {
           onSuccess: () => {
             toast.success("Email changed");
-            handleClose();
+            dialogRef.close();
             void revalidate("session");
           },
           onError: (error) => {
@@ -89,54 +79,44 @@ export function EmailChangeOTPDialog(
   }));
 
   return (
-    <Dialog
-      open={open()}
-      onOpenChange={(next) => {
-        if (!next) {
-          handleClose();
-        }
-      }}
+    <ResponsiveDialog
+      id={DIALOG_ID}
+      ref={(el) => dialogRef = el}
+      onClose={() => props.onClose()}
+      title="Verify your email"
+      description="Enter the code sent to your new email to verify your account."
     >
-      <DialogContent>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
-          class="space-y-6"
-        >
-          <DialogHeader>
-            <DialogTitle>Verify your email</DialogTitle>
-            <DialogDescription>
-              Enter the code sent to your new email to verify your account.
-            </DialogDescription>
-          </DialogHeader>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+        class="space-y-6"
+      >
+        <form.AppField name="otp">
+          {(field) => <field.OTPField />}
+        </form.AppField>
 
-          <form.AppField name="otp">
-            {(field) => <field.OTPField />}
-          </form.AppField>
-
-          <DialogFooter class="flex-col gap-2 sm:flex-col">
-            <form.AppForm>
-              <form.SubmitButton>
-                Verify
-              </form.SubmitButton>
-            </form.AppForm>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                if (props.newEmail) {
-                  resendOTP(props.newEmail);
-                }
-              }}
-            >
-              Resend code
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <div class="flex flex-col gap-2">
+          <form.AppForm>
+            <form.SubmitButton>
+              Verify
+            </form.SubmitButton>
+          </form.AppForm>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              if (props.newEmail) {
+                resendOTP(props.newEmail);
+              }
+            }}
+          >
+            Resend code
+          </Button>
+        </div>
+      </form>
+    </ResponsiveDialog>
   );
 }

@@ -1,7 +1,7 @@
 import { useSubmission } from "@solidjs/router";
 import { updateUserName } from "~/client/actions/users.ts";
 import { Button } from "~/client/components/ui/button.tsx";
-import { Dialog } from "~/client/components/ui/dialog.tsx";
+import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { TextField } from "~/client/components/ui/form2/text-field.tsx";
 import { createEffect, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
@@ -57,7 +57,7 @@ export function NameEditDialog(props: NameEditDialogProps): JSX.Element {
         Edit name
       </Button>
 
-      <Dialog
+      <ResponsiveDialog
         id={DIALOG_ID}
         ref={(el) => dialogRef = el}
         title="Edit name"
@@ -102,7 +102,7 @@ export function NameEditDialog(props: NameEditDialogProps): JSX.Element {
             Save
           </Button>
         </form>
-      </Dialog>
+      </ResponsiveDialog>
     </>
   );
 }

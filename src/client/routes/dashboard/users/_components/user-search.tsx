@@ -1,5 +1,5 @@
 import { Button } from "~/client/components/ui/button.tsx";
-import { Dialog } from "~/client/components/ui/dialog.tsx";
+import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { FieldGroup, FieldSet } from "~/client/components/ui/field.tsx";
 
 import { Separator } from "~/client/components/ui/separator.tsx";
@@ -120,7 +120,7 @@ export function UserSearch(props: UserSearchProps): JSX.Element {
         </div>
       </div>
 
-      <Dialog
+      <ResponsiveDialog
         id={DIALOG_ID}
         ref={(el) => dialogRef = el}
         title="Filters all criteria"
@@ -162,7 +162,7 @@ export function UserSearch(props: UserSearchProps): JSX.Element {
             </Button>
           </div>
         </div>
-      </Dialog>
+      </ResponsiveDialog>
     </form>
   );
 }

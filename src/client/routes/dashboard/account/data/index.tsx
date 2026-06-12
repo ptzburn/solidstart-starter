@@ -1,4 +1,4 @@
-import { DeletionDialog } from "~/client/components/deletion-dialog.tsx";
+import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import {
   Item,
@@ -13,15 +13,17 @@ import Mail from "~icons/lucide/mail";
 import { createSignal, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
+const DELETE_ACCOUNT_DIALOG_ID = "delete-account-dialog";
+
 function AccountDataPage(): JSX.Element {
-  const [isOpen, setIsOpen] = createSignal(false);
+  let dialogRef!: HTMLDialogElement;
   const [isAccountDeleting, setIsAccountDeleting] = createSignal(false);
 
   const handleAccountDelete = async () => {
     setIsAccountDeleting(true);
     await authClient.deleteUser({}, {
       onSuccess: () => {
-        setIsOpen(false);
+        dialogRef.close();
       },
       onError: (error) => {
         toast.error(error.error.message || "Failed to delete account");
@@ -50,7 +52,8 @@ function AccountDataPage(): JSX.Element {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsOpen(true)}
+              command="show-modal"
+              commandfor={DELETE_ACCOUNT_DIALOG_ID}
               disabled={isAccountDeleting()}
             >
               Delete account
@@ -59,15 +62,16 @@ function AccountDataPage(): JSX.Element {
         </Item>
       </ItemGroup>
 
-      <DeletionDialog
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        isPending={isAccountDeleting()}
+      <ConfirmDialog
+        id={DELETE_ACCOUNT_DIALOG_ID}
+        ref={(el) => dialogRef = el}
+        variant="destructive"
         title="Delete account"
         description="We will send you an email with a link to delete your account. Clicking the link will permanently delete your account and all associated data. This action cannot be undone."
-        buttonText="Send deletion link"
+        confirmText="Send deletion link"
         icon={<Mail />}
-        onDelete={handleAccountDelete}
+        isPending={isAccountDeleting()}
+        onConfirm={handleAccountDelete}
       />
     </div>
   );

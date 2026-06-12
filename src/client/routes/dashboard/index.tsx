@@ -10,7 +10,7 @@ import {
   deleteTaskAction,
   updateTaskAction,
 } from "~/client/actions/tasks.ts";
-import { DeletionDialog } from "~/client/components/deletion-dialog.tsx";
+import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { Badge } from "~/client/components/ui/badge.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import { Checkbox } from "~/client/components/ui/checkbox.tsx";
@@ -44,6 +44,8 @@ type NewTaskForm = {
   name: string;
 };
 
+const DELETE_TASK_DIALOG_ID = "delete-task-dialog";
+
 export default function Main(): JSX.Element {
   const tasks = createAsync(() => getTasksQuery());
 
@@ -54,6 +56,7 @@ export default function Main(): JSX.Element {
   const updateTask = useAction(updateTaskAction);
   const deleteTask = useAction(deleteTaskAction);
 
+  let dialogRef!: HTMLDialogElement;
   const [deletingTaskId, setDeletingTaskId] = createSignal<number | null>(
     null,
   );
@@ -264,6 +267,8 @@ export default function Main(): JSX.Element {
                                 size="icon-sm"
                                 aria-label="Delete"
                                 class="shrink-0 text-muted-foreground/50 transition-colors hover:text-destructive"
+                                command="show-modal"
+                                commandfor={DELETE_TASK_DIALOG_ID}
                                 onClick={() => setDeletingTaskId(task.id)}
                               >
                                 <Trash class="size-4" />
@@ -304,6 +309,8 @@ export default function Main(): JSX.Element {
                                 size="icon-sm"
                                 aria-label="Delete"
                                 class="shrink-0 text-muted-foreground/50 transition-colors hover:text-destructive"
+                                command="show-modal"
+                                commandfor={DELETE_TASK_DIALOG_ID}
                                 onClick={() => setDeletingTaskId(task.id)}
                               >
                                 <Trash class="size-4" />
@@ -321,27 +328,24 @@ export default function Main(): JSX.Element {
         </Show>
       </Suspense>
 
-      <DeletionDialog
-        isOpen={() => deletingTaskId() !== null}
-        setIsOpen={(value) => {
-          const open = typeof value === "function"
-            ? value(deletingTaskId() !== null)
-            : value;
-          if (!open) setDeletingTaskId(null);
-        }}
-        isPending={deleteSubmission.pending}
+      <ConfirmDialog
+        id={DELETE_TASK_DIALOG_ID}
+        ref={(el) => dialogRef = el}
+        variant="destructive"
         title="Delete task?"
         description={deletingTask()
           ? `"${
             deletingTask()?.name ?? "Task"
           }" will be removed. This can't be undone.`
           : undefined}
-        onDelete={async () => {
+        isPending={deleteSubmission.pending}
+        onConfirm={async () => {
           const id = deletingTaskId();
           if (id === null) return;
           const ok = await onDeleteTask(id);
-          if (ok) setDeletingTaskId(null);
+          if (ok) dialogRef.close();
         }}
+        onClose={() => setDeletingTaskId(null)}
       />
     </div>
   );

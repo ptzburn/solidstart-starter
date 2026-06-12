@@ -1,7 +1,7 @@
 import { useSubmission } from "@solidjs/router";
 import { requestEmailChange } from "~/client/actions/users.ts";
 import { Button } from "~/client/components/ui/button.tsx";
-import { Dialog } from "~/client/components/ui/dialog.tsx";
+import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { TextField } from "~/client/components/ui/form2/text-field.tsx";
 import { createEffect, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
@@ -46,7 +46,7 @@ export function EmailDialog(props: EmailDialogProps): JSX.Element {
         Edit email
       </Button>
 
-      <Dialog
+      <ResponsiveDialog
         id={DIALOG_ID}
         ref={(el) => dialogRef = el}
         title="Edit email"
@@ -77,7 +77,7 @@ export function EmailDialog(props: EmailDialogProps): JSX.Element {
             Save
           </Button>
         </form>
-      </Dialog>
+      </ResponsiveDialog>
     </>
   );
 }

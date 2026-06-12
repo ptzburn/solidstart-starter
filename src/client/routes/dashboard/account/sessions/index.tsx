@@ -1,5 +1,5 @@
 import { createAsync, revalidate } from "@solidjs/router";
-import { ConfirmationDialog } from "~/client/components/confirmation-dialog.tsx";
+import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
 import { Badge } from "~/client/components/ui/badge.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
@@ -87,12 +87,15 @@ function formatDate(
   });
 }
 
+const REVOKE_SESSION_DIALOG_ID = "revoke-session-dialog";
+const REVOKE_ALL_DIALOG_ID = "revoke-all-sessions-dialog";
+
 export default function SessionsRoute(): JSX.Element {
+  let revokeDialogRef!: HTMLDialogElement;
+  let revokeAllDialogRef!: HTMLDialogElement;
   const sessions = createAsync(() => listSessionsQuery());
   const session = useSession();
-  const [confirmOpen, setConfirmOpen] = createSignal(false);
   const [revokingToken, setRevokingToken] = createSignal<string | null>(null);
-  const [revokeAllOpen, setRevokeAllOpen] = createSignal(false);
   const [revokingAll, setRevokingAll] = createSignal(false);
 
   const hasOtherSessions = () =>
@@ -108,14 +111,13 @@ export default function SessionsRoute(): JSX.Element {
         onSuccess: () => {
           revalidate(listSessionsQuery.key);
           toast.success("Session revoked successfully");
+          revokeDialogRef.close();
         },
         onError: (ctx) => {
           toast.error(ctx.error.message || "Failed to revoke session");
         },
       },
     });
-
-    setRevokingToken(null);
   };
 
   const handleRevokeAll = async () => {
@@ -125,6 +127,7 @@ export default function SessionsRoute(): JSX.Element {
         onSuccess: () => {
           revalidate(listSessionsQuery.key);
           toast.success("All other sessions have been revoked");
+          revokeAllDialogRef.close();
         },
         onError: (ctx) => {
           toast.error(ctx.error.message || "Failed to revoke sessions");
@@ -239,10 +242,9 @@ export default function SessionsRoute(): JSX.Element {
                                     variant="outline"
                                     size="sm"
                                     disabled={revokingToken() === s.token}
-                                    onClick={() => {
-                                      setRevokingToken(s.token);
-                                      setConfirmOpen(true);
-                                    }}
+                                    command="show-modal"
+                                    commandfor={REVOKE_SESSION_DIALOG_ID}
+                                    onClick={() => setRevokingToken(s.token)}
                                   >
                                     <Show
                                       when={revokingToken() === s.token}
@@ -271,7 +273,8 @@ export default function SessionsRoute(): JSX.Element {
               variant="secondary"
               class="w-fit"
               disabled={revokingAll()}
-              onClick={() => setRevokeAllOpen(true)}
+              command="show-modal"
+              commandfor={REVOKE_ALL_DIALOG_ID}
             >
               <Show when={revokingAll()}>
                 <Spinner class="size-4" />
@@ -282,27 +285,26 @@ export default function SessionsRoute(): JSX.Element {
         </Suspense>
       </ErrorBoundary>
 
-      <ConfirmationDialog
-        open={revokeAllOpen}
-        onOpenChange={setRevokeAllOpen}
-        onConfirm={handleRevokeAll}
+      <ConfirmDialog
+        id={REVOKE_ALL_DIALOG_ID}
+        ref={(el) => revokeAllDialogRef = el}
+        variant="destructive"
         title="Revoke all other sessions?"
         description="This will sign out all devices except the current one. This action cannot be undone."
         confirmText="Revoke all"
-        cancelText="Cancel"
+        isPending={revokingAll()}
+        onConfirm={handleRevokeAll}
       />
 
-      <ConfirmationDialog
-        open={confirmOpen}
-        onOpenChange={(open) => {
-          setConfirmOpen(open);
-          if (!open) setRevokingToken(null);
-        }}
-        onConfirm={handleRevoke}
+      <ConfirmDialog
+        id={REVOKE_SESSION_DIALOG_ID}
+        ref={(el) => revokeDialogRef = el}
+        variant="destructive"
         title="Revoke session?"
         description="This will sign out the device associated with this session. This action cannot be undone."
         confirmText="Revoke"
-        cancelText="Cancel"
+        onConfirm={handleRevoke}
+        onClose={() => setRevokingToken(null)}
       />
     </div>
   );

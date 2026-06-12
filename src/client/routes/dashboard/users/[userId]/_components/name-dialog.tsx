@@ -1,6 +1,6 @@
 import { revalidate } from "@solidjs/router";
 import { Button } from "~/client/components/ui/button.tsx";
-import { Dialog } from "~/client/components/ui/dialog.tsx";
+import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { useAppForm } from "~/client/hooks/use-app-form.ts";
 import { authClient } from "~/client/lib/auth-client.ts";
 import { getUserByIdQuery } from "~/client/queries/users.ts";
@@ -71,7 +71,7 @@ export function NameDialog(props: NameDialogProps): JSX.Element {
         Change
       </Button>
 
-      <Dialog
+      <ResponsiveDialog
         id={DIALOG_ID}
         ref={(el) => dialogRef = el}
         title="Edit name"
@@ -106,7 +106,7 @@ export function NameDialog(props: NameDialogProps): JSX.Element {
             <form.SubmitButton>Save</form.SubmitButton>
           </form.AppForm>
         </form>
-      </Dialog>
+      </ResponsiveDialog>
     </>
   );
 }

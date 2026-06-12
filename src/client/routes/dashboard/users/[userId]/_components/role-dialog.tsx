@@ -1,6 +1,6 @@
 import { revalidate } from "@solidjs/router";
 import { Button } from "~/client/components/ui/button.tsx";
-import { Dialog } from "~/client/components/ui/dialog.tsx";
+import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { FieldGroup } from "~/client/components/ui/field.tsx";
 import { useAppForm } from "~/client/hooks/use-app-form.ts";
 
@@ -64,7 +64,7 @@ export function RoleDialog(props: RoleDialogProps): JSX.Element {
         Change
       </Button>
 
-      <Dialog
+      <ResponsiveDialog
         id={DIALOG_ID}
         ref={(el) => dialogRef = el}
         title="Change role"
@@ -93,7 +93,7 @@ export function RoleDialog(props: RoleDialogProps): JSX.Element {
             <form.SubmitButton>Save</form.SubmitButton>
           </form.AppForm>
         </form>
-      </Dialog>
+      </ResponsiveDialog>
     </>
   );
 }

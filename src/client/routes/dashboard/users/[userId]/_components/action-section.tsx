@@ -1,5 +1,5 @@
 import { revalidate, useNavigate } from "@solidjs/router";
-import { DeletionDialog } from "~/client/components/deletion-dialog.tsx";
+import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import {
   Card,
@@ -22,12 +22,13 @@ type ImpersonateSectionProps = {
   user: Accessor<SelectUser>;
 };
 
+const DELETE_USER_DIALOG_ID = "admin-delete-user-dialog";
+
 export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
   const navigate = useNavigate();
 
   const [isImpersonating, setIsImpersonating] = createSignal(false);
   const [isDeleting, setIsDeleting] = createSignal(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = createSignal(false);
 
   const handleImpersonate = async () => {
     setIsImpersonating(true);
@@ -91,7 +92,8 @@ export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
           variant="destructive"
           class="w-full cursor-pointer"
           disabled={isDeleting()}
-          onClick={() => setDeleteDialogOpen(true)}
+          command="show-modal"
+          commandfor={DELETE_USER_DIALOG_ID}
         >
           <Trash2 class="mr-2 size-4" />
           <Show when={isDeleting()} fallback="Delete user">
@@ -99,15 +101,15 @@ export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
           </Show>
         </Button>
 
-        <DeletionDialog
-          isOpen={deleteDialogOpen}
-          setIsOpen={setDeleteDialogOpen}
-          isPending={isDeleting()}
+        <ConfirmDialog
+          id={DELETE_USER_DIALOG_ID}
+          variant="destructive"
           title="Delete user"
           description={`Are you sure you want to delete ${props.user().name}?`}
-          buttonText="Delete user"
+          confirmText="Delete user"
           icon={<Trash2 />}
-          onDelete={handleDelete}
+          isPending={isDeleting()}
+          onConfirm={handleDelete}
         />
       </CardContent>
     </Card>

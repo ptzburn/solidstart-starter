@@ -1,6 +1,6 @@
 import { revalidate } from "@solidjs/router";
 import { Button } from "~/client/components/ui/button.tsx";
-import { Dialog } from "~/client/components/ui/dialog.tsx";
+import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { authClient } from "~/client/lib/auth-client.ts";
 
 import { getSessionQuery } from "~/client/queries/auth.ts";
@@ -42,7 +42,7 @@ export function DisableTwoFactorDialog(): JSX.Element {
         Disable
       </Button>
 
-      <Dialog
+      <ResponsiveDialog
         id={DIALOG_ID}
         ref={(el) => dialogRef = el}
         title="Disable two-factor authentication"
@@ -52,7 +52,7 @@ export function DisableTwoFactorDialog(): JSX.Element {
           submitLabel="Disable"
           onSubmit={handlePasswordSubmit}
         />
-      </Dialog>
+      </ResponsiveDialog>
     </>
   );
 }
