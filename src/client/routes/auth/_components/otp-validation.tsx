@@ -1,4 +1,4 @@
-import { A, useAction, useSubmission } from "@solidjs/router";
+import { A, useSubmission } from "@solidjs/router";
 import { resendEmailOtp, verifyEmailOtp } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import {
@@ -26,7 +26,6 @@ export function OTPValidation(props: { email: string }): JSX.Element {
 
   const verify = useSubmission(verifyEmailOtp);
   const resend = useSubmission(resendEmailOtp);
-  const triggerResend = useAction(resendEmailOtp);
 
   function startCooldown(): void {
     setCooldown(RESEND_COOLDOWN);
@@ -94,18 +93,6 @@ export function OTPValidation(props: { email: string }): JSX.Element {
             <OTPFieldInput name="otp" />
           </OTPField>
         </div>
-        <div class="flex items-center justify-center gap-1 text-sm">
-          <span class="text-muted-foreground">Didn't receive the code?</span>
-          <Button
-            variant="link"
-            type="button"
-            class="h-auto p-0 text-sm"
-            onClick={() => triggerResend()}
-            disabled={resend.pending || cooldown() > 0}
-          >
-            {cooldown() > 0 ? `Resend (${cooldown()}s)` : "Resend"}
-          </Button>
-        </div>
         <Button
           type="submit"
           class="w-full"
@@ -113,12 +100,27 @@ export function OTPValidation(props: { email: string }): JSX.Element {
         >
           Verify
         </Button>
-        <A href="/auth/sign-in" class="w-full">
-          <Button variant="outline" class="w-full" type="button">
-            Back
-          </Button>
-        </A>
       </form>
+      <form
+        method="post"
+        action={resendEmailOtp}
+        class="flex items-center justify-center gap-1 text-sm"
+      >
+        <span class="text-muted-foreground">Didn't receive the code?</span>
+        <Button
+          type="submit"
+          variant="link"
+          class="h-auto p-0 text-sm"
+          disabled={resend.pending || cooldown() > 0}
+        >
+          {cooldown() > 0 ? `Resend (${cooldown()}s)` : "Resend"}
+        </Button>
+      </form>
+      <A href="/auth/sign-in" class="w-full">
+        <Button variant="outline" class="w-full" type="button">
+          Back
+        </Button>
+      </A>
     </div>
   );
 }

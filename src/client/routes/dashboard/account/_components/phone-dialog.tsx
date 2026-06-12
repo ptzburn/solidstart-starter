@@ -1,4 +1,4 @@
-import { revalidate, useAction, useSubmission } from "@solidjs/router";
+import { revalidate, useSubmission } from "@solidjs/router";
 import { sendPhoneOtp, verifyPhoneNumber } from "~/client/actions/users.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
@@ -22,7 +22,6 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
 
   const sendSubmission = useSubmission(sendPhoneOtp);
   const verifySubmission = useSubmission(verifyPhoneNumber);
-  const triggerSend = useAction(sendPhoneOtp);
 
   const sentPhoneNumber = (): string | undefined =>
     sendSubmission.result && "ok" in sendSubmission.result
@@ -142,51 +141,53 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
             </form>
           )
           : (
-            <form
-              method="post"
-              action={verifyPhoneNumber}
-              class="space-y-4"
-              onInput={() => {
-                if (verifySubmission.result) verifySubmission.clear();
-              }}
-            >
-              <input
-                type="hidden"
-                name="phoneNumber"
-                value={sentPhoneNumber()}
-              />
-              <OTPField
-                name="otp"
-                label="Verification code"
-                error={verifyFieldErrors().otp}
-                disabled={verifySubmission.pending}
-                autofocus
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                class="w-full"
-                onClick={() => {
-                  const phone = sentPhoneNumber();
-                  if (!phone) return;
-                  const fd = new FormData();
-                  fd.set("phoneNumber", phone);
-                  void triggerSend(fd);
+            <div class="space-y-4">
+              <form
+                method="post"
+                action={verifyPhoneNumber}
+                class="space-y-4"
+                onInput={() => {
+                  if (verifySubmission.result) verifySubmission.clear();
                 }}
-                disabled={sendSubmission.pending || cooldown() > 0}
               >
-                {cooldown() > 0
-                  ? `Resend code (${cooldown()}s)`
-                  : "Resend code"}
-              </Button>
-              <Button
-                type="submit"
-                class="w-full"
-                disabled={verifySubmission.pending}
-              >
-                Verify
-              </Button>
-            </form>
+                <input
+                  type="hidden"
+                  name="phoneNumber"
+                  value={sentPhoneNumber()}
+                />
+                <OTPField
+                  name="otp"
+                  label="Verification code"
+                  error={verifyFieldErrors().otp}
+                  disabled={verifySubmission.pending}
+                  autofocus
+                />
+                <Button
+                  type="submit"
+                  class="w-full"
+                  disabled={verifySubmission.pending}
+                >
+                  Verify
+                </Button>
+              </form>
+              <form method="post" action={sendPhoneOtp}>
+                <input
+                  type="hidden"
+                  name="phoneNumber"
+                  value={sentPhoneNumber()}
+                />
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  class="w-full"
+                  disabled={sendSubmission.pending || cooldown() > 0}
+                >
+                  {cooldown() > 0
+                    ? `Resend code (${cooldown()}s)`
+                    : "Resend code"}
+                </Button>
+              </form>
+            </div>
           )}
       </ResponsiveDialog>
     </>
