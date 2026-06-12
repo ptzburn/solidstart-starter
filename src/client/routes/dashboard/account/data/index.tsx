@@ -1,4 +1,4 @@
-import { useAction, useSubmission } from "@solidjs/router";
+import { useSubmission } from "@solidjs/router";
 import { deleteAccount } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
@@ -11,29 +11,29 @@ import {
   ItemTitle,
 } from "~/client/components/ui/item.tsx";
 import Mail from "~icons/lucide/mail";
-import type { JSX } from "solid-js";
+import { createEffect, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
 const DELETE_ACCOUNT_DIALOG_ID = "delete-account-dialog";
 
 function AccountDataPage(): JSX.Element {
   let dialogRef!: HTMLDialogElement;
-  const triggerDelete = useAction(deleteAccount);
   const submission = useSubmission(deleteAccount);
 
-  const handleAccountDelete = async () => {
-    try {
-      const result = await triggerDelete();
-      if (result && "ok" in result) {
-        dialogRef.close();
-        toast.success("Deletion link sent to your email");
-      }
-    } catch (error) {
-      toast.error(
-        Error.isError(error) ? error.message : "Failed to delete account",
-      );
+  createEffect(() => {
+    if (submission.result && "ok" in submission.result) {
+      dialogRef.close();
+      toast.success("Deletion link sent to your email");
+      submission.clear();
     }
-  };
+  });
+
+  createEffect(() => {
+    if (submission.error) {
+      toast.error(submission.error.message || "Failed to delete account");
+      submission.clear();
+    }
+  });
 
   return (
     <div class="flex flex-1 flex-col gap-10">
@@ -74,7 +74,7 @@ function AccountDataPage(): JSX.Element {
         confirmText="Send deletion link"
         icon={<Mail />}
         isPending={submission.pending}
-        onConfirm={handleAccountDelete}
+        action={deleteAccount}
       />
     </div>
   );

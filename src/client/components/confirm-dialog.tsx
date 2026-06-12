@@ -1,3 +1,4 @@
+import type { Action } from "@solidjs/router";
 import { Button } from "~/client/components/ui/button.tsx";
 import {
   Dialog,
@@ -10,7 +11,7 @@ import {
 import { Spinner } from "~/client/components/ui/spinner.tsx";
 import Trash from "~icons/lucide/trash";
 import XIcon from "~icons/lucide/x";
-import { type JSX, Show } from "solid-js";
+import { For, type JSX, Show } from "solid-js";
 
 type ConfirmDialogVariant = "default" | "destructive";
 
@@ -24,7 +25,9 @@ type ConfirmDialogProps = {
   cancelText?: string;
   icon?: JSX.Element;
   isPending?: boolean;
-  onConfirm: () => void;
+  onConfirm?: () => void;
+  action?: Action<[FormData], unknown> | Action<[], unknown>;
+  hiddenFields?: Record<string, string>;
   onCancel?: () => void;
   onClose?: JSX.EventHandlerUnion<HTMLDialogElement, Event>;
   class?: string;
@@ -55,6 +58,19 @@ const DEFAULTS: Record<ConfirmDialogVariant, {
 export function ConfirmDialog(props: ConfirmDialogProps): JSX.Element {
   const variant = (): ConfirmDialogVariant => props.variant ?? "default";
   const defaults = () => DEFAULTS[variant()];
+  const confirmContent = () => (
+    <>
+      {props.confirmText ?? defaults().confirmText}
+      <Show
+        when={props.isPending}
+        fallback={variant() === "destructive"
+          ? (props.icon ?? <Trash />)
+          : null}
+      >
+        <Spinner class="size-4" />
+      </Show>
+    </>
+  );
 
   return (
     <Dialog
@@ -89,21 +105,37 @@ export function ConfirmDialog(props: ConfirmDialogProps): JSX.Element {
         >
           {props.cancelText ?? defaults().cancelText}
         </DialogClose>
-        <Button
-          variant={variant() === "destructive" ? "destructive" : "default"}
-          disabled={props.isPending}
-          onClick={() => props.onConfirm()}
+        <Show
+          when={props.action}
+          fallback={
+            <Button
+              variant={variant() === "destructive" ? "destructive" : "default"}
+              disabled={props.isPending}
+              onClick={() => props.onConfirm?.()}
+            >
+              {confirmContent()}
+            </Button>
+          }
         >
-          {props.confirmText ?? defaults().confirmText}
-          <Show
-            when={props.isPending}
-            fallback={variant() === "destructive"
-              ? (props.icon ?? <Trash />)
-              : null}
-          >
-            <Spinner class="size-4" />
-          </Show>
-        </Button>
+          {(action) => (
+            <form method="post" action={action()}>
+              <For each={Object.entries(props.hiddenFields ?? {})}>
+                {([name, value]) => (
+                  <input type="hidden" name={name} value={value} />
+                )}
+              </For>
+              <Button
+                type="submit"
+                variant={variant() === "destructive"
+                  ? "destructive"
+                  : "default"}
+                disabled={props.isPending}
+              >
+                {confirmContent()}
+              </Button>
+            </form>
+          )}
+        </Show>
       </DialogFooter>
     </Dialog>
   );

@@ -1,4 +1,4 @@
-import { createAsync, revalidate, useAction } from "@solidjs/router";
+import { createAsync, revalidate, useSubmission } from "@solidjs/router";
 import { deletePasskey } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
@@ -20,6 +20,7 @@ import { listPasskeysQuery } from "~/client/queries/auth.ts";
 import Fingerprint from "~icons/lucide/fingerprint-pattern";
 import Trash from "~icons/lucide/trash";
 import {
+  createEffect,
   createSignal,
   ErrorBoundary,
   For,
@@ -36,8 +37,7 @@ export function PasskeySection(): JSX.Element {
   const passkeys = createAsync(() => listPasskeysQuery());
   const [adding, setAdding] = createSignal(false);
   const [deletingId, setDeletingId] = createSignal<string | null>(null);
-  const [deleting, setDeleting] = createSignal(false);
-  const triggerDelete = useAction(deletePasskey);
+  const deleteSubmission = useSubmission(deletePasskey);
 
   const handleAdd = async () => {
     setAdding(true);
@@ -55,27 +55,24 @@ export function PasskeySection(): JSX.Element {
     setAdding(false);
   };
 
-  const handleDelete = async () => {
-    const id = deletingId();
-    if (!id) return;
-    setDeleting(true);
-    try {
-      const formData = new FormData();
-      formData.set("id", id);
-      const result = await triggerDelete(formData);
-      if (result && "ok" in result) {
-        revalidate(listPasskeysQuery.key);
-        toast.success("Passkey deleted");
-        dialogRef.close();
-      }
-    } catch (error) {
-      toast.error(
-        Error.isError(error) ? error.message : "Failed to delete passkey",
-      );
-    } finally {
-      setDeleting(false);
+  createEffect(() => {
+    if (deleteSubmission.result && "ok" in deleteSubmission.result) {
+      revalidate(listPasskeysQuery.key);
+      toast.success("Passkey deleted");
+      dialogRef.close();
+      setDeletingId(null);
+      deleteSubmission.clear();
     }
-  };
+  });
+
+  createEffect(() => {
+    if (deleteSubmission.error) {
+      toast.error(
+        deleteSubmission.error.message || "Failed to delete passkey",
+      );
+      deleteSubmission.clear();
+    }
+  });
 
   return (
     <ItemGroup class="rounded-lg border bg-card">
@@ -180,8 +177,9 @@ export function PasskeySection(): JSX.Element {
         id={DELETE_PASSKEY_DIALOG_ID}
         ref={(el) => dialogRef = el}
         variant="destructive"
-        isPending={deleting()}
-        onConfirm={handleDelete}
+        isPending={deleteSubmission.pending}
+        action={deletePasskey}
+        hiddenFields={{ id: deletingId() ?? "" }}
         onClose={() => setDeletingId(null)}
       />
     </ItemGroup>
