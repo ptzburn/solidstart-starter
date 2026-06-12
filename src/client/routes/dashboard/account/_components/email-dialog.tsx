@@ -23,7 +23,7 @@ export function EmailDialog(props: EmailDialogProps): JSX.Element {
   createEffect(() => {
     if (submission.result && "ok" in submission.result) {
       dialogRef.close();
-      toast.success("Code sent to the new email");
+      toast.success("Confirmation link sent to your current email");
       submission.clear();
     }
   });
