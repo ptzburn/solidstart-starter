@@ -1,5 +1,5 @@
-import { revalidate, useNavigate, useSubmission } from "@solidjs/router";
-import { impersonateUser } from "~/client/actions/auth.ts";
+import { useSubmission } from "@solidjs/router";
+import { impersonateUser, removeUser } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import {
@@ -9,13 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from "~/client/components/ui/card.tsx";
-import { authClient } from "~/client/lib/auth-client.ts";
-import { listUsersQuery } from "~/client/queries/auth.ts";
 import type { SelectUser } from "~/shared/types/auth.ts";
 import Drama from "~icons/lucide/drama";
 import LoaderCircle from "~icons/lucide/loader-circle";
 import Trash2 from "~icons/lucide/trash-2";
-import { createEffect, createSignal, type JSX, Show } from "solid-js";
+import { createEffect, type JSX, Show } from "solid-js";
 import type { Accessor } from "solid-js";
 import { toast } from "solid-sonner";
 
@@ -26,13 +24,11 @@ type ImpersonateSectionProps = {
 const DELETE_USER_DIALOG_ID = "admin-delete-user-dialog";
 
 export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
-  const navigate = useNavigate();
-
   const impersonateSubmission = useSubmission(
     impersonateUser,
     ([formData]) => formData.get("userId") === props.user().id,
   );
-  const [isDeleting, setIsDeleting] = createSignal(false);
+  const removeSubmission = useSubmission(removeUser);
 
   createEffect(() => {
     if (impersonateSubmission.error) {
@@ -43,25 +39,14 @@ export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
     }
   });
 
-  const handleDelete = async () => {
-    setIsDeleting(true);
-
-    await authClient.admin.removeUser({
-      userId: props.user().id,
-    }, {
-      onError: (error) => {
-        toast.error(error.error.message);
-        setIsDeleting(false);
-      },
-      onSuccess: () => {
-        toast.success(`User ${props.user().name} deleted`);
-        revalidate(listUsersQuery.key);
-        navigate("/dashboard/admin/users");
-      },
-    });
-
-    setIsDeleting(false);
-  };
+  createEffect(() => {
+    if (removeSubmission.error) {
+      toast.error(
+        removeSubmission.error.message || "Failed to delete user",
+      );
+      removeSubmission.clear();
+    }
+  });
 
   return (
     <Card>
@@ -94,12 +79,12 @@ export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
         <Button
           variant="destructive"
           class="w-full cursor-pointer"
-          disabled={isDeleting()}
+          disabled={removeSubmission.pending}
           command="show-modal"
           commandfor={DELETE_USER_DIALOG_ID}
         >
           <Trash2 class="mr-2 size-4" />
-          <Show when={isDeleting()} fallback="Delete user">
+          <Show when={removeSubmission.pending} fallback="Delete user">
             <LoaderCircle class="size-4 animate-spin" />
           </Show>
         </Button>
@@ -111,8 +96,9 @@ export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
           description={`Are you sure you want to delete ${props.user().name}?`}
           confirmText="Delete user"
           icon={<Trash2 />}
-          isPending={isDeleting()}
-          onConfirm={handleDelete}
+          isPending={removeSubmission.pending}
+          action={removeUser}
+          hiddenFields={{ userId: props.user().id }}
         />
       </CardContent>
     </Card>

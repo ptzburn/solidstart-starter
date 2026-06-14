@@ -118,6 +118,10 @@ export const ImpersonateUserSchema = z.object({
   userId: z.string().min(1),
 });
 
+export const RemoveUserSchema = z.object({
+  userId: z.string().min(1),
+});
+
 export const AdminUpdateUserNameSchema = z.object({
   userId: z.string().min(1),
   firstName: z.string().trim().min(2, "Enter first name"),

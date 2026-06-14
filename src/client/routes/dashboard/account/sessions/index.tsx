@@ -1,4 +1,9 @@
-import { createAsync, revalidate, useSubmission } from "@solidjs/router";
+import {
+  createAsync,
+  revalidate,
+  type RouteDefinition,
+  useSubmission,
+} from "@solidjs/router";
 import { revokeOtherSessions, revokeSession } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
@@ -91,6 +96,10 @@ function formatDate(
 
 const REVOKE_SESSION_DIALOG_ID = "revoke-session-dialog";
 const REVOKE_ALL_DIALOG_ID = "revoke-all-sessions-dialog";
+
+export const route = {
+  preload: () => listSessionsQuery(),
+} satisfies RouteDefinition;
 
 export default function SessionsRoute(): JSX.Element {
   let revokeDialogRef!: HTMLDialogElement;

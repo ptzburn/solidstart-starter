@@ -32,7 +32,6 @@ import {
   Suspense,
   Switch,
 } from "solid-js";
-import { QRCodeSVG } from "solid-qr-code";
 import { toast } from "solid-sonner";
 import { BackupCodesStep } from "./backup-codes-step.tsx";
 import { DisableTwoFactorDialog } from "./disable-two-factor-dialog.tsx";
@@ -244,19 +243,13 @@ export function TwoFactorSection(): JSX.Element {
                 if (verifySubmission.result) verifySubmission.clear();
               }}
             >
-              <Show when={enableData()?.totpURI}>
-                {(uri) => (
+              <Show when={enableData()?.qrSvg}>
+                {(qrSvg) => (
                   <div class="flex justify-center">
                     <div class="rounded-lg bg-white p-3">
-                      <QRCodeSVG
-                        value={uri()}
-                        width={200}
-                        height={200}
-                        level="medium"
-                        backgroundColor="#ffffff"
-                        backgroundAlpha={1}
-                        foregroundColor="#000000"
-                        foregroundAlpha={1}
+                      <div
+                        class="size-[200px] [&>svg]:block [&>svg]:size-full"
+                        innerHTML={qrSvg()}
                       />
                     </div>
                   </div>

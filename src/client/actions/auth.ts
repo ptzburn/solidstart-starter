@@ -13,6 +13,7 @@ import {
   ForgotPasswordSchema,
   GenerateBackupCodesSchema,
   ImpersonateUserSchema,
+  RemoveUserSchema,
   ResetPasswordSchema,
   RevokeSessionSchema,
   SetUserRoleSchema,
@@ -29,6 +30,7 @@ import env from "~/env.ts";
 import { auth } from "~/shared/auth.ts";
 import { getServerHeaders } from "~/shared/server-headers.ts";
 import { APIError } from "better-auth/api";
+import QRCode from "qrcode";
 
 export const signIn = action(async (formData: FormData) => {
   "use server";
@@ -310,6 +312,21 @@ export const impersonateUser = action(async (formData: FormData) => {
   return redirectWithCookies(authHeaders, "/dashboard");
 }, "impersonateUser");
 
+export const removeUser = action(async (formData: FormData) => {
+  "use server";
+  const result = parseFields(RemoveUserSchema, {
+    userId: formData.get("userId"),
+  });
+  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
+
+  await auth.api.removeUser({
+    body: { userId: result.data.userId },
+    headers: getServerHeaders(),
+  });
+
+  return redirect("/dashboard/admin/users");
+}, "removeUser");
+
 export const stopImpersonating = action(async () => {
   "use server";
   const { headers: authHeaders } = await auth.api.stopImpersonating({
@@ -364,7 +381,9 @@ export const enableTwoFactor = action(async (formData: FormData) => {
     headers: getServerHeaders(),
   });
 
-  return { ok: true as const, totpURI, backupCodes };
+  const qrSvg = await QRCode.toString(totpURI, { type: "svg", margin: 0 });
+
+  return { ok: true as const, totpURI, backupCodes, qrSvg };
 }, "enableTwoFactor");
 
 export const confirmTwoFactorTotp = action(async (formData: FormData) => {
