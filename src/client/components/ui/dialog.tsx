@@ -88,8 +88,10 @@ export function DialogContent(props: DivProps): JSX.Element {
   const [local, rest] = splitProps(props, ["class"]);
   return (
     <div
+      tabindex="-1"
+      autofocus
       class={cn(
-        "max-h-[calc(90vh-10rem)] overflow-y-auto px-6 py-4 md:max-h-[calc(90vh-7rem)] md:pb-6",
+        "max-h-[calc(90vh-10rem)] overflow-y-auto px-6 py-4 outline-none md:max-h-[calc(90vh-7rem)] md:pb-6",
         local.class,
       )}
       {...rest}
