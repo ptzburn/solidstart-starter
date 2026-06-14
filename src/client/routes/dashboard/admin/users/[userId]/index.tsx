@@ -1,10 +1,16 @@
-import { createAsync, useParams } from "@solidjs/router";
+import { createAsync, type RouteDefinition, useParams } from "@solidjs/router";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
 import { getUserByIdQuery } from "~/client/queries/users.ts";
 import { type JSX, Show, Suspense } from "solid-js";
 import { AccountDetails } from "./_components/account-details.tsx";
 import { ActionSection } from "./_components/action-section.tsx";
 import { Hero } from "./_components/hero.tsx";
+
+export const route = {
+  preload: ({ params }) => {
+    if (params.userId) void getUserByIdQuery(params.userId);
+  },
+} satisfies RouteDefinition;
 
 export default function UserDetailPage(): JSX.Element {
   const params = useParams<{ userId: string }>();

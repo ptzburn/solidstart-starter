@@ -1,4 +1,8 @@
-import { createAsync, type RouteSectionProps } from "@solidjs/router";
+import {
+  createAsync,
+  type RouteDefinition,
+  type RouteSectionProps,
+} from "@solidjs/router";
 import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
 import { SessionProvider } from "~/client/contexts/session-context.tsx";
@@ -7,6 +11,10 @@ import { ErrorBoundary, type JSX, Show, Suspense } from "solid-js";
 import { SidebarInset, SidebarProvider } from "../components/ui/sidebar.tsx";
 import AppSidebar from "../routes/dashboard/_components/app-sidebar.tsx";
 import MobileHeader from "../routes/dashboard/_components/mobile-header.tsx";
+
+export const route = {
+  preload: () => getSessionQuery(),
+} satisfies RouteDefinition;
 
 export default function DashboardLayout(props: RouteSectionProps): JSX.Element {
   const session = createAsync(() => getSessionQuery(), { deferStream: true });

@@ -1,4 +1,9 @@
-import { createAsync, revalidate, useSubmission } from "@solidjs/router";
+import {
+  createAsync,
+  revalidate,
+  type RouteDefinition,
+  useSubmission,
+} from "@solidjs/router";
 import { revokeOtherSessions, revokeSession } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
@@ -32,6 +37,10 @@ import {
   Switch,
 } from "solid-js";
 import { toast } from "solid-sonner";
+
+export const route = {
+  preload: () => listSessionsQuery(),
+} satisfies RouteDefinition;
 
 function parseUserAgent(
   ua?: string | null,

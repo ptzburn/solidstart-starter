@@ -1,6 +1,7 @@
 import {
   createAsync,
   revalidate,
+  type RouteDefinition,
   useAction,
   useSubmission,
 } from "@solidjs/router";
@@ -41,6 +42,10 @@ import {
 import { toast } from "solid-sonner";
 
 const DELETE_TASK_DIALOG_ID = "delete-task-dialog";
+
+export const route = {
+  preload: () => getTasksQuery(),
+} satisfies RouteDefinition;
 
 export default function Main(): JSX.Element {
   const tasks = createAsync(() => getTasksQuery());
