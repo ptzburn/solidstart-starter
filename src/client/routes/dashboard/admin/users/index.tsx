@@ -1,9 +1,4 @@
-import {
-  A,
-  createAsync,
-  type RouteDefinition,
-  useSearchParams,
-} from "@solidjs/router";
+import { A, createAsync, useSearchParams } from "@solidjs/router";
 import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
 
 import {
@@ -51,16 +46,6 @@ function buildHref(filters: Filters, page: number): string {
   const qs = sp.toString();
   return qs ? `/dashboard/admin/users?${qs}` : "/dashboard/admin/users";
 }
-
-export const route = {
-  preload: ({ location }) =>
-    listUsersQuery(
-      Number(single(location.query.page)) || 1,
-      single(location.query.name),
-      single(location.query.email),
-      single(location.query.role),
-    ),
-} satisfies RouteDefinition;
 
 export default function UsersPage(): JSX.Element {
   const [params] = useSearchParams();

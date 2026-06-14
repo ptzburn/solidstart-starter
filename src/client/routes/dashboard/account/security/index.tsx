@@ -1,4 +1,4 @@
-import { createAsync, type RouteDefinition } from "@solidjs/router";
+import { createAsync } from "@solidjs/router";
 import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
 
 import {
@@ -11,7 +11,7 @@ import {
   ItemTitle,
 } from "~/client/components/ui/item.tsx";
 import { Skeleton } from "~/client/components/ui/skeleton.tsx";
-import { listAccountsQuery, listPasskeysQuery } from "~/client/queries/auth.ts";
+import { listAccountsQuery } from "~/client/queries/auth.ts";
 import { ErrorBoundary, type JSX, Show, Suspense } from "solid-js";
 import { ChangePasswordDialog } from "./_components/change-password-dialog.tsx";
 import { PasskeySection } from "./_components/passkey-section.tsx";
@@ -49,13 +49,6 @@ function SecuritySkeleton(): JSX.Element {
     </>
   );
 }
-
-export const route = {
-  preload: () => {
-    void listAccountsQuery();
-    void listPasskeysQuery();
-  },
-} satisfies RouteDefinition;
 
 export default function SecurityPage(): JSX.Element {
   const accounts = createAsync(() => listAccountsQuery());
