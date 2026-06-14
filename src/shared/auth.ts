@@ -192,7 +192,7 @@ export const auth = betterAuth({
     }),
     passkey({
       rpName: "Solid Starter Template",
-      rpID: env.VITE_HOST_URL,
+      rpID: new URL(env.VITE_HOST_URL).hostname,
       origin: env.VITE_HOST_URL,
       advanced: {
         webAuthnChallengeCookie: "solid-starter-template-passkey",
