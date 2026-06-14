@@ -58,7 +58,7 @@ export function UserCard(props: UserCardProps): JSX.Element {
       </div>
       <Card class="flex h-full flex-col">
         <A
-          href={`/dashboard/users/${props.user.id}`}
+          href={`/dashboard/admin/users/${props.user.id}`}
           class="flex flex-col transition-colors hover:bg-accent/50"
         >
           <CardHeader class="flex flex-row items-center gap-4">

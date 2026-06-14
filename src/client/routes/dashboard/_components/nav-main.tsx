@@ -44,11 +44,15 @@ export function NavMain(): JSX.Element {
         </For>
         <Show when={session.user.role === "admin"}>
           <SidebarMenuItem
-            class={"/dashboard/users" === location.pathname
+            class={"/dashboard/admin/users" === location.pathname
               ? "bg-accent rounded"
               : ""}
           >
-            <SidebarMenuButton as={A} href="/dashboard/users" tooltip="Users">
+            <SidebarMenuButton
+              as={A}
+              href="/dashboard/admin/users"
+              tooltip="Users"
+            >
               <UsersIcon />
               <span>Users</span>
             </SidebarMenuButton>

@@ -56,7 +56,7 @@ export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
       onSuccess: () => {
         toast.success(`User ${props.user().name} deleted`);
         revalidate(listUsersQuery.key);
-        navigate("/dashboard/users");
+        navigate("/dashboard/admin/users");
       },
     });
 

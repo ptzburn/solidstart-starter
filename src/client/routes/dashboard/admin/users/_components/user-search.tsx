@@ -27,7 +27,7 @@ export function UserSearch(): JSX.Element {
   const activeCount = createMemo(() => (singleParam(params.role) ? 1 : 0));
 
   return (
-    <form method="get" action="/dashboard/users" class="space-y-4">
+    <form method="get" action="/dashboard/admin/users" class="space-y-4">
       <FieldSet class="grid grid-cols-2">
         <FieldGroup>
           <TextField
@@ -68,7 +68,7 @@ export function UserSearch(): JSX.Element {
         </Button>
         <div class="flex items-center gap-2">
           <A
-            href="/dashboard/users"
+            href="/dashboard/admin/users"
             class={buttonVariants({ variant: "outline" }) +
               " flex-1 sm:w-24 sm:flex-none"}
           >

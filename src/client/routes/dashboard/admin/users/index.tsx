@@ -44,7 +44,7 @@ function buildHref(filters: Filters, page: number): string {
   if (filters.role) sp.set("role", filters.role);
   if (page > 1) sp.set("page", String(page));
   const qs = sp.toString();
-  return qs ? `/dashboard/users?${qs}` : "/dashboard/users";
+  return qs ? `/dashboard/admin/users?${qs}` : "/dashboard/admin/users";
 }
 
 export default function UsersPage(): JSX.Element {
