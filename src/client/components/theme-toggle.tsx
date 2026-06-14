@@ -68,21 +68,21 @@ export function ThemeToggle(props: ThemeToggleProps): JSX.Element {
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem
-          onSelect={() => setColorMode("light")}
+          onClick={() => setColorMode("light")}
           class="hover:cursor-pointer"
         >
           <Sun class="size-4" />
           <span>Light</span>
         </DropdownMenuItem>
         <DropdownMenuItem
-          onSelect={() => setColorMode("dark")}
+          onClick={() => setColorMode("dark")}
           class="hover:cursor-pointer"
         >
           <Moon class="size-4" />
           <span>Dark</span>
         </DropdownMenuItem>
         <DropdownMenuItem
-          onSelect={() => setColorMode("system")}
+          onClick={() => setColorMode("system")}
           class="hover:cursor-pointer"
         >
           <Monitor class="size-4" />

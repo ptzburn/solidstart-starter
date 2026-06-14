@@ -80,7 +80,7 @@ export function NavUser(): JSX.Element {
             </div>
             <ChevronsUpDown class="ml-auto size-4" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent class="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg">
+          <DropdownMenuContent class="min-w-56 rounded-lg">
             <DropdownMenuItem
               as={A}
               href="/dashboard/account"
@@ -91,7 +91,7 @@ export function NavUser(): JSX.Element {
             </DropdownMenuItem>
             <DropdownMenuItem
               class="hover:cursor-pointer"
-              onSelect={toggleTheme}
+              onClick={toggleTheme}
             >
               <Show
                 when={colorMode() === "dark"}
