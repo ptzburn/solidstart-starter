@@ -1,5 +1,4 @@
-import { createFileUploader } from "@solid-primitives/upload";
-import { revalidate, useAction, useSubmission } from "@solidjs/router";
+import { revalidate, useSubmission } from "@solidjs/router";
 import { uploadImageAction } from "~/client/actions/files.ts";
 import {
   Avatar,
@@ -7,12 +6,11 @@ import {
   AvatarImage,
 } from "~/client/components/ui/avatar.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
-
-import { Spinner } from "~/client/components/ui/spinner.tsx";
+import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { getFileUrl, getInitials } from "~/client/lib/utils.ts";
 import { getSessionQuery } from "~/client/queries/auth.ts";
 import Pencil from "~icons/lucide/pencil";
-import { type JSX, Show } from "solid-js";
+import { createEffect, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
 type AvatarUploadProps = {
@@ -20,101 +18,83 @@ type AvatarUploadProps = {
   userName: string;
 };
 
-export function AvatarUpload(props: AvatarUploadProps): JSX.Element {
-  const uploadImage = useAction(uploadImageAction);
-  const uploadSubmission = useSubmission(uploadImageAction);
+const DIALOG_ID = "edit-avatar-dialog";
 
-  const { selectFiles, clearFiles } = createFileUploader({
-    multiple: false,
-    accept: "image/*",
+export function AvatarUpload(props: AvatarUploadProps): JSX.Element {
+  let dialogRef!: HTMLDialogElement;
+  const submission = useSubmission(uploadImageAction);
+
+  createEffect(() => {
+    if (submission.result && "fileKey" in submission.result) {
+      dialogRef.close();
+      toast.success("Profile picture updated");
+      revalidate(getSessionQuery.key);
+      submission.clear();
+    }
   });
 
-  const handleAvatarClick = () => {
-    if (uploadSubmission.pending) return;
-    selectFiles((files) => {
-      const uploadFile = files?.[0];
-      if (!uploadFile) return;
-      const { file } = uploadFile;
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("Image is too large (max 10MB)");
-        clearFiles();
-        return;
-      }
-      void uploadAvatar(file);
-    });
-  };
-
-  const uploadAvatar = async (file: File) => {
-    try {
-      const img = new Image();
-      img.src = URL.createObjectURL(file);
-      await new Promise((resolve) => (img.onload = resolve));
-
-      const width = Math.min(400, img.width);
-      const resized = await createImageBitmap(img, {
-        resizeWidth: width,
-      });
-      const canvas = new OffscreenCanvas(width, resized.height);
-      canvas.getContext("bitmaprenderer")?.transferFromImageBitmap(
-        resized,
-      );
-      const blob = await canvas.convertToBlob({
-        type: "image/webp",
-        quality: 0.85,
-      });
-
-      URL.revokeObjectURL(img.src);
-
-      const formData = new FormData();
-      formData.append(
-        "file",
-        new File([blob], "avatar.webp", { type: "image/webp" }),
-      );
-
-      await uploadImage(formData);
-      revalidate(getSessionQuery.key);
-      toast.success("Profile picture updated");
-      clearFiles();
-    } catch (error) {
+  createEffect(() => {
+    if (submission.error) {
       toast.error(
-        Error.isError(error)
-          ? error.message
-          : "Failed to update profile picture",
+        submission.error.message || "Failed to update profile picture",
       );
-      clearFiles();
+      submission.clear();
     }
-  };
+  });
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={handleAvatarClick}
-      disabled={uploadSubmission.pending}
-      class="group relative shrink-0 rounded-lg p-0"
-    >
-      <Avatar
-        class={`h-full w-full rounded-full`}
+    <>
+      <Button
+        variant="ghost"
+        size="icon"
+        command="show-modal"
+        commandfor={DIALOG_ID}
+        class="group relative shrink-0 rounded-lg p-0"
       >
-        <AvatarImage
-          src={getFileUrl(props.imageUrl) ?? undefined}
-          alt={`${props.userName}'s avatar`}
-          class="object-cover"
-        />
-        <AvatarFallback class="bg-primary/10 font-bold text-primary">
-          {getInitials(props.userName)}
-        </AvatarFallback>
-      </Avatar>
-      <Show when={uploadSubmission.pending}>
-        <div class="absolute inset-0 flex items-center justify-center rounded-lg bg-background/80">
-          <Spinner />
+        <Avatar class="h-full w-full rounded-full">
+          <AvatarImage
+            src={getFileUrl(props.imageUrl) ?? undefined}
+            alt={`${props.userName}'s avatar`}
+            class="object-cover"
+          />
+          <AvatarFallback class="bg-primary/10 font-bold text-primary">
+            {getInitials(props.userName)}
+          </AvatarFallback>
+        </Avatar>
+        <div class="pointer-events-none absolute right-1 bottom-1 flex scale-90 items-center justify-center rounded-full bg-background/90 text-muted-foreground opacity-0 shadow-sm transition-all duration-200 ease-out group-hover:scale-110 group-hover:opacity-100">
+          <Pencil class="size-4" />
         </div>
-      </Show>
-      <div
-        class={`pointer-events-none absolute right-1 bottom-1 flex scale-90 items-center justify-center rounded-full bg-background/90 text-muted-foreground opacity-0 shadow-sm transition-all duration-200 ease-out group-hover:scale-110 group-hover:opacity-100`}
+      </Button>
+
+      <ResponsiveDialog
+        id={DIALOG_ID}
+        ref={(el) => dialogRef = el}
+        title="Update profile picture"
+        description="Choose an image (max 10MB). It will be resized and optimized automatically."
       >
-        <Pencil class="size-4" />
-      </div>
-    </Button>
+        <form
+          method="post"
+          action={uploadImageAction}
+          enctype="multipart/form-data"
+          class="space-y-4"
+        >
+          <input
+            type="file"
+            name="file"
+            accept="image/*"
+            required
+            disabled={submission.pending}
+            class="block w-full cursor-pointer rounded-md border bg-background text-foreground text-sm file:mr-4 file:border-0 file:bg-muted file:px-4 file:py-2 file:font-medium file:text-foreground file:text-sm hover:file:bg-muted/80 disabled:cursor-not-allowed disabled:opacity-50"
+          />
+          <Button
+            type="submit"
+            class="w-full"
+            disabled={submission.pending}
+          >
+            Save
+          </Button>
+        </form>
+      </ResponsiveDialog>
+    </>
   );
 }

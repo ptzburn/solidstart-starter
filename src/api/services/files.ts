@@ -5,8 +5,39 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { PhotonImage, resize, SamplingFilter } from "@cf-wasm/photon/node";
 import { ORPCError } from "@orpc/server";
 import env from "~/env.ts";
+
+const MAX_AVATAR_WIDTH = 400;
+
+function toWebpAvatar(bytes: Uint8Array): Uint8Array {
+  let image: PhotonImage | undefined;
+  let resized: PhotonImage | undefined;
+  try {
+    image = PhotonImage.new_from_byteslice(bytes);
+    const width = image.get_width();
+    if (width <= MAX_AVATAR_WIDTH) {
+      return image.get_bytes_webp();
+    }
+    const height = image.get_height();
+    const targetHeight = Math.round((MAX_AVATAR_WIDTH / width) * height);
+    resized = resize(
+      image,
+      MAX_AVATAR_WIDTH,
+      targetHeight,
+      SamplingFilter.Lanczos3,
+    );
+    return resized.get_bytes_webp();
+  } catch {
+    throw new ORPCError("BAD_REQUEST", {
+      message: "Invalid or unsupported image file.",
+    });
+  } finally {
+    image?.free();
+    resized?.free();
+  }
+}
 
 const client = new S3Client({
   region: env.S3_REGION,
@@ -30,12 +61,13 @@ export async function uploadUserAvatar(
   const fileKey = `users/${userId}/avatar/${uniqueId}.webp`;
 
   const buffer = await file.arrayBuffer();
+  const webp = toWebpAvatar(new Uint8Array(buffer));
 
   const command = new PutObjectCommand({
     Bucket: env.S3_BUCKET,
     Key: fileKey,
-    Body: new Uint8Array(buffer),
-    ContentType: file.type,
+    Body: webp,
+    ContentType: "image/webp",
   });
 
   const result = await client.send(command);

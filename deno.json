@@ -57,9 +57,9 @@
   },
   "imports": {
     "@aws-sdk/client-s3": "npm:@aws-sdk/client-s3@^3.1067.0",
+    "@cf-wasm/photon": "npm:@cf-wasm/photon@^0.1.27",
     "@iconify-json/lucide": "npm:@iconify-json/lucide@^1.2.111",
     "@iconify-json/simple-icons": "npm:@iconify-json/simple-icons@^1.2.86",
-    "@solid-primitives/upload": "npm:@solid-primitives/upload@^0.1.4",
     "date-fns": "npm:date-fns@^4.4.0",
     "solid-qr-code": "npm:solid-qr-code@^0.1.11",
     "unplugin-icons": "npm:unplugin-icons@^23.0.1",

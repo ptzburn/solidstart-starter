@@ -7,6 +7,7 @@
     "npm:@aws-sdk/client-s3@^3.1067.0": "3.1067.0",
     "npm:@better-auth/drizzle-adapter@^1.6.17": "1.6.17_@better-auth+core@1.6.17__@better-auth+utils@0.4.1__@better-fetch+fetch@1.3.0__better-call@1.3.6___zod@4.4.3__jose@6.2.3__kysely@0.29.2__nanostores@1.3.0_@better-auth+utils@0.4.1_drizzle-orm@1.0.0-rc.2__@libsql+client@0.17.3__zod@4.4.3_@better-fetch+fetch@1.3.0_better-call@1.3.6__zod@4.4.3_jose@6.2.3_kysely@0.29.2_nanostores@1.3.0",
     "npm:@better-auth/passkey@^1.6.17": "1.6.17_@better-auth+core@1.6.17__@better-auth+utils@0.4.1__@better-fetch+fetch@1.3.0__better-call@1.3.6___zod@4.4.3__jose@6.2.3__kysely@0.29.2__nanostores@1.3.0_@better-auth+utils@0.4.1_@better-fetch+fetch@1.3.0_better-auth@1.6.17__drizzle-kit@1.0.0-rc.2__drizzle-orm@1.0.0-rc.2___@libsql+client@0.17.3___zod@4.4.3__solid-js@1.9.13_better-call@1.3.6__zod@4.4.3_nanostores@1.3.0_drizzle-kit@1.0.0-rc.2_drizzle-orm@1.0.0-rc.2__@libsql+client@0.17.3__zod@4.4.3_jose@6.2.3_kysely@0.29.2_solid-js@1.9.13",
+    "npm:@cf-wasm/photon@~0.1.27": "0.1.31",
     "npm:@corvu/calendar@~0.1.2": "0.1.2_solid-js@1.9.13",
     "npm:@corvu/drawer@~0.2.4": "0.2.4_solid-js@1.9.13",
     "npm:@corvu/otp-field@~0.1.4": "0.1.4_solid-js@1.9.13",
@@ -24,7 +25,6 @@
     "npm:@orpc/server@^1.14.6": "1.14.6",
     "npm:@orpc/zod@^1.14.6": "1.14.6_@orpc+contract@1.14.6_@orpc+server@1.14.6_zod@4.4.3",
     "npm:@seven.io/client@^5.6.0": "5.6.0",
-    "npm:@solid-primitives/upload@~0.1.4": "0.1.4_solid-js@1.9.13",
     "npm:@solidjs/meta@~0.29.4": "0.29.4_solid-js@1.9.13",
     "npm:@solidjs/router@~0.16.1": "0.16.1_solid-js@1.9.13",
     "npm:@solidjs/start@2.0.0-alpha.3": "2.0.0-alpha.3_vite@7.3.5",
@@ -650,6 +650,15 @@
     },
     "@better-fetch/fetch@1.3.0": {
       "integrity": "sha512-Lgkl18IrUURFqa1nE38GNDWXf7XGzfxXQDCE/alCQV0yZ98YrPGtlmW61ch1T4YRt3lxrSAGA+Ft73FzuWWb3A=="
+    },
+    "@cf-wasm/internals@0.0.3": {
+      "integrity": "sha512-v6PmiQnJIrVvL2IdPg5aCqARSKw/U1JvFsms2cCt3Szx3/3EvtVVhN9MALCh6kZ2CV2fvzs3tmiYezRQ6JyqcQ=="
+    },
+    "@cf-wasm/photon@0.1.31": {
+      "integrity": "sha512-czB1kvK8L1oKsBcQxNhWn5JyIlXrXF+Fd61kQSZSwxi+ol7ikqf9SPnEVQ//C3MW9bzp62eCVMetoB5+9iMsvw==",
+      "dependencies": [
+        "@cf-wasm/internals"
+      ]
     },
     "@cloudflare/kv-asset-handler@0.4.2": {
       "integrity": "sha512-SIOD2DxrRRwQ+jgzlXCqoEFiKOFqaPjhnNTGKXSRLvp1HiOvapLaFG2kEr9dYQTYe8rKrd9uvDUzmAITeNyaHQ=="
@@ -2275,13 +2284,6 @@
     },
     "@solid-primitives/trigger@1.2.3_solid-js@1.9.13": {
       "integrity": "sha512-Za2JebEiDyfamjmDwRaESYqBBYOlgYGzB8kHYH0QrkXyLf2qNADlKdGN+z3vWSLCTDcKxChS43Kssjuc0OZhng==",
-      "dependencies": [
-        "@solid-primitives/utils",
-        "solid-js"
-      ]
-    },
-    "@solid-primitives/upload@0.1.4_solid-js@1.9.13": {
-      "integrity": "sha512-67NUwiYFt52JKv38A52iiPBYhahfD0IeScH5YHFPQkVIIVceuMuFVuFpbRL1BNdb9+cYPaS6+KwTP+3oZ5aG4w==",
       "dependencies": [
         "@solid-primitives/utils",
         "solid-js"
@@ -6095,6 +6097,7 @@
       "npm:@aws-sdk/client-s3@^3.1067.0",
       "npm:@better-auth/drizzle-adapter@^1.6.17",
       "npm:@better-auth/passkey@^1.6.17",
+      "npm:@cf-wasm/photon@~0.1.27",
       "npm:@corvu/calendar@~0.1.2",
       "npm:@corvu/drawer@~0.2.4",
       "npm:@corvu/otp-field@~0.1.4",
@@ -6112,7 +6115,6 @@
       "npm:@orpc/server@^1.14.6",
       "npm:@orpc/zod@^1.14.6",
       "npm:@seven.io/client@^5.6.0",
-      "npm:@solid-primitives/upload@~0.1.4",
       "npm:@solidjs/meta@~0.29.4",
       "npm:@solidjs/router@~0.16.1",
       "npm:@solidjs/start@2.0.0-alpha.3",
