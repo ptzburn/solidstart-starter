@@ -5,6 +5,7 @@ dist
 .netlify
 .vite
 .nitro
+.solid-start
 vite.config.ts.timestamp-*.mjs
 
 # Environment
