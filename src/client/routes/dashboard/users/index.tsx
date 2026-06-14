@@ -1,4 +1,4 @@
-import { createAsync } from "@solidjs/router";
+import { A, createAsync, useSearchParams } from "@solidjs/router";
 import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
 
 import {
@@ -21,7 +21,6 @@ import { listUsersQuery, USERS_PAGE_SIZE } from "~/client/queries/auth.ts";
 import UsersIcon from "~icons/lucide/users";
 import {
   createMemo,
-  createSignal,
   ErrorBoundary,
   For,
   type JSX,
@@ -29,15 +28,34 @@ import {
   Suspense,
 } from "solid-js";
 import { UserCard } from "./_components/user-card.tsx";
-import { type UserFilters, UserSearch } from "./_components/user-search.tsx";
+import { UserSearch } from "./_components/user-search.tsx";
+
+type Filters = { name: string; email: string; role: string };
+
+function single(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? "";
+  return value ?? "";
+}
+
+function buildHref(filters: Filters, page: number): string {
+  const sp = new URLSearchParams();
+  if (filters.name) sp.set("name", filters.name);
+  if (filters.email) sp.set("email", filters.email);
+  if (filters.role) sp.set("role", filters.role);
+  if (page > 1) sp.set("page", String(page));
+  const qs = sp.toString();
+  return qs ? `/dashboard/users?${qs}` : "/dashboard/users";
+}
 
 export default function UsersPage(): JSX.Element {
-  const [filters, setFilters] = createSignal<UserFilters>({
-    name: "",
-    email: "",
-    role: "",
+  const [params] = useSearchParams();
+
+  const page = (): number => Number(single(params.page)) || 1;
+  const filters = (): Filters => ({
+    name: single(params.name),
+    email: single(params.email),
+    role: single(params.role),
   });
-  const [page, setPage] = createSignal(1);
 
   const data = createAsync(() =>
     listUsersQuery(page(), filters().name, filters().email, filters().role)
@@ -58,16 +76,7 @@ export default function UsersPage(): JSX.Element {
       </div>
 
       <div class="flex flex-1 flex-col gap-6">
-        <UserSearch
-          onSubmit={(value) => {
-            setFilters(value);
-            setPage(1);
-          }}
-          onClear={() => {
-            setFilters({ name: "", email: "", role: "" });
-            setPage(1);
-          }}
-        />
+        <UserSearch />
         <ErrorBoundary
           fallback={(error) => <ErrorBoundaryMessage error={error} />}
         >
@@ -106,18 +115,30 @@ export default function UsersPage(): JSX.Element {
                     <Pagination
                       count={totalPages()}
                       page={page()}
-                      onPageChange={setPage}
                       itemComponent={(props) => (
-                        <PaginationItem page={props.page}>
+                        <PaginationItem
+                          page={props.page}
+                          as={A}
+                          href={buildHref(filters(), props.page)}
+                        >
                           {props.page}
                         </PaginationItem>
                       )}
                       ellipsisComponent={() => <PaginationEllipsis />}
                       class="*:justify-center"
                     >
-                      <PaginationPrevious />
+                      <PaginationPrevious
+                        as={A}
+                        href={buildHref(filters(), Math.max(1, page() - 1))}
+                      />
                       <PaginationItems />
-                      <PaginationNext />
+                      <PaginationNext
+                        as={A}
+                        href={buildHref(
+                          filters(),
+                          Math.min(totalPages(), page() + 1),
+                        )}
+                      />
                     </Pagination>
                   </Show>
                 </Show>
