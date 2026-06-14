@@ -10,13 +10,13 @@ import {
 } from "~/client/components/ui/card.tsx";
 import { Separator } from "~/client/components/ui/separator.tsx";
 import ArrowRight from "~icons/lucide/arrow-right";
+import Webhook from "~icons/lucide/webhook";
 import SimpleIconsBetterauth from "~icons/simple-icons/betterauth";
 import SimpleIconsDeno from "~icons/simple-icons/deno";
+import SimpleIconsDrizzle from "~icons/simple-icons/drizzle";
 import SimpleIconsGithub from "~icons/simple-icons/github";
-import SimpleIconsHono from "~icons/simple-icons/hono";
 import SimpleIconsShadcnui from "~icons/simple-icons/shadcnui";
 import SimpleIconsSolid from "~icons/simple-icons/solid";
-import SimpleIconsTanstack from "~icons/simple-icons/tanstack";
 import { For, type JSX } from "solid-js";
 
 const features = [
@@ -35,11 +35,11 @@ const features = [
     href: "https://start.solidjs.com/",
   },
   {
-    icon: SimpleIconsHono,
-    title: "Hono",
+    icon: Webhook,
+    title: "oRPC",
     description:
-      "Ultrafast web framework for the edge with OpenAPI support and type-safe routes.",
-    href: "https://hono.dev/",
+      "End-to-end type-safe RPC with OpenAPI generation and first-class server actions.",
+    href: "https://orpc.unnoq.com/",
   },
   {
     icon: SimpleIconsBetterauth,
@@ -56,11 +56,11 @@ const features = [
     href: "https://solid-ui.com/",
   },
   {
-    icon: SimpleIconsTanstack,
-    title: "TanStack Form",
+    icon: SimpleIconsDrizzle,
+    title: "Drizzle ORM",
     description:
-      "Headless, type-safe form management with built-in validation and framework adapters.",
-    href: "https://tanstack.com/form",
+      "Type-safe SQL toolkit with schema migrations and zero-overhead queries.",
+    href: "https://orm.drizzle.team/",
   },
 ];
 
@@ -79,7 +79,7 @@ export default function LandingPage(): JSX.Element {
             </Button>
             <Button
               as="a"
-              href="https://github.com/ptzburn/solidstart-hono-starter"
+              href="https://github.com/ptzburn/solidstart-starter"
               target="_blank"
               rel="noopener noreferrer"
               variant="ghost"
@@ -116,7 +116,7 @@ export default function LandingPage(): JSX.Element {
             </Button>
             <Button
               as="a"
-              href="https://github.com/ptzburn/solidstart-hono-starter"
+              href="https://github.com/ptzburn/solidstart-starter"
               target="_blank"
               rel="noopener noreferrer"
               variant="ghost"
@@ -179,7 +179,7 @@ export default function LandingPage(): JSX.Element {
             </Button>
             <Button
               as="a"
-              href="https://github.com/ptzburn/solidstart-hono-starter"
+              href="https://github.com/ptzburn/solidstart-starter"
               target="_blank"
               rel="noopener noreferrer"
               variant="ghost"
