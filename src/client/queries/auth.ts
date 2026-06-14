@@ -22,6 +22,21 @@ export const getSessionQuery = query(async () => {
   return session;
 }, "session");
 
+export const requireAdminQuery = query(async () => {
+  "use server";
+  const headers = getServerHeaders();
+  const session = await auth.api.getSession({ headers });
+
+  if (!session) {
+    throw redirect("/auth/sign-in");
+  }
+  if (session.user.role !== "admin") {
+    throw redirect("/dashboard");
+  }
+
+  return true;
+}, "require-admin");
+
 export const signOutQuery = query(async () => {
   "use server";
   const { headers: authHeaders } = await auth.api.signOut({
