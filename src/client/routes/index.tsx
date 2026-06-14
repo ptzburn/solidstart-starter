@@ -1,5 +1,6 @@
 import { A } from "@solidjs/router";
-import { ThemeToggle } from "~/client/components/theme-toggle.tsx";
+import { SiteFooter } from "~/client/components/site-footer.tsx";
+import { SiteHeader } from "~/client/components/site-header.tsx";
 import { Badge } from "~/client/components/ui/badge.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import {
@@ -67,30 +68,7 @@ const features = [
 export default function LandingPage(): JSX.Element {
   return (
     <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
-      <header class="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
-        <div class="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
-          <span class="font-semibold text-sm tracking-tight">
-            Starter Template
-          </span>
-          <div class="flex items-center gap-2">
-            <ThemeToggle />
-            <Button as={A} href="/auth/sign-in" size="sm">
-              Sign in
-            </Button>
-            <Button
-              as="a"
-              href="https://github.com/ptzburn/solidstart-starter"
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="ghost"
-              size="icon-sm"
-            >
-              <SimpleIconsGithub class="size-6" />
-              <span class="sr-only">GitHub</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main class="flex flex-1 flex-col">
         <section class="flex flex-1 flex-col items-center justify-center gap-8 px-6 py-24 text-center">
@@ -190,18 +168,7 @@ export default function LandingPage(): JSX.Element {
           </div>
         </section>
 
-        <footer class="border-t py-6 text-center text-muted-foreground text-sm">
-          This template was built by{" "}
-          <a
-            href="https://github.com/ptzburn"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="underline underline-offset-4 transition-colors hover:text-foreground"
-          >
-            ptzburn
-          </a>
-          .
-        </footer>
+        <SiteFooter />
       </main>
     </div>
   );
