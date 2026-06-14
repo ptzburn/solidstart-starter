@@ -375,6 +375,9 @@
   }
 
   .dropdown-menu-popover {
+    position-area: bottom span-left;
+    position-try-fallbacks: flip-block, flip-inline;
+    margin: 0.25rem 0;
     opacity: 0;
     transform: translateY(-4px);
     transition:
@@ -392,5 +395,11 @@
       opacity: 0;
       transform: translateY(-4px);
     }
+  }
+
+  .dropdown-menu-subcontent {
+    position-area: right span-bottom;
+    position-try-fallbacks: flip-inline;
+    margin: 0 0.25rem;
   }
 }
