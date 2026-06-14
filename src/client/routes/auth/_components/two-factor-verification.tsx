@@ -5,7 +5,7 @@ import {
 } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { Checkbox } from "~/client/components/ui/checkbox.tsx";
-import { TextField } from "~/client/components/ui/form2/text-field.tsx";
+import { TextField } from "~/client/components/ui/form/text-field.tsx";
 import { Label } from "~/client/components/ui/label.tsx";
 import {
   OTPField,

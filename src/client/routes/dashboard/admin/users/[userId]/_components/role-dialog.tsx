@@ -3,7 +3,7 @@ import { setUserRole } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { FieldGroup } from "~/client/components/ui/field.tsx";
-import { SelectField } from "~/client/components/ui/form2/select-field.tsx";
+import { SelectField } from "~/client/components/ui/form/select-field.tsx";
 
 import { getUserByIdQuery } from "~/client/queries/users.ts";
 import type { SelectUser } from "~/shared/types/auth.ts";

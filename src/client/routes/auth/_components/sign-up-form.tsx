@@ -2,7 +2,7 @@ import { Turnstile, type TurnstileRef } from "@nerimity/solid-turnstile";
 import { A, useSubmission } from "@solidjs/router";
 import { signUp } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
-import { TextField } from "~/client/components/ui/form2/text-field.tsx";
+import { TextField } from "~/client/components/ui/form/text-field.tsx";
 import { createEffect, createSignal, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
 

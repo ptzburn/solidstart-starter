@@ -2,7 +2,7 @@ import { revalidate, useSubmission } from "@solidjs/router";
 import { adminUpdateUserName } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
-import { TextField } from "~/client/components/ui/form2/text-field.tsx";
+import { TextField } from "~/client/components/ui/form/text-field.tsx";
 import { getUserByIdQuery } from "~/client/queries/users.ts";
 import type { SelectUser } from "~/shared/types/auth.ts";
 import { createEffect, type JSX } from "solid-js";

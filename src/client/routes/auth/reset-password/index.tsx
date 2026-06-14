@@ -1,7 +1,7 @@
 import { A, useLocation, useSubmission } from "@solidjs/router";
 import { resetPassword } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
-import { TextField } from "~/client/components/ui/form2/text-field.tsx";
+import { TextField } from "~/client/components/ui/form/text-field.tsx";
 import { createEffect, type JSX, Show } from "solid-js";
 import { toast } from "solid-sonner";
 

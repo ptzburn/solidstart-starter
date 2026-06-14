@@ -2,7 +2,7 @@ import { useSubmission } from "@solidjs/router";
 import { requestEmailChange } from "~/client/actions/users.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
-import { TextField } from "~/client/components/ui/form2/text-field.tsx";
+import { TextField } from "~/client/components/ui/form/text-field.tsx";
 import { createEffect, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
 

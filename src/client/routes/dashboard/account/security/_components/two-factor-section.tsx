@@ -6,8 +6,8 @@ import {
 import { Badge } from "~/client/components/ui/badge.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
-import { OTPField } from "~/client/components/ui/form2/otp-field.tsx";
-import { TextField } from "~/client/components/ui/form2/text-field.tsx";
+import { OTPField } from "~/client/components/ui/form/otp-field.tsx";
+import { TextField } from "~/client/components/ui/form/text-field.tsx";
 import {
   Item,
   ItemActions,
