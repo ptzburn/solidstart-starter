@@ -16,6 +16,7 @@ import {
 } from "~/client/components/ui/table.tsx";
 import { useSession } from "~/client/contexts/session-context.tsx";
 import { listSessionsQuery } from "~/client/queries/auth.ts";
+import LogOut from "~icons/lucide/log-out";
 import Monitor from "~icons/lucide/monitor";
 import Smartphone from "~icons/lucide/smartphone";
 import Tablet from "~icons/lucide/tablet";
@@ -245,17 +246,12 @@ export default function SessionsRoute(): JSX.Element {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    disabled={revokingToken() === s.token}
                                     command="show-modal"
                                     commandfor={REVOKE_SESSION_DIALOG_ID}
                                     onClick={() => setRevokingToken(s.token)}
                                   >
-                                    <Show
-                                      when={revokingToken() === s.token}
-                                    >
-                                      <Spinner class="size-4" />
-                                    </Show>
-                                    <span class="ml-1 hidden sm:inline">
+                                    <LogOut class="size-4" />
+                                    <span class="hidden sm:inline">
                                       Revoke
                                     </span>
                                   </Button>

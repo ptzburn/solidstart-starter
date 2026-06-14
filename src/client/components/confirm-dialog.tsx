@@ -118,7 +118,7 @@ export function ConfirmDialog(props: ConfirmDialogProps): JSX.Element {
           }
         >
           {(action) => (
-            <form method="post" action={action()}>
+            <form method="post" action={action()} class="w-full sm:w-auto">
               <For each={Object.entries(props.hiddenFields ?? {})}>
                 {([name, value]) => (
                   <input type="hidden" name={name} value={value} />
@@ -126,6 +126,7 @@ export function ConfirmDialog(props: ConfirmDialogProps): JSX.Element {
               </For>
               <Button
                 type="submit"
+                class="w-full"
                 variant={variant() === "destructive"
                   ? "destructive"
                   : "default"}
