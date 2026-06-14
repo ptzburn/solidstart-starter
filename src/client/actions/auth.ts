@@ -28,7 +28,10 @@ import { parseFields } from "~/client/utils/form-errors.ts";
 import { redirectWithCookies } from "~/client/utils/redirect.ts";
 import env from "~/env.ts";
 import { auth } from "~/shared/auth.ts";
-import { getServerHeaders } from "~/shared/server-headers.ts";
+import {
+  forwardAuthCookies,
+  getServerHeaders,
+} from "~/shared/server-headers.ts";
 import { APIError } from "better-auth/api";
 import QRCode from "qrcode";
 
@@ -393,10 +396,12 @@ export const confirmTwoFactorTotp = action(async (formData: FormData) => {
   });
   if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
 
-  await auth.api.verifyTOTP({
+  const { headers: authHeaders } = await auth.api.verifyTOTP({
     body: { code: result.data.code },
     headers: getServerHeaders(),
+    returnHeaders: true,
   });
+  forwardAuthCookies(authHeaders);
 
   return { ok: true as const };
 }, "confirmTwoFactorTotp");
@@ -408,10 +413,12 @@ export const disableTwoFactor = action(async (formData: FormData) => {
   });
   if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
 
-  await auth.api.disableTwoFactor({
+  const { headers: authHeaders } = await auth.api.disableTwoFactor({
     body: { password: result.data.password },
     headers: getServerHeaders(),
+    returnHeaders: true,
   });
+  forwardAuthCookies(authHeaders);
 
   return { ok: true as const };
 }, "disableTwoFactor");
