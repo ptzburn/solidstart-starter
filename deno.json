@@ -87,7 +87,6 @@
     "@solidjs/start": "npm:@solidjs/start@2.0.0-alpha.3",
     "@solidjs/vite-plugin-nitro-2": "npm:@solidjs/vite-plugin-nitro-2@0.3.0",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.3.0",
-    "@tanstack/solid-form": "npm:@tanstack/solid-form@^1.33.0",
     "better-auth": "npm:better-auth@^1.6.17",
     "class-variance-authority": "npm:class-variance-authority@^0.7.1",
     "clsx": "npm:clsx@^2.1.1",

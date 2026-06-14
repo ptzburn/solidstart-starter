@@ -4,7 +4,6 @@ import {
   useAction,
   useSubmission,
 } from "@solidjs/router";
-import { createForm } from "@tanstack/solid-form";
 import {
   createTaskAction,
   deleteTaskAction,
@@ -31,6 +30,7 @@ import ClipboardList from "~icons/lucide/clipboard-list";
 import Plus from "~icons/lucide/plus";
 import Trash from "~icons/lucide/trash";
 import {
+  createEffect,
   createMemo,
   createSignal,
   For,
@@ -40,16 +40,11 @@ import {
 } from "solid-js";
 import { toast } from "solid-sonner";
 
-type NewTaskForm = {
-  name: string;
-};
-
 const DELETE_TASK_DIALOG_ID = "delete-task-dialog";
 
 export default function Main(): JSX.Element {
   const tasks = createAsync(() => getTasksQuery());
 
-  const createTask = useAction(createTaskAction);
   const createSubmission = useSubmission(createTaskAction);
   const deleteSubmission = useSubmission(deleteTaskAction);
 
@@ -57,9 +52,32 @@ export default function Main(): JSX.Element {
   const deleteTask = useAction(deleteTaskAction);
 
   let dialogRef!: HTMLDialogElement;
+  let formRef!: HTMLFormElement;
   const [deletingTaskId, setDeletingTaskId] = createSignal<number | null>(
     null,
   );
+
+  const nameError = (): string | undefined =>
+    createSubmission.result && "fieldErrors" in createSubmission.result
+      ? createSubmission.result.fieldErrors?.name
+      : undefined;
+
+  createEffect(() => {
+    if (createSubmission.result && "ok" in createSubmission.result) {
+      revalidate(getTasksQuery.key);
+      formRef.reset();
+      createSubmission.clear();
+    }
+  });
+
+  createEffect(() => {
+    if (createSubmission.error) {
+      toast.error(
+        createSubmission.error.message || "Failed to create task",
+      );
+      createSubmission.clear();
+    }
+  });
 
   const deletingTask = () => {
     const id = deletingTaskId();
@@ -78,25 +96,6 @@ export default function Main(): JSX.Element {
     if (!all || all.length === 0) return 0;
     return Math.round((completedTasks().length / all.length) * 100);
   });
-
-  const form = createForm(() => ({
-    defaultValues: {
-      name: "",
-    } as NewTaskForm,
-    onSubmit: async ({ value }) => {
-      const name = value.name.trim();
-      if (!name) return;
-      try {
-        await createTask({ name, done: false });
-        revalidate(getTasksQuery.key);
-        form.reset();
-      } catch (error) {
-        toast.error(
-          Error.isError(error) ? error.message : "Failed to create task",
-        );
-      }
-    },
-  }));
 
   async function toggleTask(id: number, done: boolean): Promise<void> {
     try {
@@ -176,46 +175,28 @@ export default function Main(): JSX.Element {
               </Show>
 
               <form
+                method="post"
+                action={createTaskAction}
+                ref={formRef}
                 class="flex gap-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  void form.handleSubmit();
+                onInput={() => {
+                  if (createSubmission.result) createSubmission.clear();
                 }}
               >
-                <form.Field
-                  name="name"
-                  validators={{
-                    onChange: ({ value }) =>
-                      value.trim().length === 0
-                        ? "Name is required"
-                        : value.length > 500
-                        ? "Name must be 500 characters or less"
-                        : undefined,
-                  }}
-                >
-                  {(field) => (
-                    <div class="flex flex-1 flex-col gap-1">
-                      <Input
-                        placeholder="What needs to be done?"
-                        value={field().state.value}
-                        onInput={(e) => field().handleChange(e.target.value)}
-                        onBlur={field().handleBlur}
-                        disabled={createSubmission.pending}
-                        class="flex-1"
-                        aria-invalid={field().state.meta.errors.length > 0}
-                      />
-                      <Show when={field().state.meta.errors.length > 0}>
-                        <p
-                          id={`task-name-${field().name}-error`}
-                          class="text-destructive text-sm"
-                        >
-                          {field().state.meta.errors.join(", ")}
-                        </p>
-                      </Show>
-                    </div>
-                  )}
-                </form.Field>
+                <div class="flex flex-1 flex-col gap-1">
+                  <Input
+                    name="name"
+                    placeholder="What needs to be done?"
+                    required
+                    maxlength={500}
+                    disabled={createSubmission.pending}
+                    class="flex-1"
+                    aria-invalid={!!nameError()}
+                  />
+                  <Show when={nameError()}>
+                    <p class="text-destructive text-sm">{nameError()}</p>
+                  </Show>
+                </div>
                 <Button
                   type="submit"
                   disabled={createSubmission.pending}
