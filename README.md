@@ -2,6 +2,7 @@
 
 A production-ready, full-stack **starter template** built on the modern Solid stack — clone it, fill in your secrets, and start shipping instead of wiring up auth, an API layer, and a component library from scratch.
 
+[![CI](https://github.com/ptzburn/solidstart-starter/actions/workflows/main.yaml/badge.svg)](https://github.com/ptzburn/solidstart-starter/actions/workflows/main.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](./LICENSE)
 [![Runtime: Deno 2.8.3](https://img.shields.io/badge/Deno-2.8.3-70ffaf?logo=deno&logoColor=black)](https://deno.com/)
 [![SolidStart 2.0 (alpha)](https://img.shields.io/badge/SolidStart-2.0--alpha-2c4f7c?logo=solid&logoColor=white)](https://start.solidjs.com/)
@@ -41,7 +42,7 @@ A production-ready, full-stack **starter template** built on the modern Solid st
 | **Database** | [Drizzle ORM](https://orm.drizzle.team/) over [LibSQL/Turso](https://turso.tech/) (local SQLite file in dev) |
 | **UI** | [shadcn-style](https://solid-ui.com/) components ported to Solid on [Kobalte](https://kobalte.dev/) + [Tailwind CSS v4](https://tailwindcss.com/) |
 | **Storage** | S3-compatible object storage ([RustFS](https://rustfs.com/) locally via Docker) for avatars |
-| **Email / SMS** | [Resend](https://resend.com/) transactional email, [seven.io](https://www.seven.io/) SMS |
+| **Email / SMS** | [Resend](https://resend.com/) transactional email (prod) — caught by [Mailpit](https://mailpit.axllent.org/) over `nodemailer` SMTP in dev; [seven.io](https://www.seven.io/) SMS |
 | **Bot defense** | [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/) captcha + [HaveIBeenPwned](https://haveibeenpwned.com/) breached-password checks |
 | **Logging** | [Pino](https://getpino.io/) (pretty in dev, JSON in prod), wired into the oRPC HTTP handler |
 
@@ -77,7 +78,7 @@ Validation is [Zod](https://zod.dev/) everywhere — env vars, form inputs, and 
 
 - **[Deno](https://deno.com/) 2.8.3** — pinned in `mise.toml` and `nixpacks.toml`. Installing [mise](https://mise.jdx.dev/) is recommended so the exact version resolves automatically.
   > This project runs **only on Deno**. Never use `npm` / `pnpm` / `yarn` / `bun` — dependencies are `npm:`/`jsr:` specifiers in `deno.json` with `nodeModulesDir: "manual"`.
-- **Docker + Docker Compose** — runs the local [RustFS](https://rustfs.com/) S3 container for avatar storage. Without it, avatar upload/delete won't work locally.
+- **Docker + Docker Compose** — runs the local [RustFS](https://rustfs.com/) S3 container (avatar storage) and the [Mailpit](https://mailpit.axllent.org/) mail catcher (dev email). `deno task dev` starts both alongside the app.
 - Accounts/credentials for the [external services](#-external-services) below. By default `src/env.ts` validates **all** of them as required and the app/build will refuse to start until they're set (see [Gotchas](#-gotchas--constraints) for making providers optional).
 
 ## 🚀 Quick start
@@ -100,9 +101,11 @@ deno install
 # 5. Create the local SQLite database and apply migrations
 deno task db:migrate
 
-# 6. Start everything — Vite app on :3020 + RustFS S3 container together
+# 6. Start everything — Vite app on :3020 + RustFS + Mailpit (Docker) together
 deno task dev
 ```
+
+> In development, outbound email is captured by **Mailpit** instead of hitting Resend — open <http://localhost:8025> to read it. Set `MAIL_TRANSPORT=resend` to send through Resend.
 
 Then, on first run:
 
@@ -132,8 +135,12 @@ All variables are validated by **Zod at startup** (`src/env.ts`, also imported b
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | server | ✅ | GitHub OAuth App credentials |
 | `VITE_TURNSTILE_SITE_KEY` | **public** | ✅ | Cloudflare Turnstile site key |
 | `TURNSTILE_SECRET_KEY` | server | ✅ | Cloudflare Turnstile secret key |
-| `RESEND_API_KEY` | server | ✅ | Resend API key |
-| `RESEND_EMAIL` | server | ✅ | Verified Resend sender address |
+| `MAIL_TRANSPORT` | server | – | `smtp` \| `resend` (default `resend`); use `smtp` in dev to catch mail in Mailpit |
+| `RESEND_API_KEY` | server | ⚠️ | Resend API key — required when `MAIL_TRANSPORT=resend` |
+| `RESEND_EMAIL` | server | ✅ | Sender address (the `From` for both transports) |
+| `SMTP_HOST` | server | ⚠️ | SMTP host — required when `MAIL_TRANSPORT=smtp` (`localhost` for Mailpit) |
+| `SMTP_PORT` | server | – | SMTP port (default `1025`) |
+| `SMTP_USER` / `SMTP_PASS` | server | – | Optional SMTP auth (unused with Mailpit) |
 | `SEVEN_IO_API_KEY` | server | ✅ | seven.io SMS API key |
 | `S3_ENDPOINT` | server | ✅ | S3 endpoint URL (`http://localhost:9000` locally) |
 | `S3_REGION` | server | ✅ | S3 region |
@@ -151,7 +158,7 @@ All variables are validated by **Zod at startup** (`src/env.ts`, also imported b
 | **[Google Cloud Console](https://console.cloud.google.com/apis/credentials)** | Google OAuth | OAuth 2.0 client ID + secret |
 | **[GitHub Developer Settings](https://github.com/settings/developers)** | GitHub OAuth | OAuth App client ID + secret |
 | **[Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile)** | Captcha on credential flows | Site key (public) + secret key |
-| **[Resend](https://resend.com/)** | Transactional email (verify, reset, delete, email change, sign-up warning) | API key + a verified sender address |
+| **[Resend](https://resend.com/)** | Transactional email in prod (verify, reset, delete, email change, sign-up warning) | API key + a verified sender address. In dev, mail is caught by the local [Mailpit](https://mailpit.axllent.org/) container instead — no account needed. |
 | **[seven.io](https://www.seven.io/)** | Phone/SMS one-time codes | API key |
 | **S3-compatible storage** | Avatar uploads | Locally provided by the bundled RustFS container; in production use AWS S3, Cloudflare R2, etc. (path-style addressing) |
 
@@ -176,6 +183,8 @@ All tasks run via `deno task <name>`.
 
 > There is **no test runner**. `deno task check` (format + lint + typecheck) is the quality gate, and it's also enforced as a `lefthook` pre-commit hook. Lint config is strict: explicit return types, `no-console` (use the `logger`), `no-non-null-assertion`, `no-await-in-loop`, `verbatim-module-syntax`, plus import-order and Tailwind lint plugins.
 
+**CI:** the [`CI` workflow](.github/workflows/main.yaml) runs `deno task check` and `deno task build` on every push and pull request to `main`; [Dependabot](.github/dependabot.yml) opens weekly grouped update PRs for the Deno and GitHub Actions dependencies.
+
 ## 📁 Project structure
 
 The import root `~/` maps to `./src/`, which is split three ways:
@@ -185,8 +194,8 @@ src/
 ├── api/          # server-only: oRPC router, Drizzle DB, services, email templates, middlewares
 │   ├── router/   #   procedures (tasks, avatars) + builder + composition
 │   ├── db/       #   schema, relations, migrations, the Drizzle client
-│   ├── services/ #   files (S3 + image processing), emails (Resend)
-│   ├── lib/      #   resend, seven-io clients
+│   ├── services/ #   files (S3 + image processing), emails (templated)
+│   ├── lib/      #   mailer (SMTP/Resend switch), seven-io client
 │   ├── emails/   #   transactional HTML email templates
 │   └── middlewares/
 ├── client/       # frontend
@@ -256,6 +265,10 @@ A single Drizzle client (`src/api/db/index.ts`) over LibSQL/Turso switches by en
 
 Avatar upload/delete goes through the oRPC `avatars` router → `src/api/services/files.ts` → S3 (`@aws-sdk/client-s3`), backed locally by RustFS. Images are resized to a max width of **400px** and re-encoded to **WebP** with `@cf-wasm/photon`, stored at `users/{userId}/avatar/{uuid}.webp`. The DB stores the relative key; the public URL is built from `VITE_S3_PUBLIC_URL`.
 
+### Email
+
+A single `sendMail()` chokepoint (`src/api/lib/mailer.ts`) switches transport on `MAIL_TRANSPORT`: in development it sends over SMTP (`nodemailer`) to the local **Mailpit** catcher (read it at <http://localhost:8025>); in production it uses the **Resend** API. The five templated emails in `src/api/services/emails.ts` (verification OTP, password reset, account deletion, email change, sign-up warning) are transport-agnostic.
+
 ## 🗄 Database & migrations
 
 ```sh
@@ -300,6 +313,7 @@ This template is meant to be forked and rebranded. Common first edits:
 - **Phone OTP is Finnish-only** (`+358`) until you change the validator.
 - **No CORS** on the API — it's same-origin by design.
 - **No test runner** — `deno task check` is the gate (also a pre-commit hook).
+- **CI build env** — CI builds against a placeholder `.env.prod` written inside `.github/workflows/main.yaml`; when you add a required var to `src/env.ts`, add it there too or the build step fails.
 
 ## 📄 License
 

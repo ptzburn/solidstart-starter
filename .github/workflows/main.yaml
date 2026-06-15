@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      DENO_V8_FLAGS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.8.3
+
+      - name: Cache Deno + node_modules
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cache/deno
+            node_modules
+          key: ${{ runner.os }}-deno-${{ hashFiles('deno.json', 'deno.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deno-
+
+      - name: Install dependencies
+        run: deno ci
+
+      - name: Write .env.prod
+        run: |
+          cat > .env.prod <<'EOF'
+          NODE_ENV=production
+          LOG_LEVEL=info
+          DATABASE_URL=file:ci.db
+          DATABASE_AUTH_TOKEN=ci
+          BETTER_AUTH_SECRET=ci_test_only_secret_value
+          BETTER_AUTH_URL=http://localhost:3020
+          VITE_HOST_URL=http://localhost:3020
+          GOOGLE_CLIENT_ID=ci
+          GOOGLE_CLIENT_SECRET=ci
+          GITHUB_CLIENT_ID=ci
+          GITHUB_CLIENT_SECRET=ci
+          VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA
+          TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+          RESEND_API_KEY=ci
+          RESEND_EMAIL=noreply@example.com
+          SEVEN_IO_API_KEY=ci
+          S3_REGION=us-east-1
+          S3_ENDPOINT=http://localhost:9000
+          S3_ACCESS_KEY=ci
+          S3_ACCESS_SECRET=ci
+          S3_BUCKET=ci
+          VITE_S3_PUBLIC_URL=http://localhost:9000/ci
+          MAIL_TRANSPORT=resend
+          EOF
+
+      - name: Format, lint, type-check
+        run: deno task check
+
+      - name: Build
+        run: deno task build

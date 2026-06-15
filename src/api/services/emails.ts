@@ -1,27 +1,21 @@
 import env from "~/env.ts";
 
-import type { CreateEmailResponseSuccess } from "resend";
 import { deleteAccountTemplate } from "../emails/templates/delete-account.ts";
 import { emailChangeTemplate } from "../emails/templates/email-change.ts";
 import { resetPasswordTemplate } from "../emails/templates/reset-password.ts";
 import { signUpAttemptTemplate } from "../emails/templates/sign-up-attempt.ts";
 import { verifyEmailTemplate } from "../emails/templates/verify-email.ts";
-import resend from "../lib/resend.ts";
+import { sendMail } from "../lib/mailer.ts";
 
 const domain = env.VITE_HOST_URL;
 const fromAddress = `Solid Starter Template <${env.RESEND_EMAIL}>`;
 
-async function send(params: {
+function send(params: {
   to: string | string[];
   subject: string;
   html: string;
-}): Promise<CreateEmailResponseSuccess> {
-  const { data, error } = await resend.emails.send({
-    from: fromAddress,
-    ...params,
-  });
-  if (error) throw new Error(error.message);
-  return data;
+}): Promise<void> {
+  return sendMail({ from: fromAddress, ...params });
 }
 
 type SendEmailVerificationParams = {
@@ -31,7 +25,7 @@ type SendEmailVerificationParams = {
 
 export function sendEmailVerification(
   { email, otp }: SendEmailVerificationParams,
-): Promise<CreateEmailResponseSuccess> {
+): Promise<void> {
   return send({
     to: email,
     subject: "Verify your email address",
@@ -46,7 +40,7 @@ type SendSignUpAttemptWarningParams = {
 
 export function sendSignUpAttemptWarning(
   { email, userName }: SendSignUpAttemptWarningParams,
-): Promise<CreateEmailResponseSuccess> {
+): Promise<void> {
   return send({
     to: email,
     subject: "Sign up attempt for Solid Starter Template",
@@ -65,7 +59,7 @@ type SendResetPasswordParams = {
 
 export function sendResetPassword(
   { email, userName, url }: SendResetPasswordParams,
-): Promise<CreateEmailResponseSuccess> {
+): Promise<void> {
   return send({
     to: email,
     subject: "Reset your password",
@@ -84,7 +78,7 @@ type SendDeleteAccountVerificationEmailParams = {
 
 export function sendDeleteAccountVerificationEmail(
   { email, userName, url }: SendDeleteAccountVerificationEmailParams,
-): Promise<CreateEmailResponseSuccess> {
+): Promise<void> {
   return send({
     to: email,
     subject: "Confirm account deletion",
@@ -104,7 +98,7 @@ type SendEmailChangeParams = {
 
 export function sendEmailChangeConfirmation(
   { email, userName, newEmail, verificationUrl }: SendEmailChangeParams,
-): Promise<CreateEmailResponseSuccess> {
+): Promise<void> {
   return send({
     to: email,
     subject: "Confirm your email address change",

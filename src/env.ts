@@ -25,8 +25,13 @@ const EnvSchema = z.object({
   VITE_TURNSTILE_SITE_KEY: z.string(),
   TURNSTILE_SECRET_KEY: z.string(),
   VITE_HOST_URL: z.url(),
-  RESEND_API_KEY: z.string(),
+  MAIL_TRANSPORT: z.enum(["smtp", "resend"]).default("resend"),
+  RESEND_API_KEY: z.string().optional(),
   RESEND_EMAIL: z.email(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(1025),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
   SEVEN_IO_API_KEY: z.string(),
   S3_REGION: z.string(),
   S3_ENDPOINT: z.url(),
@@ -34,6 +39,24 @@ const EnvSchema = z.object({
   S3_ACCESS_SECRET: z.string(),
   S3_BUCKET: z.string(),
   VITE_S3_PUBLIC_URL: z.url(),
+}).superRefine((val, ctx) => {
+  if (val.MAIL_TRANSPORT === "resend") {
+    if (!val.RESEND_API_KEY) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["RESEND_API_KEY"],
+        message: "RESEND_API_KEY is required when MAIL_TRANSPORT=resend",
+      });
+    }
+  } else if (val.MAIL_TRANSPORT === "smtp") {
+    if (!val.SMTP_HOST) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["SMTP_HOST"],
+        message: "SMTP_HOST is required when MAIL_TRANSPORT=smtp",
+      });
+    }
+  }
 });
 
 export type env = z.infer<typeof EnvSchema>;
