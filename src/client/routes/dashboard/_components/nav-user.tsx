@@ -1,6 +1,6 @@
 import { useColorMode } from "@kobalte/core";
 import { A, useSubmission } from "@solidjs/router";
-import { stopImpersonating } from "~/client/actions/auth.ts";
+import { signOut, stopImpersonating } from "~/client/actions/auth.ts";
 
 import {
   Avatar,
@@ -118,14 +118,18 @@ export function NavUser(): JSX.Element {
                 </form>
               }
             >
-              <DropdownMenuItem
-                as={A}
-                href="/auth/sign-out"
-                class="hover:cursor-pointer"
-              >
-                <LogOut class="size-4" />
-                Sign Out
-              </DropdownMenuItem>
+              <form method="post" action={signOut}>
+                <DropdownMenuItem
+                  as={Button}
+                  type="submit"
+                  variant="ghost"
+                  class="w-full justify-start"
+                  size="sm"
+                >
+                  <LogOut class="size-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </form>
             </Show>
           </DropdownMenuContent>
         </DropdownMenu>
