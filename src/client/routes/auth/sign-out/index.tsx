@@ -4,7 +4,7 @@ import { signOutQuery } from "~/client/queries/auth.ts";
 import { type JSX, Suspense } from "solid-js";
 
 export default function SignOutPage(): JSX.Element {
-  const result = createAsync(() => signOutQuery());
+  const result = createAsync(() => signOutQuery(), { deferStream: true });
 
   return (
     <div class="flex flex-1 flex-col items-center justify-center gap-6 text-center">

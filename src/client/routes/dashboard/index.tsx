@@ -2,18 +2,17 @@ import {
   createAsync,
   revalidate,
   type RouteDefinition,
-  useAction,
   useSubmission,
+  useSubmissions,
 } from "@solidjs/router";
 import {
   createTaskAction,
   deleteTaskAction,
-  updateTaskAction,
+  toggleTaskAction,
 } from "~/client/actions/tasks.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { Badge } from "~/client/components/ui/badge.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
-import { Checkbox } from "~/client/components/ui/checkbox.tsx";
 import {
   Empty,
   EmptyDescription,
@@ -25,7 +24,9 @@ import { Input } from "~/client/components/ui/input.tsx";
 import { Progress } from "~/client/components/ui/progress.tsx";
 import { Separator } from "~/client/components/ui/separator.tsx";
 import { Skeleton } from "~/client/components/ui/skeleton.tsx";
+import { cn } from "~/client/lib/utils.ts";
 import { getTasksQuery } from "~/client/queries/tasks.ts";
+import type { SelectTask } from "~/shared/types.ts";
 import CircleCheckBig from "~icons/lucide/circle-check-big";
 import ClipboardList from "~icons/lucide/clipboard-list";
 import Plus from "~icons/lucide/plus";
@@ -33,7 +34,6 @@ import Trash from "~icons/lucide/trash";
 import {
   createEffect,
   createMemo,
-  createSignal,
   For,
   type JSX,
   Show,
@@ -41,26 +41,99 @@ import {
 } from "solid-js";
 import { toast } from "solid-sonner";
 
-const DELETE_TASK_DIALOG_ID = "delete-task-dialog";
-
 export const route = {
   preload: () => getTasksQuery(),
 } satisfies RouteDefinition;
 
+// A single task row. The toggle is a real <form> whose submit button *is* the
+// checkbox, and delete is a native <dialog> opened via invoker commands — so
+// both work without JS. With JS, solid-router intercepts the submits.
+function TaskItem(props: {
+  task: SelectTask;
+  completed: boolean;
+  deleting: boolean;
+}): JSX.Element {
+  const dialogId = (): string => `delete-task-${props.task.id}`;
+  return (
+    <li
+      class={cn(
+        "group flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors",
+        props.completed
+          ? "border-transparent bg-muted/40 hover:bg-muted/70"
+          : "bg-card hover:bg-accent/50",
+      )}
+    >
+      <form method="post" action={toggleTaskAction} class="contents">
+        <input type="hidden" name="id" value={props.task.id} />
+        <input type="hidden" name="done" value={String(!props.task.done)} />
+        <button
+          type="submit"
+          role="checkbox"
+          aria-checked={props.completed}
+          aria-label={props.task.name}
+          class={cn(
+            "flex size-4 shrink-0 items-center justify-center rounded-sm border ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring",
+            props.completed
+              ? "border-none bg-primary text-primary-foreground"
+              : "border-primary",
+          )}
+        >
+          <Show when={props.completed}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="size-3.5"
+            >
+              <path d="M5 12l5 5l10 -10" />
+            </svg>
+          </Show>
+        </button>
+      </form>
+      <span
+        class={cn(
+          "flex-1 text-sm leading-relaxed",
+          props.completed &&
+            "text-muted-foreground line-through decoration-muted-foreground/50",
+        )}
+      >
+        {props.task.name}
+      </span>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label="Delete"
+        class="shrink-0 text-muted-foreground/50 transition-colors hover:text-destructive"
+        command="show-modal"
+        commandfor={dialogId()}
+      >
+        <Trash class="size-4" />
+      </Button>
+      <ConfirmDialog
+        id={dialogId()}
+        variant="destructive"
+        title="Delete task?"
+        description={`"${props.task.name}" will be removed. This can't be undone.`}
+        action={deleteTaskAction}
+        hiddenFields={{ id: String(props.task.id) }}
+        isPending={props.deleting}
+      />
+    </li>
+  );
+}
+
 export default function Main(): JSX.Element {
-  const tasks = createAsync(() => getTasksQuery());
+  const tasks = createAsync(() => getTasksQuery(), { deferStream: true });
 
   const createSubmission = useSubmission(createTaskAction);
-  const deleteSubmission = useSubmission(deleteTaskAction);
+  const deleteSubmissions = useSubmissions(deleteTaskAction);
+  const toggleSubmissions = useSubmissions(toggleTaskAction);
 
-  const updateTask = useAction(updateTaskAction);
-  const deleteTask = useAction(deleteTaskAction);
-
-  let dialogRef!: HTMLDialogElement;
   let formRef!: HTMLFormElement;
-  const [deletingTaskId, setDeletingTaskId] = createSignal<number | null>(
-    null,
-  );
 
   const nameError = (): string | undefined =>
     createSubmission.result && "fieldErrors" in createSubmission.result
@@ -84,47 +157,55 @@ export default function Main(): JSX.Element {
     }
   });
 
-  const deletingTask = () => {
-    const id = deletingTaskId();
-    if (id === null) return undefined;
-    const list = tasks();
-    if (!list) return undefined;
-    return list.find((t) => t.id === id);
+  // Optimistic done state: while a toggle for this task is in flight, show the
+  // value being submitted; otherwise show the canonical value from the list.
+  const displayedDone = (task: SelectTask): boolean => {
+    for (const sub of toggleSubmissions) {
+      if (sub.pending && sub.input[0].get("id") === String(task.id)) {
+        return sub.input[0].get("done") === "true";
+      }
+    }
+    return task.done;
   };
 
-  const pendingTasks = createMemo(() => tasks()?.filter((t) => !t.done) ?? []);
+  const isDeleting = (id: number): boolean => {
+    for (const sub of deleteSubmissions) {
+      if (sub.pending && sub.input[0].get("id") === String(id)) return true;
+    }
+    return false;
+  };
 
-  const completedTasks = createMemo(() => tasks()?.filter((t) => t.done) ?? []);
+  // Revalidate + surface errors for toggle/delete submissions (covers both the
+  // optimistic JS path and, harmlessly, the no-JS redirect path).
+  createEffect(() => {
+    for (const sub of [...toggleSubmissions, ...deleteSubmissions]) {
+      if (sub.result !== undefined) {
+        revalidate(getTasksQuery.key);
+        sub.clear();
+      } else if (sub.error) {
+        toast.error(
+          Error.isError(sub.error)
+            ? sub.error.message
+            : "Failed to update task",
+        );
+        sub.clear();
+      }
+    }
+  });
+
+  const pendingTasks = createMemo(() =>
+    tasks()?.filter((t) => !displayedDone(t)) ?? []
+  );
+
+  const completedTasks = createMemo(() =>
+    tasks()?.filter((t) => displayedDone(t)) ?? []
+  );
 
   const completionPercent = createMemo(() => {
     const all = tasks();
     if (!all || all.length === 0) return 0;
     return Math.round((completedTasks().length / all.length) * 100);
   });
-
-  async function toggleTask(id: number, done: boolean): Promise<void> {
-    try {
-      await updateTask(String(id), { done });
-      revalidate(getTasksQuery.key);
-    } catch (error) {
-      toast.error(
-        Error.isError(error) ? error.message : "Failed to update task",
-      );
-    }
-  }
-
-  async function onDeleteTask(id: number): Promise<boolean> {
-    try {
-      await deleteTask(String(id));
-      revalidate(getTasksQuery.key);
-      return true;
-    } catch (error) {
-      toast.error(
-        Error.isError(error) ? error.message : "Failed to delete task",
-      );
-      return false;
-    }
-  }
 
   return (
     <div class="flex flex-1 flex-col gap-6">
@@ -239,27 +320,11 @@ export default function Main(): JSX.Element {
                       <ul class="flex flex-col gap-1.5">
                         <For each={pendingTasks()}>
                           {(task) => (
-                            <li class="group flex items-center gap-3 rounded-lg border bg-card px-3 py-2.5 transition-colors hover:bg-accent/50">
-                              <Checkbox
-                                checked={task.done}
-                                onChange={(v) => toggleTask(task.id, !!v)}
-                                aria-label={task.name}
-                              />
-                              <span class="flex-1 text-sm leading-relaxed">
-                                {task.name}
-                              </span>
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label="Delete"
-                                class="shrink-0 text-muted-foreground/50 transition-colors hover:text-destructive"
-                                command="show-modal"
-                                commandfor={DELETE_TASK_DIALOG_ID}
-                                onClick={() => setDeletingTaskId(task.id)}
-                              >
-                                <Trash class="size-4" />
-                              </Button>
-                            </li>
+                            <TaskItem
+                              task={task}
+                              completed={false}
+                              deleting={isDeleting(task.id)}
+                            />
                           )}
                         </For>
                       </ul>
@@ -281,27 +346,11 @@ export default function Main(): JSX.Element {
                       <ul class="flex flex-col gap-1.5">
                         <For each={completedTasks()}>
                           {(task) => (
-                            <li class="group flex items-center gap-3 rounded-lg border border-transparent bg-muted/40 px-3 py-2.5 transition-colors hover:bg-muted/70">
-                              <Checkbox
-                                checked={task.done}
-                                onChange={(v) => toggleTask(task.id, !!v)}
-                                aria-label={task.name}
-                              />
-                              <span class="flex-1 text-muted-foreground text-sm leading-relaxed line-through decoration-muted-foreground/50">
-                                {task.name}
-                              </span>
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label="Delete"
-                                class="shrink-0 text-muted-foreground/50 transition-colors hover:text-destructive"
-                                command="show-modal"
-                                commandfor={DELETE_TASK_DIALOG_ID}
-                                onClick={() => setDeletingTaskId(task.id)}
-                              >
-                                <Trash class="size-4" />
-                              </Button>
-                            </li>
+                            <TaskItem
+                              task={task}
+                              completed
+                              deleting={isDeleting(task.id)}
+                            />
                           )}
                         </For>
                       </ul>
@@ -313,26 +362,6 @@ export default function Main(): JSX.Element {
           )}
         </Show>
       </Suspense>
-
-      <ConfirmDialog
-        id={DELETE_TASK_DIALOG_ID}
-        ref={(el) => dialogRef = el}
-        variant="destructive"
-        title="Delete task?"
-        description={deletingTask()
-          ? `"${
-            deletingTask()?.name ?? "Task"
-          }" will be removed. This can't be undone.`
-          : undefined}
-        isPending={deleteSubmission.pending}
-        onConfirm={async () => {
-          const id = deletingTaskId();
-          if (id === null) return;
-          const ok = await onDeleteTask(id);
-          if (ok) dialogRef.close();
-        }}
-        onClose={() => setDeletingTaskId(null)}
-      />
     </div>
   );
 }

@@ -27,7 +27,6 @@ import Smartphone from "~icons/lucide/smartphone";
 import Tablet from "~icons/lucide/tablet";
 import {
   createEffect,
-  createSignal,
   ErrorBoundary,
   For,
   type JSX,
@@ -98,15 +97,14 @@ function formatDate(
   });
 }
 
-const REVOKE_SESSION_DIALOG_ID = "revoke-session-dialog";
 const REVOKE_ALL_DIALOG_ID = "revoke-all-sessions-dialog";
 
 export default function SessionsRoute(): JSX.Element {
-  let revokeDialogRef!: HTMLDialogElement;
   let revokeAllDialogRef!: HTMLDialogElement;
-  const sessions = createAsync(() => listSessionsQuery());
+  const sessions = createAsync(() => listSessionsQuery(), {
+    deferStream: true,
+  });
   const session = useSession();
-  const [revokingToken, setRevokingToken] = createSignal<string | null>(null);
 
   const revokeSubmission = useSubmission(revokeSession);
   const revokeAllSubmission = useSubmission(revokeOtherSessions);
@@ -118,8 +116,6 @@ export default function SessionsRoute(): JSX.Element {
     if (revokeSubmission.result && "ok" in revokeSubmission.result) {
       revalidate(listSessionsQuery.key);
       toast.success("Session revoked successfully");
-      revokeDialogRef.close();
-      setRevokingToken(null);
       revokeSubmission.clear();
     }
   });
@@ -248,22 +244,28 @@ export default function SessionsRoute(): JSX.Element {
                                 {formatDate(s.expiresAt)}
                               </TableCell>
                               <TableCell class="text-right">
-                                <Show
-                                  when={!isCurrent()}
-                                  fallback={null}
-                                >
+                                <Show when={!isCurrent()}>
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     command="show-modal"
-                                    commandfor={REVOKE_SESSION_DIALOG_ID}
-                                    onClick={() => setRevokingToken(s.token)}
+                                    commandfor={`revoke-session-${s.id}`}
                                   >
                                     <LogOut class="size-4" />
                                     <span class="hidden sm:inline">
                                       Revoke
                                     </span>
                                   </Button>
+                                  <ConfirmDialog
+                                    id={`revoke-session-${s.id}`}
+                                    variant="destructive"
+                                    title="Revoke session?"
+                                    description="This will sign out the device associated with this session. This action cannot be undone."
+                                    confirmText="Revoke"
+                                    isPending={revokeSubmission.pending}
+                                    action={revokeSession}
+                                    hiddenFields={{ token: s.token }}
+                                  />
                                 </Show>
                               </TableCell>
                             </TableRow>
@@ -303,19 +305,6 @@ export default function SessionsRoute(): JSX.Element {
         confirmText="Revoke all"
         isPending={revokeAllSubmission.pending}
         action={revokeOtherSessions}
-      />
-
-      <ConfirmDialog
-        id={REVOKE_SESSION_DIALOG_ID}
-        ref={(el) => revokeDialogRef = el}
-        variant="destructive"
-        title="Revoke session?"
-        description="This will sign out the device associated with this session. This action cannot be undone."
-        confirmText="Revoke"
-        isPending={revokeSubmission.pending}
-        action={revokeSession}
-        hiddenFields={{ token: revokingToken() ?? "" }}
-        onClose={() => setRevokingToken(null)}
       />
     </div>
   );
