@@ -22,7 +22,9 @@ function LastUsedBadge(): JSX.Element {
 
 function SignInPage(): JSX.Element {
   const [passkeyLoading, setPasskeyLoading] = createSignal(false);
-  const lastLoginMethod = createAsync(() => getLastLoginMethodQuery());
+  const lastLoginMethod = createAsync(() => getLastLoginMethodQuery(), {
+    deferStream: true,
+  });
   const submission = useSubmission(signInSocial);
 
   const anyPending = (): boolean => submission.pending || passkeyLoading();

@@ -5,7 +5,9 @@ import { type JSX, Show, Suspense } from "solid-js";
 import { OTPValidation } from "../_components/otp-validation.tsx";
 
 export default function VerifyEmailPage(): JSX.Element {
-  const email = createAsync(() => getPendingSigninEmailQuery());
+  const email = createAsync(() => getPendingSigninEmailQuery(), {
+    deferStream: true,
+  });
 
   return (
     <Suspense

@@ -11,7 +11,9 @@ import CircleCheckBig from "~icons/lucide/circle-check-big";
 import { type JSX, Show, Suspense } from "solid-js";
 
 export default function ResetPasswordSuccessPage(): JSX.Element {
-  const allowed = createAsync(() => requirePasswordResetCompletedQuery());
+  const allowed = createAsync(() => requirePasswordResetCompletedQuery(), {
+    deferStream: true,
+  });
 
   return (
     <Suspense

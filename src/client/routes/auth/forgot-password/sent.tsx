@@ -11,7 +11,9 @@ import MailCheck from "~icons/lucide/mail-check";
 import { type JSX, Show, Suspense } from "solid-js";
 
 export default function ForgotPasswordSentPage(): JSX.Element {
-  const email = createAsync(() => getPasswordResetSentEmailQuery());
+  const email = createAsync(() => getPasswordResetSentEmailQuery(), {
+    deferStream: true,
+  });
 
   return (
     <Suspense

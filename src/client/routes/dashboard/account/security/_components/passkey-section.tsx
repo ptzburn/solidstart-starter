@@ -30,13 +30,11 @@ import {
 } from "solid-js";
 import { toast } from "solid-sonner";
 
-const DELETE_PASSKEY_DIALOG_ID = "delete-passkey-dialog";
-
 export function PasskeySection(): JSX.Element {
-  let dialogRef!: HTMLDialogElement;
-  const passkeys = createAsync(() => listPasskeysQuery());
+  const passkeys = createAsync(() => listPasskeysQuery(), {
+    deferStream: true,
+  });
   const [adding, setAdding] = createSignal(false);
-  const [deletingId, setDeletingId] = createSignal<string | null>(null);
   const deleteSubmission = useSubmission(deletePasskey);
 
   const handleAdd = async () => {
@@ -59,8 +57,6 @@ export function PasskeySection(): JSX.Element {
     if (deleteSubmission.result && "ok" in deleteSubmission.result) {
       revalidate(listPasskeysQuery.key);
       toast.success("Passkey deleted");
-      dialogRef.close();
-      setDeletingId(null);
       deleteSubmission.clear();
     }
   });
@@ -156,13 +152,19 @@ export function PasskeySection(): JSX.Element {
                               variant="ghost"
                               size="sm"
                               command="show-modal"
-                              commandfor={DELETE_PASSKEY_DIALOG_ID}
-                              onClick={() => setDeletingId(pk.id)}
+                              commandfor={`delete-passkey-${pk.id}`}
                             >
                               <Trash class="size-4 text-destructive" />
                             </Button>
                           </ItemActions>
                         </Item>
+                        <ConfirmDialog
+                          id={`delete-passkey-${pk.id}`}
+                          variant="destructive"
+                          isPending={deleteSubmission.pending}
+                          action={deletePasskey}
+                          hiddenFields={{ id: pk.id }}
+                        />
                       </>
                     )}
                   </For>
@@ -172,16 +174,6 @@ export function PasskeySection(): JSX.Element {
           </Show>
         </Suspense>
       </ErrorBoundary>
-
-      <ConfirmDialog
-        id={DELETE_PASSKEY_DIALOG_ID}
-        ref={(el) => dialogRef = el}
-        variant="destructive"
-        isPending={deleteSubmission.pending}
-        action={deletePasskey}
-        hiddenFields={{ id: deletingId() ?? "" }}
-        onClose={() => setDeletingId(null)}
-      />
     </ItemGroup>
   );
 }

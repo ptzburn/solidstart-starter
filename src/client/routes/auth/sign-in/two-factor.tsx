@@ -5,7 +5,9 @@ import { type JSX, Show, Suspense } from "solid-js";
 import { TwoFactorVerification } from "../_components/two-factor-verification.tsx";
 
 export default function TwoFactorPage(): JSX.Element {
-  const allowed = createAsync(() => requireTwoFactorPendingQuery());
+  const allowed = createAsync(() => requireTwoFactorPendingQuery(), {
+    deferStream: true,
+  });
 
   return (
     <Suspense

@@ -58,7 +58,9 @@ function SecuritySkeleton(): JSX.Element {
 }
 
 export default function SecurityPage(): JSX.Element {
-  const accounts = createAsync(() => listAccountsQuery());
+  const accounts = createAsync(() => listAccountsQuery(), {
+    deferStream: true,
+  });
 
   return (
     <div class="flex flex-1 flex-col gap-10">

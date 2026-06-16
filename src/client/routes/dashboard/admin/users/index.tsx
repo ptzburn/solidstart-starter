@@ -72,8 +72,10 @@ export default function UsersPage(): JSX.Element {
     role: single(params.role),
   });
 
-  const data = createAsync(() =>
-    listUsersQuery(page(), filters().name, filters().email, filters().role)
+  const data = createAsync(
+    () =>
+      listUsersQuery(page(), filters().name, filters().email, filters().role),
+    { deferStream: true },
   );
 
   const totalPages = createMemo(() => {

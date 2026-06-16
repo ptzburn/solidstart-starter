@@ -43,12 +43,15 @@ type EnableStep = "password" | "verify" | "backup-codes";
 
 export function TwoFactorSection(): JSX.Element {
   const session = useSession();
-  const numberOfBackupCodes = createAsync(async () => {
-    if (session.user.twoFactorEnabled) {
-      return await viewNumberOfBackupCodesQuery(Number(session.user.id));
-    }
-    return undefined;
-  });
+  const numberOfBackupCodes = createAsync(
+    async () => {
+      if (session.user.twoFactorEnabled) {
+        return await viewNumberOfBackupCodesQuery(Number(session.user.id));
+      }
+      return undefined;
+    },
+    { deferStream: true },
+  );
 
   let enableDialogRef!: HTMLDialogElement;
   let passwordFormRef: HTMLFormElement | undefined;

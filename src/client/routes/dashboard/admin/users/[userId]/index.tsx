@@ -15,7 +15,9 @@ export const route = {
 export default function UserDetailPage(): JSX.Element {
   const params = useParams<{ userId: string }>();
 
-  const user = createAsync(() => getUserByIdQuery(params.userId));
+  const user = createAsync(() => getUserByIdQuery(params.userId), {
+    deferStream: true,
+  });
 
   return (
     <Suspense
