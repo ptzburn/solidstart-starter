@@ -330,6 +330,16 @@ export const removeUser = action(async (formData: FormData) => {
   return redirect("/dashboard/admin/users");
 }, "removeUser");
 
+export const signOut = action(async () => {
+  "use server";
+  const { headers: authHeaders } = await auth.api.signOut({
+    headers: getServerHeaders(),
+    returnHeaders: true,
+  });
+
+  return redirectWithCookies(authHeaders, "/auth/sign-in");
+}, "signOut");
+
 export const stopImpersonating = action(async () => {
   "use server";
   const { headers: authHeaders } = await auth.api.stopImpersonating({

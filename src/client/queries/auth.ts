@@ -3,7 +3,6 @@ import { parseCookies } from "@solidjs/start/http";
 import { usePendingForgotPasswordSession } from "~/client/lib/pending-forgot-password-session.ts";
 import { usePendingResetPasswordSession } from "~/client/lib/pending-reset-password-session.ts";
 import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts";
-import { redirectWithCookies } from "~/client/utils/redirect.ts";
 import { auth, COOKIE_PREFIX } from "~/shared/auth.ts";
 import { getServerHeaders } from "~/shared/server-headers.ts";
 import type { SelectUser } from "~/shared/types/auth.ts";
@@ -36,15 +35,6 @@ export const requireAdminQuery = query(async () => {
 
   return true;
 }, "require-admin");
-
-export const signOutQuery = query(async () => {
-  "use server";
-  const { headers: authHeaders } = await auth.api.signOut({
-    headers: getServerHeaders(),
-    returnHeaders: true,
-  });
-  throw redirectWithCookies(authHeaders, "/auth/sign-in");
-}, "sign-out");
 
 export const getPendingSigninEmailQuery = query(async () => {
   "use server";

@@ -7,8 +7,7 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS", "TRACE"]);
 
 function isGuestOnlyRoute(pathname: string): boolean {
   if (pathname === "/") return true;
-  if (!pathname.startsWith("/auth/")) return false;
-  return !pathname.startsWith("/auth/sign-out");
+  return pathname.startsWith("/auth/");
 }
 
 const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
