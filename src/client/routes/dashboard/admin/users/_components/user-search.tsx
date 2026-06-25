@@ -11,8 +11,13 @@ import { createMemo, createSignal, type JSX, Show } from "solid-js";
 
 const FORM_ID = "user-search-form";
 
+// Kobalte's Select treats an empty-string value as "no selection" (it won't
+// render in the trigger), so use a sentinel for "All roles" and map it back to
+// an empty `role` param on submit.
+const ALL_ROLES = "all";
+
 const getRoleOptions = (): { value: string; label: string }[] => [
-  { value: "", label: "All roles" },
+  { value: ALL_ROLES, label: "All roles" },
   { value: "admin", label: "Admin" },
   { value: "user", label: "Client" },
 ];
@@ -25,7 +30,7 @@ function singleParam(value: string | string[] | undefined): string {
 export function UserSearch(): JSX.Element {
   const [params] = useSearchParams();
   const [open, setOpen] = createSignal(false);
-  const [role, setRole] = createSignal(singleParam(params.role));
+  const [role, setRole] = createSignal(singleParam(params.role) || ALL_ROLES);
   const activeCount = createMemo(() => (singleParam(params.role) ? 1 : 0));
 
   return (
@@ -59,7 +64,11 @@ export function UserSearch(): JSX.Element {
         <Separator />
 
         {/* Role lives in a separate dialog, so carry it via a hidden input. */}
-        <input type="hidden" name="role" value={role()} />
+        <input
+          type="hidden"
+          name="role"
+          value={role() === ALL_ROLES ? "" : role()}
+        />
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Button
