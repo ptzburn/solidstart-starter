@@ -134,12 +134,12 @@ export function TwoFactorSection(): JSX.Element {
             <Show
               when={session.user.twoFactorEnabled}
               fallback={
-                <Badge variant="error" round>
+                <Badge variant="destructive">
                   Disabled
                 </Badge>
               }
             >
-              <Badge variant="success" round>
+              <Badge>
                 Enabled
               </Badge>
             </Show>

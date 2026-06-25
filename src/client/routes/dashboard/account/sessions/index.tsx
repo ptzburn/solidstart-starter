@@ -220,10 +220,7 @@ export default function SessionsRoute(): JSX.Element {
                                         {parsed.browser}
                                       </span>
                                       <Show when={isCurrent()}>
-                                        <Badge
-                                          variant="success"
-                                          class="px-1.5 py-0 text-[10px]"
-                                        >
+                                        <Badge class="px-1.5 py-0 text-[10px]">
                                           Current
                                         </Badge>
                                       </Show>

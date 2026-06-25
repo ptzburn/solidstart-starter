@@ -72,7 +72,7 @@ export default function LandingPage(): JSX.Element {
 
       <main class="flex flex-1 flex-col">
         <section class="flex flex-1 flex-col items-center justify-center gap-8 px-6 py-24 text-center">
-          <Badge variant="secondary" round>
+          <Badge variant="secondary">
             Starter Template
           </Badge>
 
