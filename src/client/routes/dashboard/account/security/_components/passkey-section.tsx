@@ -148,23 +148,20 @@ export function PasskeySection(): JSX.Element {
                             </ItemDescription>
                           </ItemContent>
                           <ItemActions>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              command="show-modal"
-                              commandfor={`delete-passkey-${pk.id}`}
-                            >
-                              <Trash class="size-4 text-destructive" />
-                            </Button>
+                            <ConfirmDialog
+                              trigger={
+                                <Trash class="size-4 text-destructive" />
+                              }
+                              triggerVariant="ghost"
+                              triggerSize="sm"
+                              triggerAriaLabel="Delete passkey"
+                              variant="destructive"
+                              isPending={deleteSubmission.pending}
+                              action={deletePasskey}
+                              hiddenFields={{ id: pk.id }}
+                            />
                           </ItemActions>
                         </Item>
-                        <ConfirmDialog
-                          id={`delete-passkey-${pk.id}`}
-                          variant="destructive"
-                          isPending={deleteSubmission.pending}
-                          action={deletePasskey}
-                          hiddenFields={{ id: pk.id }}
-                        />
                       </>
                     )}
                   </For>

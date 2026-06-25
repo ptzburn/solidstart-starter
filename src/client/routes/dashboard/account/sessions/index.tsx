@@ -8,7 +8,6 @@ import { revokeOtherSessions, revokeSession } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
 import { Badge } from "~/client/components/ui/badge.tsx";
-import { Button } from "~/client/components/ui/button.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
 
 import {
@@ -27,6 +26,7 @@ import Smartphone from "~icons/lucide/smartphone";
 import Tablet from "~icons/lucide/tablet";
 import {
   createEffect,
+  createSignal,
   ErrorBoundary,
   For,
   type JSX,
@@ -97,10 +97,8 @@ function formatDate(
   });
 }
 
-const REVOKE_ALL_DIALOG_ID = "revoke-all-sessions-dialog";
-
 export default function SessionsRoute(): JSX.Element {
-  let revokeAllDialogRef!: HTMLDialogElement;
+  const [revokeAllOpen, setRevokeAllOpen] = createSignal(false);
   const sessions = createAsync(() => listSessionsQuery(), {
     deferStream: true,
   });
@@ -133,7 +131,7 @@ export default function SessionsRoute(): JSX.Element {
     if (revokeAllSubmission.result && "ok" in revokeAllSubmission.result) {
       revalidate(listSessionsQuery.key);
       toast.success("All other sessions have been revoked");
-      revokeAllDialogRef.close();
+      setRevokeAllOpen(false);
       revokeAllSubmission.clear();
     }
   });
@@ -242,19 +240,17 @@ export default function SessionsRoute(): JSX.Element {
                               </TableCell>
                               <TableCell class="text-right">
                                 <Show when={!isCurrent()}>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    command="show-modal"
-                                    commandfor={`revoke-session-${s.id}`}
-                                  >
-                                    <LogOut class="size-4" />
-                                    <span class="hidden sm:inline">
-                                      Revoke
-                                    </span>
-                                  </Button>
                                   <ConfirmDialog
-                                    id={`revoke-session-${s.id}`}
+                                    trigger={
+                                      <>
+                                        <LogOut class="size-4" />
+                                        <span class="hidden sm:inline">
+                                          Revoke
+                                        </span>
+                                      </>
+                                    }
+                                    triggerVariant="outline"
+                                    triggerSize="sm"
                                     variant="destructive"
                                     title="Revoke session?"
                                     description="This will sign out the device associated with this session. This action cannot be undone."
@@ -277,32 +273,30 @@ export default function SessionsRoute(): JSX.Element {
           </div>
 
           <Show when={hasOtherSessions()}>
-            <Button
-              variant="secondary"
-              class="w-fit"
-              disabled={revokeAllSubmission.pending}
-              command="show-modal"
-              commandfor={REVOKE_ALL_DIALOG_ID}
-            >
-              <Show when={revokeAllSubmission.pending}>
-                <Spinner class="size-4" />
-              </Show>
-              Revoke all other sessions
-            </Button>
+            <ConfirmDialog
+              open={revokeAllOpen()}
+              onOpenChange={setRevokeAllOpen}
+              trigger={
+                <>
+                  <Show when={revokeAllSubmission.pending}>
+                    <Spinner class="size-4" />
+                  </Show>
+                  Revoke all other sessions
+                </>
+              }
+              triggerVariant="secondary"
+              triggerClass="w-fit"
+              triggerDisabled={revokeAllSubmission.pending}
+              variant="destructive"
+              title="Revoke all other sessions?"
+              description="This will sign out all devices except the current one. This action cannot be undone."
+              confirmText="Revoke all"
+              isPending={revokeAllSubmission.pending}
+              action={revokeOtherSessions}
+            />
           </Show>
         </Suspense>
       </ErrorBoundary>
-
-      <ConfirmDialog
-        id={REVOKE_ALL_DIALOG_ID}
-        ref={(el) => revokeAllDialogRef = el}
-        variant="destructive"
-        title="Revoke all other sessions?"
-        description="This will sign out all devices except the current one. This action cannot be undone."
-        confirmText="Revoke all"
-        isPending={revokeAllSubmission.pending}
-        action={revokeOtherSessions}
-      />
     </div>
   );
 }

@@ -21,8 +21,6 @@ type ImpersonateSectionProps = {
   user: Accessor<SelectUser>;
 };
 
-const DELETE_USER_DIALOG_ID = "admin-delete-user-dialog";
-
 export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
   const impersonateSubmission = useSubmission(
     impersonateUser,
@@ -76,21 +74,18 @@ export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
           </Button>
         </form>
 
-        <Button
-          variant="destructive"
-          class="w-full cursor-pointer"
-          disabled={removeSubmission.pending}
-          command="show-modal"
-          commandfor={DELETE_USER_DIALOG_ID}
-        >
-          <Trash2 class="mr-2 size-4" />
-          <Show when={removeSubmission.pending} fallback="Delete user">
-            <LoaderCircle class="size-4 animate-spin" />
-          </Show>
-        </Button>
-
         <ConfirmDialog
-          id={DELETE_USER_DIALOG_ID}
+          trigger={
+            <>
+              <Trash2 class="mr-2 size-4" />
+              <Show when={removeSubmission.pending} fallback="Delete user">
+                <LoaderCircle class="size-4 animate-spin" />
+              </Show>
+            </>
+          }
+          triggerVariant="destructive"
+          triggerClass="w-full cursor-pointer"
+          triggerDisabled={removeSubmission.pending}
           variant="destructive"
           title="Delete user"
           description={`Are you sure you want to delete ${props.user().name}?`}
