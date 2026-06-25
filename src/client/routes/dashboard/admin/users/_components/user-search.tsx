@@ -119,7 +119,7 @@ export function UserSearch(): JSX.Element {
               label="Role"
               options={getRoleOptions()}
               value={role()}
-              onChange={(e) => setRole(e.currentTarget.value)}
+              onChange={setRole}
             />
           </FieldGroup>
         </FieldSet>

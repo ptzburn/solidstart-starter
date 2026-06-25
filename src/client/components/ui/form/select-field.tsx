@@ -1,62 +1,88 @@
 import {
   Field,
   FieldContent,
+  FieldDescription,
   FieldError,
   FieldLabel,
 } from "~/client/components/ui/field.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectHiddenSelect,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/client/components/ui/select.tsx";
 import { cn } from "~/client/lib/utils.ts";
-import { type ComponentProps, For, type JSX, splitProps } from "solid-js";
+import { type JSX, Show } from "solid-js";
 
-type SelectFieldProps = ComponentProps<"select"> & {
+type Option = { value: string; label: string };
+
+type SelectFieldProps = {
   name: string;
   label: JSX.Element;
   hint?: string;
   error?: string;
-  options: { value: string; label: string }[];
+  id?: string;
+  options: Option[];
+  value?: string;
+  defaultValue?: string;
+  onChange?: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  class?: string;
 };
 
 export function SelectField(props: SelectFieldProps): JSX.Element {
-  const [local, selectProps] = splitProps(props, [
-    "name",
-    "label",
-    "hint",
-    "error",
-    "id",
-    "options",
-    "class",
-  ]);
-  const inputId = () => local.id ?? local.name;
+  const inputId = (): string => props.id ?? props.name;
+
+  const selected = (): Option | null | undefined =>
+    props.value === undefined
+      ? undefined
+      : props.options.find((option) => option.value === props.value) ?? null;
+
+  const defaultSelected = (): Option | undefined =>
+    props.defaultValue === undefined
+      ? undefined
+      : props.options.find((option) => option.value === props.defaultValue);
 
   return (
-    <Field data-invalid={!!local.error}>
+    <Field data-invalid={!!props.error}>
       <FieldContent>
-        <FieldLabel for={inputId()}>{local.label}</FieldLabel>
+        <FieldLabel for={inputId()}>{props.label}</FieldLabel>
       </FieldContent>
-      <select
-        id={inputId()}
-        name={local.name}
-        aria-invalid={!!local.error}
-        class={cn(
-          "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs dark:bg-input/30",
-          "outline-none transition-[color,box-shadow]",
-          "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
-          "md:text-sm",
-          "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-          "dark:aria-invalid:ring-destructive/40 aria-invalid:ring-destructive/20",
-          "aria-invalid:border-destructive",
-          "peer",
-          local.class,
+      <Select<Option>
+        name={props.name}
+        options={props.options}
+        optionValue="value"
+        optionTextValue="label"
+        disallowEmptySelection
+        value={selected()}
+        defaultValue={defaultSelected()}
+        onChange={(option) => props.onChange?.(option?.value ?? "")}
+        disabled={props.disabled}
+        placeholder={props.placeholder}
+        validationState={props.error ? "invalid" : "valid"}
+        itemComponent={(itemProps) => (
+          <SelectItem item={itemProps.item}>
+            {itemProps.item.rawValue.label}
+          </SelectItem>
         )}
-        {...selectProps}
       >
-        <For each={local.options}>
-          {(option) => <option value={option.value}>{option.label}</option>}
-        </For>
-      </select>
-      <FieldError
-        errors={[{ message: local.error ?? local.hint ?? "" }]}
-        class={local.error ? undefined : "hidden peer-user-invalid:block"}
-      />
+        <SelectHiddenSelect />
+        <SelectTrigger id={inputId()} class={cn("w-full", props.class)}>
+          <SelectValue<Option>>
+            {(state) => state.selectedOption()?.label}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent />
+      </Select>
+      <Show when={props.error}>
+        <FieldError errors={[{ message: props.error }]} />
+      </Show>
+      <Show when={!props.error && props.hint}>
+        <FieldDescription>{props.hint}</FieldDescription>
+      </Show>
     </Field>
   );
 }

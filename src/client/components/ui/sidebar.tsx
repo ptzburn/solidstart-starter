@@ -244,11 +244,12 @@ const Sidebar: Component<SidebarProps> = (rawProps) => {
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            class="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+            class="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground"
             style={{
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
             }}
-            position={local.side}
+            side={local.side}
+            showCloseButton={false}
           >
             <div class="flex size-full flex-col">{local.children}</div>
           </SheetContent>

@@ -79,7 +79,7 @@ export function RoleDialog(props: RoleDialogProps): JSX.Element {
           <SelectField
             name="role"
             label="Role"
-            value={props.user().role ?? "user"}
+            defaultValue={props.user().role ?? "user"}
             options={ROLE_OPTIONS}
             error={fieldErrors().role}
             disabled={submission.pending}
