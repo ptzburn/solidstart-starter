@@ -1,17 +1,17 @@
 import { revalidate, useSubmission } from "@solidjs/router";
 import { updateUserName } from "~/client/actions/users.ts";
+import { ResponsiveDialog } from "~/client/components/responsive-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
-import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
 import { getSessionQuery } from "~/client/queries/auth.ts";
-import { createEffect, type JSX } from "solid-js";
+import { createEffect, createSignal, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
 type NameEditDialogProps = {
   currentName: string;
 };
 
-const DIALOG_ID = "edit-name-dialog";
+const FORM_ID = "edit-name-form";
 
 function splitName(fullName: string): { firstName: string; lastName: string } {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
@@ -23,7 +23,7 @@ function splitName(fullName: string): { firstName: string; lastName: string } {
 }
 
 export function NameEditDialog(props: NameEditDialogProps): JSX.Element {
-  let dialogRef!: HTMLDialogElement;
+  const [open, setOpen] = createSignal(false);
   const submission = useSubmission(updateUserName);
   const initial = (): { firstName: string; lastName: string } =>
     splitName(props.currentName);
@@ -34,7 +34,7 @@ export function NameEditDialog(props: NameEditDialogProps): JSX.Element {
 
   createEffect(() => {
     if (submission.result && "ok" in submission.result) {
-      dialogRef.close();
+      setOpen(false);
       toast.success("Name updated");
       revalidate(getSessionQuery.key);
       submission.clear();
@@ -49,62 +49,53 @@ export function NameEditDialog(props: NameEditDialogProps): JSX.Element {
   });
 
   return (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        command="show-modal"
-        commandfor={DIALOG_ID}
+    <ResponsiveDialog
+      open={open()}
+      onOpenChange={setOpen}
+      trigger="Edit name"
+      triggerVariant="outline"
+      triggerSize="sm"
+      title="Edit name"
+      footer={
+        <Button type="submit" form={FORM_ID} disabled={submission.pending}>
+          Save
+        </Button>
+      }
+    >
+      <form
+        id={FORM_ID}
+        method="post"
+        action={updateUserName}
+        class="space-y-4"
+        onInput={() => {
+          if (submission.result) submission.clear();
+        }}
       >
-        Edit name
-      </Button>
-
-      <ResponsiveDialog
-        id={DIALOG_ID}
-        ref={(el) => dialogRef = el}
-        title="Edit name"
-      >
-        <form
-          method="post"
-          action={updateUserName}
-          class="space-y-4"
-          onInput={() => {
-            if (submission.result) submission.clear();
-          }}
-        >
-          <div class="grid gap-4 md:grid-cols-2">
-            <TextField
-              name="firstName"
-              label="First name"
-              placeholder="First name"
-              value={initial().firstName}
-              minlength={2}
-              required
-              hint="Enter first name"
-              error={fieldErrors().firstName}
-              disabled={submission.pending}
-            />
-            <TextField
-              name="lastName"
-              label="Last name"
-              placeholder="Last name"
-              value={initial().lastName}
-              minlength={2}
-              required
-              hint="Enter last name"
-              error={fieldErrors().lastName}
-              disabled={submission.pending}
-            />
-          </div>
-          <Button
-            type="submit"
-            class="w-full"
+        <div class="grid gap-4 md:grid-cols-2">
+          <TextField
+            name="firstName"
+            label="First name"
+            placeholder="First name"
+            value={initial().firstName}
+            minlength={2}
+            required
+            hint="Enter first name"
+            error={fieldErrors().firstName}
             disabled={submission.pending}
-          >
-            Save
-          </Button>
-        </form>
-      </ResponsiveDialog>
-    </>
+          />
+          <TextField
+            name="lastName"
+            label="Last name"
+            placeholder="Last name"
+            value={initial().lastName}
+            minlength={2}
+            required
+            hint="Enter last name"
+            error={fieldErrors().lastName}
+            disabled={submission.pending}
+          />
+        </div>
+      </form>
+    </ResponsiveDialog>
   );
 }

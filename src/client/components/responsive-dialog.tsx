@@ -1,12 +1,14 @@
 import { Button, type buttonVariants } from "~/client/components/ui/button.tsx";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "~/client/components/ui/dialog-kobalte.tsx";
+} from "~/client/components/ui/dialog.tsx";
 import {
   Drawer,
   DrawerClose,
@@ -32,6 +34,8 @@ type ResponsiveDialogProps = {
   triggerVariant?: VariantProps<typeof buttonVariants>["variant"];
   triggerSize?: VariantProps<typeof buttonVariants>["size"];
   triggerClass?: string;
+  /** Primary action(s) rendered in the footer beside the auto Cancel button. */
+  footer?: JSX.Element;
   /** Class applied to the dialog content (desktop only). */
   class?: string;
   children: JSX.Element;
@@ -47,6 +51,7 @@ export function ResponsiveDialog(props: ResponsiveDialogProps): JSX.Element {
     "triggerVariant",
     "triggerSize",
     "triggerClass",
+    "footer",
     "class",
     "children",
   ]);
@@ -75,7 +80,8 @@ export function ResponsiveDialog(props: ResponsiveDialogProps): JSX.Element {
               </Show>
             </DrawerHeader>
             <div class="px-4">{local.children}</div>
-            <DrawerFooter class="pt-2">
+            <DrawerFooter>
+              {local.footer}
               <DrawerClose as={Button} variant="outline">
                 Cancel
               </DrawerClose>
@@ -103,6 +109,12 @@ export function ResponsiveDialog(props: ResponsiveDialogProps): JSX.Element {
             </Show>
           </DialogHeader>
           {local.children}
+          <DialogFooter>
+            <DialogClose as={Button} variant="outline">
+              Cancel
+            </DialogClose>
+            {local.footer}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Show>
