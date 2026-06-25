@@ -10,7 +10,7 @@ const Empty: Component<ComponentProps<"div">> = (props) => {
     <div
       data-slot="empty"
       class={cn(
-        "flex min-w-0 flex-1 flex-col items-center justify-center gap-6 text-balance rounded-lg border-dashed p-6 text-center md:p-12",
+        "flex w-full min-w-0 flex-1 flex-col items-center justify-center gap-4 text-balance rounded-xl border-dashed p-6 text-center",
         local.class,
       )}
       {...others}
@@ -25,7 +25,7 @@ const EmptyHeader: Component<ComponentProps<"div">> = (props) => {
     <div
       data-slot="empty-header"
       class={cn(
-        "flex max-w-sm flex-col items-center gap-2 text-center",
+        "flex max-w-sm flex-col items-center gap-2",
         local.class,
       )}
       {...others}
@@ -40,7 +40,7 @@ const emptyMediaVariants = cva(
       variant: {
         default: "bg-transparent",
         icon:
-          "bg-muted text-foreground flex size-10 shrink-0 items-center justify-center rounded-lg [&_svg:not([class*='size-'])]:size-6",
+          "bg-muted text-foreground flex size-8 shrink-0 items-center justify-center rounded-lg [&_svg:not([class*='size-'])]:size-4",
       },
     },
     defaultVariants: {
@@ -73,7 +73,10 @@ const EmptyTitle: Component<ComponentProps<"div">> = (props) => {
   return (
     <div
       data-slot="empty-title"
-      class={cn("font-medium text-lg tracking-tight", local.class)}
+      class={cn(
+        "cn-font-heading font-medium text-sm tracking-tight",
+        local.class,
+      )}
       {...others}
     />
   );
@@ -99,7 +102,7 @@ const EmptyContent: Component<ComponentProps<"div">> = (props) => {
     <div
       data-slot="empty-content"
       class={cn(
-        "flex w-full min-w-0 max-w-sm flex-col items-center gap-4 text-balance text-sm",
+        "flex w-full min-w-0 max-w-sm flex-col items-center gap-2.5 text-balance text-sm",
         local.class,
       )}
       {...others}

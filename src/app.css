@@ -1,6 +1,7 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource-variable/inter";
 
-@plugin "tailwindcss-animate";
 @plugin "@kobalte/tailwindcss";
 
 @custom-variant dark (.dark &,[data-kb-theme="dark"] &);
@@ -32,7 +33,6 @@
     --accent-foreground: oklch(0.205 0 0);
 
     --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.577 0.245 27.325);
 
     --info: hsl(204 94% 94%);
     --info-foreground: hsl(199 89% 48%);
@@ -46,9 +46,15 @@
     --error: hsl(0 93% 94%);
     --error-foreground: hsl(0 84% 60%);
 
-    --ring: oklch(0.439 0 0);
+    --ring: oklch(0.708 0 0);
 
-    --sidebar-background: oklch(0.985 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+
+    --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: oklch(0.205 0 0);
     --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -84,8 +90,7 @@
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
 
-    --destructive: oklch(0.396 0.141 25.723);
-    --destructive-foreground: oklch(0.637 0.237 25.331);
+    --destructive: oklch(0.704 0.191 22.216);
 
     --info: hsl(226.2 57% 21%);
     --info-foreground: hsl(199 89% 48%);
@@ -101,7 +106,13 @@
 
     --ring: oklch(0.556 0 0);
 
-    --sidebar-background: oklch(0.205 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+
+    --sidebar: oklch(0.205 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
     --sidebar-primary: oklch(0.488 0.243 264.376);
     --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -118,6 +129,10 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 
   h2 {
@@ -171,7 +186,6 @@
   --color-secondary-foreground: var(--secondary-foreground);
 
   --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
 
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
@@ -197,16 +211,26 @@
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
 
-  --radius: 0.5rem;
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
 
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --font-sans: "Inter Variable", sans-serif;
   /* Heading font, kept identical to the default sans for now. */
   --font-heading: var(--font-sans);
 
-  --color-sidebar: var(--sidebar-background);
+  --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
@@ -278,6 +302,14 @@
   font-family: var(--font-heading);
 }
 
+@utility cn-input-otp {
+  @apply gap-2;
+}
+
+@utility cn-toast {
+  @apply rounded-2xl;
+}
+
 @utility no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -287,7 +319,7 @@
 }
 
 @utility cn-rtl-flip {
-  @apply rtl:-scale-x-100;
+  @apply rtl:rotate-180;
 }
 
 @utility container {
@@ -326,36 +358,5 @@
     opacity: 0.5;
     pointer-events: none;
     cursor: not-allowed;
-  }
-}
-
-@layer components {
-  .dropdown-menu-popover {
-    position-area: bottom span-left;
-    position-try-fallbacks: flip-block, flip-inline;
-    margin: 0.25rem 0;
-    opacity: 0;
-    transform: translateY(-4px);
-    transition:
-      opacity 150ms ease-out,
-      transform 150ms ease-out,
-      overlay 150ms ease-out allow-discrete,
-      display 150ms ease-out allow-discrete;
-  }
-  .dropdown-menu-popover:popover-open {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  @starting-style {
-    .dropdown-menu-popover:popover-open {
-      opacity: 0;
-      transform: translateY(-4px);
-    }
-  }
-
-  .dropdown-menu-subcontent {
-    position-area: right span-bottom;
-    position-try-fallbacks: flip-inline;
-    margin: 0 0.25rem;
   }
 }

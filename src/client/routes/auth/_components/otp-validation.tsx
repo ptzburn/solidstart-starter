@@ -2,12 +2,12 @@ import { A, useSubmission } from "@solidjs/router";
 import { resendEmailOtp, verifyEmailOtp } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import {
-  OTPField,
-  OTPFieldGroup,
-  OTPFieldInput,
-  OTPFieldSeparator,
-  OTPFieldSlot,
-} from "~/client/components/ui/otp-field.tsx";
+  InputOTP,
+  InputOTPGroup,
+  InputOTPInput,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "~/client/components/ui/input-otp.tsx";
 import {
   createEffect,
   createSignal,
@@ -77,21 +77,21 @@ export function OTPValidation(props: { email: string }): JSX.Element {
         class="grid gap-6"
       >
         <div class="flex justify-center">
-          <OTPField
+          <InputOTP
             maxLength={6}
             value={otp()}
             onValueChange={(v) => setOtp(v.replace(/\D/g, "").slice(0, 6))}
             autofocus
           >
-            <OTPFieldGroup>
-              {[0, 1, 2].map((i) => <OTPFieldSlot index={i} />)}
-            </OTPFieldGroup>
-            <OTPFieldSeparator />
-            <OTPFieldGroup>
-              {[3, 4, 5].map((i) => <OTPFieldSlot index={i} />)}
-            </OTPFieldGroup>
-            <OTPFieldInput name="otp" />
-          </OTPField>
+            <InputOTPGroup>
+              {[0, 1, 2].map((i) => <InputOTPSlot index={i} />)}
+            </InputOTPGroup>
+            <InputOTPSeparator />
+            <InputOTPGroup>
+              {[3, 4, 5].map((i) => <InputOTPSlot index={i} />)}
+            </InputOTPGroup>
+            <InputOTPInput name="otp" />
+          </InputOTP>
         </div>
         <Button
           type="submit"

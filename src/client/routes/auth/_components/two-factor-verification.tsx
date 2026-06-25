@@ -6,14 +6,14 @@ import {
 import { Button } from "~/client/components/ui/button.tsx";
 import { Checkbox } from "~/client/components/ui/checkbox.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
-import { Label } from "~/client/components/ui/label.tsx";
 import {
-  OTPField,
-  OTPFieldGroup,
-  OTPFieldInput,
-  OTPFieldSeparator,
-  OTPFieldSlot,
-} from "~/client/components/ui/otp-field.tsx";
+  InputOTP,
+  InputOTPGroup,
+  InputOTPInput,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "~/client/components/ui/input-otp.tsx";
+import { Label } from "~/client/components/ui/label.tsx";
 import {
   Tooltip,
   TooltipContent,
@@ -85,21 +85,21 @@ function TotpForm(props: {
         class="grid gap-6"
       >
         <div class="flex justify-center">
-          <OTPField
+          <InputOTP
             maxLength={6}
             value={code()}
             onValueChange={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))}
             autofocus
           >
-            <OTPFieldGroup>
-              {[0, 1, 2].map((i) => <OTPFieldSlot index={i} />)}
-            </OTPFieldGroup>
-            <OTPFieldSeparator />
-            <OTPFieldGroup>
-              {[3, 4, 5].map((i) => <OTPFieldSlot index={i} />)}
-            </OTPFieldGroup>
-            <OTPFieldInput name="code" />
-          </OTPField>
+            <InputOTPGroup>
+              {[0, 1, 2].map((i) => <InputOTPSlot index={i} />)}
+            </InputOTPGroup>
+            <InputOTPSeparator />
+            <InputOTPGroup>
+              {[3, 4, 5].map((i) => <InputOTPSlot index={i} />)}
+            </InputOTPGroup>
+            <InputOTPInput name="code" />
+          </InputOTP>
         </div>
         <Button
           variant="link"

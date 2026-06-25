@@ -4,12 +4,12 @@ import {
   FieldLabel,
 } from "~/client/components/ui/field.tsx";
 import {
-  OTPField as OTPFieldRoot,
-  OTPFieldGroup,
-  OTPFieldInput,
-  OTPFieldSeparator,
-  OTPFieldSlot,
-} from "~/client/components/ui/otp-field.tsx";
+  InputOTP,
+  InputOTPGroup,
+  InputOTPInput,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "~/client/components/ui/input-otp.tsx";
 import { createSignal, type JSX, Show } from "solid-js";
 
 type OTPFieldProps = {
@@ -31,26 +31,26 @@ export function OTPField(props: OTPFieldProps): JSX.Element {
         <FieldLabel for={inputId()}>{props.label}</FieldLabel>
       </Show>
       <div class="flex justify-center">
-        <OTPFieldRoot
+        <InputOTP
           maxLength={6}
           value={value()}
           onValueChange={(v) => setValue(v.replace(/\D/g, "").slice(0, 6))}
           autofocus={props.autofocus}
           aria-invalid={!!props.error}
         >
-          <OTPFieldGroup>
-            {[0, 1, 2].map((index) => <OTPFieldSlot index={index} />)}
-          </OTPFieldGroup>
-          <OTPFieldSeparator />
-          <OTPFieldGroup>
-            {[3, 4, 5].map((index) => <OTPFieldSlot index={index} />)}
-          </OTPFieldGroup>
-          <OTPFieldInput
+          <InputOTPGroup>
+            {[0, 1, 2].map((index) => <InputOTPSlot index={index} />)}
+          </InputOTPGroup>
+          <InputOTPSeparator />
+          <InputOTPGroup>
+            {[3, 4, 5].map((index) => <InputOTPSlot index={index} />)}
+          </InputOTPGroup>
+          <InputOTPInput
             id={inputId()}
             name={props.name}
             disabled={props.disabled}
           />
-        </OTPFieldRoot>
+        </InputOTP>
       </div>
       <FieldError errors={[{ message: props.error ?? props.hint ?? "" }]} />
     </Field>

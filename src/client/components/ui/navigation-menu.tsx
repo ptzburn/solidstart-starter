@@ -2,10 +2,13 @@ import type { PolymorphicProps } from "@kobalte/core";
 import * as NavigationMenuPrimitive from "@kobalte/core/navigation-menu";
 
 import { cn } from "~/client/lib/utils.ts";
+import ChevronDownIcon from "~icons/lucide/chevron-down";
+import { cva } from "class-variance-authority";
 import type { JSX, ValidComponent } from "solid-js";
 
-import { splitProps } from "solid-js";
+import { Show, splitProps } from "solid-js";
 
+// Kobalte merges Radix's <Root> and <Item> into <Menu>; this is the item.
 const NavigationMenuItem = NavigationMenuPrimitive.Menu;
 
 type NavigationMenuProps<T extends ValidComponent = "ul"> =
@@ -13,6 +16,7 @@ type NavigationMenuProps<T extends ValidComponent = "ul"> =
   & {
     class?: string | undefined;
     children?: JSX.Element;
+    viewport?: boolean;
   };
 
 const NavigationMenu = <T extends ValidComponent = "ul">(
@@ -21,26 +25,37 @@ const NavigationMenu = <T extends ValidComponent = "ul">(
   const [local, others] = splitProps(props as NavigationMenuProps, [
     "class",
     "children",
+    "viewport",
   ]);
+  const viewport = () => local.viewport ?? true;
   return (
     <NavigationMenuPrimitive.Root
       gutter={6}
+      data-slot="navigation-menu"
+      data-viewport={viewport()}
       class={cn(
-        "group/menu flex w-max flex-1 list-none items-center justify-center [&>li]:w-full data-[orientation=vertical]:flex-col",
+        "group/navigation-menu relative flex max-w-max flex-1 list-none items-center justify-center gap-1 data-[orientation=vertical]:flex-col",
         local.class,
       )}
       {...others}
     >
       {local.children}
-      <NavigationMenuViewport />
+      <Show when={viewport()}>
+        <NavigationMenuViewport />
+      </Show>
     </NavigationMenuPrimitive.Root>
   );
 };
+
+const navigationMenuTriggerStyle = cva(
+  "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-[color,box-shadow] outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-expanded:bg-accent/50 data-expanded:text-accent-foreground data-expanded:hover:bg-accent data-expanded:focus:bg-accent",
+);
 
 type NavigationMenuTriggerProps<T extends ValidComponent = "button"> =
   & NavigationMenuPrimitive.NavigationMenuTriggerProps<T>
   & {
     class?: string | undefined;
+    children?: JSX.Element;
   };
 
 const NavigationMenuTrigger = <T extends ValidComponent = "button">(
@@ -48,33 +63,20 @@ const NavigationMenuTrigger = <T extends ValidComponent = "button">(
 ) => {
   const [local, others] = splitProps(props as NavigationMenuTriggerProps, [
     "class",
+    "children",
   ]);
   return (
     <NavigationMenuPrimitive.Trigger
-      class={cn(
-        "group/trigger inline-flex h-10 w-full items-center justify-center whitespace-nowrap rounded-md bg-background px-4 py-2 font-medium text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[expanded]:bg-accent/50",
-        local.class,
-      )}
+      data-slot="navigation-menu-trigger"
+      class={cn(navigationMenuTriggerStyle(), "group", local.class)}
       {...others}
-    />
-  );
-};
-const NavigationMenuIcon = () => {
-  return (
-    <NavigationMenuPrimitive.Icon aria-hidden="true">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="relative top-px ml-1 size-3 transition duration-200 group-data-[orientation=vertical]/menu:-rotate-90 group-data-[expanded]/trigger:rotate-180 group-data-[orientation=vertical]/menu:group-data-[expanded]/trigger:rotate-90"
-      >
-        <path d="M6 9l6 6l6 -6" />
-      </svg>
-    </NavigationMenuPrimitive.Icon>
+    >
+      {local.children}{" "}
+      <ChevronDownIcon
+        class="relative top-[1px] ml-1 size-3 transition duration-300 group-data-[expanded]:rotate-180"
+        aria-hidden="true"
+      />
+    </NavigationMenuPrimitive.Trigger>
   );
 };
 
@@ -90,9 +92,10 @@ const NavigationMenuViewport = <T extends ValidComponent = "li">(
   ]);
   return (
     <NavigationMenuPrimitive.Viewport
+      data-slot="navigation-menu-viewport"
       class={cn(
         // base settings
-        "pointer-events-none z-[1000] flex h-[var(--kb-navigation-menu-viewport-height)] w-[var(--kb-navigation-menu-viewport-width)] origin-[var(--kb-menu-content-transform-origin)] items-center justify-center overflow-x-clip overflow-y-visible rounded-md border bg-popover opacity-0 shadow-lg data-[expanded]:pointer-events-auto data-[orientation=vertical]:overflow-y-clip data-[orientation=vertical]:overflow-x-visible data-[expanded]:rounded-md",
+        "pointer-events-none z-[1000] flex h-[var(--kb-navigation-menu-viewport-height)] w-[var(--kb-navigation-menu-viewport-width)] origin-[var(--kb-menu-content-transform-origin)] items-center justify-center overflow-x-clip overflow-y-visible rounded-md border bg-popover text-popover-foreground opacity-0 shadow-lg data-[expanded]:pointer-events-auto data-[orientation=vertical]:overflow-y-clip data-[orientation=vertical]:overflow-x-visible data-[expanded]:rounded-md",
         // animate
         "animate-content-hide transition-[width,height] duration-200 ease-in data-[expanded]:animate-content-show data-[expanded]:opacity-100 data-[expanded]:ease-out",
         local.class,
@@ -117,6 +120,7 @@ const NavigationMenuContent = <T extends ValidComponent = "ul">(
   return (
     <NavigationMenuPrimitive.Portal>
       <NavigationMenuPrimitive.Content
+        data-slot="navigation-menu-content"
         class={cn(
           // base settings
           "pointer-events-none absolute top-0 left-0 box-border p-4 focus:outline-none data-[expanded]:pointer-events-auto",
@@ -130,6 +134,7 @@ const NavigationMenuContent = <T extends ValidComponent = "ul">(
           "data-[orientation=vertical]:data-[motion=from-start]:slide-in-from-top-52 data-[orientation=vertical]:data-[motion=to-end]:slide-out-to-bottom-52",
           //bottom to top
           "data-[orientation=vertical]:data-[motion=from-end]:slide-in-from-bottom-52 data-[orientation=vertical]:data-[motion=to-start]:slide-out-to-bottom-52",
+          "**:data-[slot=navigation-menu-link]:focus:outline-none **:data-[slot=navigation-menu-link]:focus:ring-0",
           local.class,
         )}
         {...others}
@@ -150,8 +155,9 @@ const NavigationMenuLink = <T extends ValidComponent = "a">(
   ]);
   return (
     <NavigationMenuPrimitive.Item
+      data-slot="navigation-menu-link"
       class={cn(
-        "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+        "flex flex-col gap-1 rounded-sm p-2 text-sm outline-none transition-all hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:outline-1 focus-visible:ring-ring/50 focus-visible:ring-[3px] data-[current]:bg-accent/50 data-[current]:text-accent-foreground data-[current]:hover:bg-accent data-[current]:focus:bg-accent [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
         local.class,
       )}
       {...others}
@@ -171,6 +177,7 @@ const NavigationMenuLabel = <T extends ValidComponent = "div">(
   ]);
   return (
     <NavigationMenuPrimitive.ItemLabel
+      data-slot="navigation-menu-label"
       class={cn("font-medium text-sm leading-none", local.class)}
       {...others}
     />
@@ -192,6 +199,7 @@ const NavigationMenuDescription = <T extends ValidComponent = "div">(
   );
   return (
     <NavigationMenuPrimitive.ItemDescription
+      data-slot="navigation-menu-description"
       class={cn(
         "text-muted-foreground text-sm leading-snug",
         local.class,
@@ -205,10 +213,10 @@ export {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuDescription,
-  NavigationMenuIcon,
   NavigationMenuItem,
   NavigationMenuLabel,
   NavigationMenuLink,
   NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
   NavigationMenuViewport,
 };
