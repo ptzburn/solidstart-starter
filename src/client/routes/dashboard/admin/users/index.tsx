@@ -142,7 +142,6 @@ export default function UsersPage(): JSX.Element {
                         </PaginationItem>
                       )}
                       ellipsisComponent={() => <PaginationEllipsis />}
-                      class="*:justify-center"
                     >
                       <PaginationPrevious
                         as={A}
