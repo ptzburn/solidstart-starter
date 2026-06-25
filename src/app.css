@@ -278,6 +278,14 @@
   font-family: var(--font-heading);
 }
 
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @utility cn-rtl-flip {
   @apply rtl:-scale-x-100;
 }

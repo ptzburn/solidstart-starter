@@ -8,7 +8,6 @@ import {
   AvatarImage,
 } from "~/client/components/ui/avatar.tsx";
 
-import { Button } from "~/client/components/ui/button.tsx";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,7 +62,7 @@ export function NavUser(): JSX.Element {
           <DropdownMenuTrigger
             as={SidebarMenuButton}
             size="lg"
-            class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            class="data-expanded:bg-sidebar-accent data-expanded:text-sidebar-accent-foreground"
           >
             <Avatar class="h-8 w-8 rounded-full">
               <AvatarImage
@@ -106,11 +105,9 @@ export function NavUser(): JSX.Element {
               fallback={
                 <form method="post" action={stopImpersonating}>
                   <DropdownMenuItem
-                    as={Button}
+                    as="button"
                     type="submit"
-                    variant="ghost"
-                    class="w-full justify-start"
-                    size="sm"
+                    class="w-full hover:cursor-pointer"
                   >
                     <LogOut class="size-4" />
                     Stop Impersonating
@@ -120,11 +117,9 @@ export function NavUser(): JSX.Element {
             >
               <form method="post" action={signOut}>
                 <DropdownMenuItem
-                  as={Button}
+                  as="button"
                   type="submit"
-                  variant="ghost"
-                  class="w-full justify-start"
-                  size="sm"
+                  class="w-full hover:cursor-pointer"
                 >
                   <LogOut class="size-4" />
                   Sign Out
