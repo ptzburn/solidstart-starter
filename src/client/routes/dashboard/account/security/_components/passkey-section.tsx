@@ -71,7 +71,7 @@ export function PasskeySection(): JSX.Element {
   });
 
   return (
-    <ItemGroup class="rounded-lg border bg-card">
+    <ItemGroup class="rounded-lg border bg-card py-4">
       <Item>
         <ItemContent>
           <ItemTitle>Passkeys</ItemTitle>

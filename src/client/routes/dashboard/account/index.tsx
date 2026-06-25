@@ -54,7 +54,7 @@ export default function AccountIndexRoute(): JSX.Element {
         />
       </div>
 
-      <ItemGroup class="rounded-lg border bg-card">
+      <ItemGroup class="rounded-lg border bg-card py-4">
         <Item>
           <ItemContent>
             <ItemDescription>

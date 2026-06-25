@@ -1,32 +1,28 @@
 import { revalidate, useSubmission } from "@solidjs/router";
 import { uploadImageAction } from "~/client/actions/files.ts";
-import { ResponsiveDialog } from "~/client/components/responsive-dialog.tsx";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "~/client/components/ui/avatar.tsx";
-import { Button } from "~/client/components/ui/button.tsx";
+import { Spinner } from "~/client/components/ui/spinner.tsx";
 import { getFileUrl, getInitials } from "~/client/lib/utils.ts";
 import { getSessionQuery } from "~/client/queries/auth.ts";
-import Pencil from "~icons/lucide/pencil";
-import { createEffect, createSignal, type JSX } from "solid-js";
+import { createEffect, type JSX, Show } from "solid-js";
 import { toast } from "solid-sonner";
+
+const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 
 type AvatarUploadProps = {
   imageUrl: string | null | undefined;
   userName: string;
 };
 
-const FORM_ID = "edit-avatar-form";
-
 export function AvatarUpload(props: AvatarUploadProps): JSX.Element {
-  const [open, setOpen] = createSignal(false);
   const submission = useSubmission(uploadImageAction);
 
   createEffect(() => {
     if (submission.result && "fileKey" in submission.result) {
-      setOpen(false);
       toast.success("Profile picture updated");
       revalidate(getSessionQuery.key);
       submission.clear();
@@ -42,54 +38,54 @@ export function AvatarUpload(props: AvatarUploadProps): JSX.Element {
     }
   });
 
+  const onFilePicked = (
+    event: Event & { currentTarget: HTMLInputElement },
+  ): void => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_SIZE_BYTES) {
+      toast.error("Image must be 10MB or smaller.");
+      input.value = "";
+      return;
+    }
+    // The browser serializes the form synchronously here, so resetting the
+    // input afterwards is safe and lets the same file be re-picked on retry.
+    input.form?.requestSubmit();
+    input.value = "";
+  };
+
   return (
-    <ResponsiveDialog
-      open={open()}
-      onOpenChange={setOpen}
-      triggerVariant="ghost"
-      triggerSize="icon"
-      triggerClass="group relative shrink-0 rounded-lg p-0"
-      trigger={
-        <>
-          <Avatar class="h-full w-full rounded-full">
-            <AvatarImage
-              src={getFileUrl(props.imageUrl) ?? undefined}
-              alt={`${props.userName}'s avatar`}
-              class="object-cover"
-            />
-            <AvatarFallback class="bg-primary/10 font-bold text-primary">
-              {getInitials(props.userName)}
-            </AvatarFallback>
-          </Avatar>
-          <div class="pointer-events-none absolute right-1 bottom-1 flex scale-90 items-center justify-center rounded-full bg-background/90 text-muted-foreground opacity-0 shadow-sm transition-all duration-200 ease-out group-hover:scale-110 group-hover:opacity-100">
-            <Pencil class="size-4" />
-          </div>
-        </>
-      }
-      title="Update profile picture"
-      description="Choose an image (max 10MB). It will be resized and optimized automatically."
-      footer={
-        <Button type="submit" form={FORM_ID} disabled={submission.pending}>
-          Save
-        </Button>
-      }
+    <form
+      method="post"
+      action={uploadImageAction}
+      enctype="multipart/form-data"
     >
-      <form
-        id={FORM_ID}
-        method="post"
-        action={uploadImageAction}
-        enctype="multipart/form-data"
-        class="space-y-4"
-      >
+      <label class="group relative inline-flex shrink-0 cursor-pointer rounded-full outline-none focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring has-[:disabled]:pointer-events-none has-[:disabled]:opacity-80">
+        <Avatar size="lg">
+          <AvatarImage
+            src={getFileUrl(props.imageUrl) ?? undefined}
+            alt={`${props.userName}'s avatar`}
+          />
+          <AvatarFallback>
+            {getInitials(props.userName)}
+          </AvatarFallback>
+        </Avatar>
+        <Show when={submission.pending}>
+          <div class="absolute inset-0 flex items-center justify-center rounded-full bg-background/80">
+            <Spinner class="size-4" />
+          </div>
+        </Show>
         <input
           type="file"
           name="file"
           accept="image/*"
-          required
+          aria-label="Change profile picture"
+          class="sr-only"
           disabled={submission.pending}
-          class="block w-full cursor-pointer rounded-md border bg-background text-foreground text-sm file:mr-4 file:border-0 file:bg-muted file:px-4 file:py-2 file:font-medium file:text-foreground file:text-sm hover:file:bg-muted/80 disabled:cursor-not-allowed disabled:opacity-50"
+          onChange={onFilePicked}
         />
-      </form>
-    </ResponsiveDialog>
+      </label>
+    </form>
   );
 }
