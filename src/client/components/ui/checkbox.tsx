@@ -2,9 +2,10 @@ import * as CheckboxPrimitive from "@kobalte/core/checkbox";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 
 import { cn } from "~/client/lib/utils.ts";
+import CheckIcon from "~icons/lucide/check";
 import type { ValidComponent } from "solid-js";
 
-import { Match, splitProps, Switch } from "solid-js";
+import { splitProps } from "solid-js";
 
 type CheckboxRootProps<T extends ValidComponent = "div"> =
   & CheckboxPrimitive.CheckboxRootProps<T>
@@ -16,42 +17,17 @@ const Checkbox = <T extends ValidComponent = "div">(
   const [local, others] = splitProps(props as CheckboxRootProps, ["class"]);
   return (
     <CheckboxPrimitive.Root
-      class={cn("group items-top relative flex space-x-2", local.class)}
+      data-slot="checkbox"
+      class={cn(local.class)}
       {...others}
     >
       <CheckboxPrimitive.Input class="peer" />
-      <CheckboxPrimitive.Control class="size-4 shrink-0 rounded-sm border border-primary ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-ring data-[checked]:border-none data-[indeterminate]:border-none data-[checked]:bg-primary data-[indeterminate]:bg-primary data-[checked]:text-primary-foreground data-[indeterminate]:text-primary-foreground">
-        <CheckboxPrimitive.Indicator>
-          <Switch>
-            <Match when={!others.indeterminate}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="size-4"
-              >
-                <path d="M5 12l5 5l10 -10" />
-              </svg>
-            </Match>
-            <Match when={others.indeterminate}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="size-4"
-              >
-                <path d="M5 12l14 0" />
-              </svg>
-            </Match>
-          </Switch>
+      <CheckboxPrimitive.Control class="relative flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-input outline-none transition-colors after:absolute after:-inset-x-3 after:-inset-y-2 peer-focus-visible:border-ring peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 dark:bg-input/30 dark:data-invalid:border-destructive/50 dark:data-[checked]:bg-primary dark:data-invalid:ring-destructive/40 data-disabled:cursor-not-allowed data-[checked]:border-primary data-invalid:border-destructive data-[checked]:bg-primary data-[checked]:text-primary-foreground data-disabled:opacity-50 group-has-disabled/field:opacity-50 data-invalid:ring-3 data-invalid:ring-destructive/20 data-invalid:data-[checked]:border-primary">
+        <CheckboxPrimitive.Indicator
+          data-slot="checkbox-indicator"
+          class="grid place-content-center text-current transition-none [&>svg]:size-3.5"
+        >
+          <CheckIcon />
         </CheckboxPrimitive.Indicator>
       </CheckboxPrimitive.Control>
     </CheckboxPrimitive.Root>

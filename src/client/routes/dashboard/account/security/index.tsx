@@ -80,7 +80,7 @@ export default function SecurityPage(): JSX.Element {
               (a: { providerId: string }) => a.providerId === "credential",
             )}
           >
-            <ItemGroup class="rounded-lg border bg-card">
+            <ItemGroup class="rounded-lg border bg-card py-4">
               <Item>
                 <ItemContent>
                   <ItemTitle>

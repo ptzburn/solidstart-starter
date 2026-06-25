@@ -28,7 +28,7 @@ type AccountDetailsProps = {
 export function AccountDetails(props: AccountDetailsProps): JSX.Element {
   return (
     <div class="flex flex-col gap-2">
-      <ItemGroup class="rounded-lg border bg-card">
+      <ItemGroup class="rounded-lg border bg-card py-4">
         <Item>
           <ItemMedia variant="icon">
             <ALargeSmall />

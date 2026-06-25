@@ -1,57 +1,59 @@
 import * as SheetPrimitive from "@kobalte/core/dialog";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 
+import { buttonVariants } from "~/client/components/ui/button.tsx";
 import { cn } from "~/client/lib/utils.ts";
-import { cva, type VariantProps } from "class-variance-authority";
+import XIcon from "~icons/lucide/x";
 import type { Component, ComponentProps, JSX, ValidComponent } from "solid-js";
 
-import { splitProps } from "solid-js";
+import { mergeProps, Show, splitProps } from "solid-js";
 
 const Sheet = SheetPrimitive.Root;
-const SheetTrigger = SheetPrimitive.Trigger;
-const SheetClose = SheetPrimitive.CloseButton;
+const SheetPortal = SheetPrimitive.Portal;
 
-const portalVariants = cva("fixed inset-0 z-50 flex", {
-  variants: {
-    position: {
-      top: "items-start",
-      bottom: "items-end",
-      left: "justify-start",
-      right: "justify-end",
-    },
-  },
-  defaultVariants: { position: "right" },
-});
+type SheetTriggerProps<T extends ValidComponent = "button"> =
+  & SheetPrimitive.DialogTriggerProps<T>
+  & { class?: string | undefined };
 
-type PortalProps =
-  & SheetPrimitive.DialogPortalProps
-  & VariantProps<typeof portalVariants>;
-
-const SheetPortal: Component<PortalProps> = (props) => {
-  const [local, others] = splitProps(props, ["position", "children"]);
+const SheetTrigger = <T extends ValidComponent = "button">(
+  props: PolymorphicProps<T, SheetTriggerProps<T>>,
+) => {
   return (
-    <SheetPrimitive.Portal {...others}>
-      <div class={portalVariants({ position: local.position })}>
-        {local.children}
-      </div>
-    </SheetPrimitive.Portal>
+    <SheetPrimitive.Trigger
+      data-slot="sheet-trigger"
+      {...(props as SheetTriggerProps)}
+    />
   );
 };
 
-type DialogOverlayProps<T extends ValidComponent = "div"> =
+type SheetCloseProps<T extends ValidComponent = "button"> =
+  & SheetPrimitive.DialogCloseButtonProps<T>
+  & { class?: string | undefined };
+
+const SheetClose = <T extends ValidComponent = "button">(
+  props: PolymorphicProps<T, SheetCloseProps<T>>,
+) => {
+  return (
+    <SheetPrimitive.CloseButton
+      data-slot="sheet-close"
+      {...(props as SheetCloseProps)}
+    />
+  );
+};
+
+type SheetOverlayProps<T extends ValidComponent = "div"> =
   & SheetPrimitive.DialogOverlayProps<T>
-  & {
-    class?: string | undefined;
-  };
+  & { class?: string | undefined };
 
 const SheetOverlay = <T extends ValidComponent = "div">(
-  props: PolymorphicProps<T, DialogOverlayProps<T>>,
+  props: PolymorphicProps<T, SheetOverlayProps<T>>,
 ) => {
-  const [local, others] = splitProps(props as DialogOverlayProps, ["class"]);
+  const [local, others] = splitProps(props as SheetOverlayProps, ["class"]);
   return (
     <SheetPrimitive.Overlay
+      data-slot="sheet-overlay"
       class={cn(
-        "data-[closed=]:fade-out-0 data-[expanded=]:fade-in-0 fixed inset-0 z-50 bg-black/80 data-[closed=]:animate-out data-[expanded=]:animate-in",
+        "data-closed:fade-out-0 data-expanded:fade-in-0 fixed inset-0 z-50 bg-black/10 duration-100 data-closed:animate-out data-expanded:animate-in supports-backdrop-filter:backdrop-blur-xs",
         local.class,
       )}
       {...others}
@@ -59,68 +61,53 @@ const SheetOverlay = <T extends ValidComponent = "div">(
   );
 };
 
-const sheetVariants = cva(
-  "fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[closed=]:duration-300 data-[expanded=]:duration-500 data-[expanded=]:animate-in data-[closed=]:animate-out",
-  {
-    variants: {
-      position: {
-        top:
-          "inset-x-0 top-0 border-b data-[closed=]:slide-out-to-top data-[expanded=]:slide-in-from-top",
-        bottom:
-          "inset-x-0 bottom-0 border-t data-[closed=]:slide-out-to-bottom data-[expanded=]:slide-in-from-bottom",
-        left:
-          "inset-y-0 left-0 h-full w-3/4 border-r data-[closed=]:slide-out-to-left data-[expanded=]:slide-in-from-left sm:max-w-sm",
-        right:
-          "inset-y-0 right-0 h-full w-3/4 border-l data-[closed=]:slide-out-to-right data-[expanded=]:slide-in-from-right sm:max-w-sm",
-      },
-    },
-    defaultVariants: {
-      position: "right",
-    },
-  },
-);
-
-type DialogContentProps<T extends ValidComponent = "div"> =
+type SheetContentProps<T extends ValidComponent = "div"> =
   & SheetPrimitive.DialogContentProps<T>
-  & VariantProps<typeof sheetVariants>
-  & { class?: string | undefined; children?: JSX.Element };
+  & {
+    class?: string | undefined;
+    children?: JSX.Element;
+    side?: "top" | "right" | "bottom" | "left";
+    showCloseButton?: boolean;
+  };
 
 const SheetContent = <T extends ValidComponent = "div">(
-  props: PolymorphicProps<T, DialogContentProps<T>>,
+  rawProps: PolymorphicProps<T, SheetContentProps<T>>,
 ) => {
-  const [local, others] = splitProps(props as DialogContentProps, [
-    "position",
+  const props = mergeProps(
+    { side: "right" as const, showCloseButton: true },
+    rawProps as SheetContentProps,
+  );
+  const [local, others] = splitProps(props, [
     "class",
     "children",
+    "side",
+    "showCloseButton",
   ]);
   return (
-    <SheetPortal position={local.position}>
+    <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Content
+        data-slot="sheet-content"
+        data-side={local.side}
         class={cn(
-          sheetVariants({ position: local.position }),
+          "data-[side=bottom]:data-closed:slide-out-to-bottom-10 data-[side=bottom]:data-expanded:slide-in-from-bottom-10 data-[side=left]:data-closed:slide-out-to-left-10 data-[side=left]:data-expanded:slide-in-from-left-10 data-[side=right]:data-closed:slide-out-to-right-10 data-[side=right]:data-expanded:slide-in-from-right-10 data-[side=top]:data-closed:slide-out-to-top-10 data-[side=top]:data-expanded:slide-in-from-top-10 data-closed:fade-out-0 data-expanded:fade-in-0 fixed z-50 flex flex-col gap-4 bg-clip-padding bg-popover text-popover-foreground text-sm shadow-lg transition duration-200 ease-in-out data-[side=bottom]:inset-x-0 data-[side=left]:inset-y-0 data-[side=right]:inset-y-0 data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=right]:right-0 data-[side=bottom]:bottom-0 data-[side=left]:left-0 data-[side=bottom]:h-auto data-[side=left]:h-full data-[side=right]:h-full data-[side=top]:h-auto data-[side=left]:w-3/4 data-[side=right]:w-3/4 data-closed:animate-out data-expanded:animate-in data-[side=bottom]:border-t data-[side=left]:border-r data-[side=right]:border-l data-[side=top]:border-b data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm",
           local.class,
-          "max-h-screen overflow-y-auto",
         )}
         {...others}
       >
         {local.children}
-        <SheetPrimitive.CloseButton class="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:pointer-events-none data-[state=open]:bg-secondary">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="size-4"
+        <Show when={local.showCloseButton}>
+          <SheetPrimitive.CloseButton
+            data-slot="sheet-close"
+            class={cn(
+              buttonVariants({ variant: "ghost", size: "icon-sm" }),
+              "absolute top-3 right-3",
+            )}
           >
-            <path d="M18 6l-12 12" />
-            <path d="M6 6l12 12" />
-          </svg>
-          <span class="sr-only">Close</span>
-        </SheetPrimitive.CloseButton>
+            <XIcon />
+            <span class="sr-only">Close</span>
+          </SheetPrimitive.CloseButton>
+        </Show>
       </SheetPrimitive.Content>
     </SheetPortal>
   );
@@ -130,10 +117,8 @@ const SheetHeader: Component<ComponentProps<"div">> = (props) => {
   const [local, others] = splitProps(props, ["class"]);
   return (
     <div
-      class={cn(
-        "flex flex-col space-y-2 text-center sm:text-left",
-        local.class,
-      )}
+      data-slot="sheet-header"
+      class={cn("flex flex-col gap-0.5 p-4", local.class)}
       {...others}
     />
   );
@@ -143,8 +128,26 @@ const SheetFooter: Component<ComponentProps<"div">> = (props) => {
   const [local, others] = splitProps(props, ["class"]);
   return (
     <div
+      data-slot="sheet-footer"
+      class={cn("mt-auto flex flex-col gap-2 p-4", local.class)}
+      {...others}
+    />
+  );
+};
+
+type SheetTitleProps<T extends ValidComponent = "h2"> =
+  & SheetPrimitive.DialogTitleProps<T>
+  & { class?: string | undefined };
+
+const SheetTitle = <T extends ValidComponent = "h2">(
+  props: PolymorphicProps<T, SheetTitleProps<T>>,
+) => {
+  const [local, others] = splitProps(props as SheetTitleProps, ["class"]);
+  return (
+    <SheetPrimitive.Title
+      data-slot="sheet-title"
       class={cn(
-        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+        "cn-font-heading font-medium text-base text-foreground",
         local.class,
       )}
       {...others}
@@ -152,36 +155,17 @@ const SheetFooter: Component<ComponentProps<"div">> = (props) => {
   );
 };
 
-type DialogTitleProps<T extends ValidComponent = "h2"> =
-  & SheetPrimitive.DialogTitleProps<T>
-  & {
-    class?: string | undefined;
-  };
-
-const SheetTitle = <T extends ValidComponent = "h2">(
-  props: PolymorphicProps<T, DialogTitleProps<T>>,
-) => {
-  const [local, others] = splitProps(props as DialogTitleProps, ["class"]);
-  return (
-    <SheetPrimitive.Title
-      class={cn("font-semibold text-foreground text-lg", local.class)}
-      {...others}
-    />
-  );
-};
-
-type DialogDescriptionProps<T extends ValidComponent = "p"> =
+type SheetDescriptionProps<T extends ValidComponent = "p"> =
   & SheetPrimitive.DialogDescriptionProps<T>
   & { class?: string | undefined };
 
 const SheetDescription = <T extends ValidComponent = "p">(
-  props: PolymorphicProps<T, DialogDescriptionProps<T>>,
+  props: PolymorphicProps<T, SheetDescriptionProps<T>>,
 ) => {
-  const [local, others] = splitProps(props as DialogDescriptionProps, [
-    "class",
-  ]);
+  const [local, others] = splitProps(props as SheetDescriptionProps, ["class"]);
   return (
     <SheetPrimitive.Description
+      data-slot="sheet-description"
       class={cn("text-muted-foreground text-sm", local.class)}
       {...others}
     />

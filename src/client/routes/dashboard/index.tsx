@@ -46,14 +46,13 @@ export const route = {
 } satisfies RouteDefinition;
 
 // A single task row. The toggle is a real <form> whose submit button *is* the
-// checkbox, and delete is a native <dialog> opened via invoker commands — so
-// both work without JS. With JS, solid-router intercepts the submits.
+// checkbox, so it works without JS; with JS, solid-router intercepts the
+// submit. Delete uses the Kobalte alert-dialog (requires JS to open).
 function TaskItem(props: {
   task: SelectTask;
   completed: boolean;
   deleting: boolean;
 }): JSX.Element {
-  const dialogId = (): string => `delete-task-${props.task.id}`;
   return (
     <li
       class={cn(
@@ -103,18 +102,12 @@ function TaskItem(props: {
       >
         {props.task.name}
       </span>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label="Delete"
-        class="shrink-0 text-muted-foreground/50 transition-colors hover:text-destructive"
-        command="show-modal"
-        commandfor={dialogId()}
-      >
-        <Trash class="size-4" />
-      </Button>
       <ConfirmDialog
-        id={dialogId()}
+        trigger={<Trash class="size-4" />}
+        triggerVariant="ghost"
+        triggerSize="icon-sm"
+        triggerAriaLabel="Delete"
+        triggerClass="shrink-0 text-muted-foreground/50 transition-colors hover:text-destructive"
         variant="destructive"
         title="Delete task?"
         description={`"${props.task.name}" will be removed. This can't be undone.`}

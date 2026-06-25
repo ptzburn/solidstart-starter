@@ -2,14 +2,27 @@ import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import * as TooltipPrimitive from "@kobalte/core/tooltip";
 
 import { cn } from "~/client/lib/utils.ts";
-import type { JSX, ValidComponent } from "solid-js";
+import type { Component, JSX, ValidComponent } from "solid-js";
 
-import { type Component, splitProps } from "solid-js";
-
-const TooltipTrigger = TooltipPrimitive.Trigger;
+import { splitProps } from "solid-js";
 
 const Tooltip: Component<TooltipPrimitive.TooltipRootProps> = (props) => {
-  return <TooltipPrimitive.Root gutter={4} {...props} />;
+  return <TooltipPrimitive.Root data-slot="tooltip" gutter={4} {...props} />;
+};
+
+type TooltipTriggerProps<T extends ValidComponent = "button"> =
+  & TooltipPrimitive.TooltipTriggerProps<T>
+  & { class?: string | undefined };
+
+const TooltipTrigger = <T extends ValidComponent = "button">(
+  props: PolymorphicProps<T, TooltipTriggerProps<T>>,
+) => {
+  return (
+    <TooltipPrimitive.Trigger
+      data-slot="tooltip-trigger"
+      {...(props as TooltipTriggerProps)}
+    />
+  );
 };
 
 type TooltipContentProps<T extends ValidComponent = "div"> =
@@ -26,14 +39,15 @@ const TooltipContent = <T extends ValidComponent = "div">(
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
+        data-slot="tooltip-content"
         class={cn(
-          "fade-in-0 zoom-in-95 z-50 origin-[var(--kb-popover-content-transform-origin)] animate-in rounded-md border bg-foreground px-3 py-1.5 text-background text-sm shadow-md",
+          "data-closed:fade-out-0 data-closed:zoom-out-95 data-expanded:fade-in-0 data-expanded:zoom-in-95 z-50 inline-flex w-fit max-w-xs origin-(--kb-tooltip-content-transform-origin) items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-background text-xs duration-100 data-closed:animate-out data-expanded:animate-in",
           local.class,
         )}
         {...others}
       >
-        <TooltipPrimitive.Arrow />
         {local.children}
+        <TooltipPrimitive.Arrow />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );

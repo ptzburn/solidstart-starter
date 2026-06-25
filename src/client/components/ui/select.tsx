@@ -3,10 +3,11 @@ import * as SelectPrimitive from "@kobalte/core/select";
 
 import { cn } from "~/client/lib/utils.ts";
 import CheckIcon from "~icons/lucide/check";
+import ChevronDownIcon from "~icons/lucide/chevron-down";
 import { cva } from "class-variance-authority";
 
 import type { JSX, ValidComponent } from "solid-js";
-import { splitProps } from "solid-js";
+import { mergeProps, splitProps } from "solid-js";
 
 const Select = SelectPrimitive.Root;
 const SelectValue = SelectPrimitive.Value;
@@ -17,37 +18,30 @@ type SelectTriggerProps<T extends ValidComponent = "button"> =
   & {
     class?: string | undefined;
     children?: JSX.Element;
+    size?: "sm" | "default";
   };
 
 const SelectTrigger = <T extends ValidComponent = "button">(
-  props: PolymorphicProps<T, SelectTriggerProps<T>>,
+  rawProps: PolymorphicProps<T, SelectTriggerProps<T>>,
 ) => {
-  const [local, others] = splitProps(props as SelectTriggerProps, [
-    "class",
-    "children",
-  ]);
+  const props = mergeProps(
+    { size: "default" as const },
+    rawProps as SelectTriggerProps,
+  );
+  const [local, others] = splitProps(props, ["class", "children", "size"]);
   return (
     <SelectPrimitive.Trigger
+      data-slot="select-trigger"
+      data-size={local.size}
       class={cn(
-        "flex h-10 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring dark:aria-invalid:ring-destructive/40 ui-disabled:cursor-not-allowed aria-invalid:border-destructive ui-disabled:opacity-50 aria-invalid:ring-destructive/20",
+        "flex w-fit select-none items-center justify-between gap-1.5 whitespace-nowrap rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30 dark:hover:bg-input/50 dark:data-invalid:border-destructive/50 dark:data-invalid:ring-destructive/40 [&_svg]:pointer-events-none data-[size=default]:h-8 data-[size=sm]:h-7 [&_svg]:shrink-0 data-disabled:cursor-not-allowed data-[size=sm]:rounded-[min(var(--radius-md),10px)] data-invalid:border-destructive data-placeholder:text-muted-foreground data-disabled:opacity-50 data-invalid:ring-3 data-invalid:ring-destructive/20 [&_svg:not([class*='size-'])]:size-4",
         local.class,
       )}
       {...others}
     >
       {local.children}
-      <SelectPrimitive.Icon
-        as="svg"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="size-4 opacity-50"
-      >
-        <path d="M8 9l4 -4l4 4" />
-        <path d="M16 15l-4 4l-4 -4" />
+      <SelectPrimitive.Icon>
+        <ChevronDownIcon class="pointer-events-none size-4 text-muted-foreground" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -64,13 +58,17 @@ const SelectContent = <T extends ValidComponent = "div">(
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
+        data-slot="select-content"
         class={cn(
-          "fade-in-80 relative z-50 max-h-[300px] min-w-32 animate-in overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md",
+          "data-closed:fade-out-0 data-closed:zoom-out-95 data-expanded:fade-in-0 data-expanded:zoom-in-95 relative z-50 min-w-32 origin-(--kb-select-content-transform-origin) overflow-hidden rounded-lg bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 data-closed:animate-out data-expanded:animate-in",
           local.class,
         )}
         {...others}
       >
-        <SelectPrimitive.Listbox class="m-0 max-h-[calc(300px-0.5rem)] overflow-y-auto overscroll-contain p-1" />
+        <SelectPrimitive.Listbox
+          data-slot="select-list"
+          class="max-h-(--kb-popper-content-available-height) scroll-py-1 overflow-y-auto overscroll-contain p-1"
+        />
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   );
@@ -92,17 +90,38 @@ const SelectItem = <T extends ValidComponent = "li">(
   ]);
   return (
     <SelectPrimitive.Item
+      data-slot="select-item"
       class={cn(
-        "relative mt-0 flex w-full cursor-default select-none items-center rounded-sm py-1.5 pr-8 pl-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex w-full cursor-default select-none items-center gap-2 rounded-md py-1 pr-8 pl-1.5 text-sm outline-hidden [&_svg]:pointer-events-none data-disabled:pointer-events-none [&_svg]:shrink-0 data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4",
         local.class,
       )}
       {...others}
     >
-      <SelectPrimitive.ItemIndicator class="absolute right-2 flex size-3.5 items-center justify-center">
-        <CheckIcon class="size-4" />
-      </SelectPrimitive.ItemIndicator>
       <SelectPrimitive.ItemLabel>{local.children}</SelectPrimitive.ItemLabel>
+      <SelectPrimitive.ItemIndicator
+        data-slot="select-item-indicator"
+        class="pointer-events-none absolute right-2 flex size-4 items-center justify-center"
+      >
+        <CheckIcon class="pointer-events-none" />
+      </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
+  );
+};
+
+type SelectSectionProps<T extends ValidComponent = "li"> =
+  & SelectPrimitive.SelectSectionProps<T>
+  & { class?: string | undefined };
+
+const SelectSection = <T extends ValidComponent = "li">(
+  props: PolymorphicProps<T, SelectSectionProps<T>>,
+) => {
+  const [local, others] = splitProps(props as SelectSectionProps, ["class"]);
+  return (
+    <SelectPrimitive.Section
+      data-slot="select-label"
+      class={cn("px-1.5 py-1 text-muted-foreground text-xs", local.class)}
+      {...others}
+    />
   );
 };
 
@@ -188,6 +207,7 @@ export {
   SelectHiddenSelect,
   SelectItem,
   SelectLabel,
+  SelectSection,
   SelectTrigger,
   SelectValue,
 };

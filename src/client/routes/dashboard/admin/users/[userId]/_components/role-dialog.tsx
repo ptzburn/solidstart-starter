@@ -1,13 +1,13 @@
 import { revalidate, useSubmission } from "@solidjs/router";
 import { setUserRole } from "~/client/actions/auth.ts";
+import { ResponsiveDialog } from "~/client/components/responsive-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
-import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { FieldGroup } from "~/client/components/ui/field.tsx";
 import { SelectField } from "~/client/components/ui/form/select-field.tsx";
 
 import { getUserByIdQuery } from "~/client/queries/users.ts";
 import type { SelectUser } from "~/shared/types/auth.ts";
-import { createEffect } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import type { Accessor, JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
@@ -16,14 +16,14 @@ const ROLE_OPTIONS = [
   { value: "admin", label: "Admin" },
 ];
 
-const DIALOG_ID = "admin-edit-role-dialog";
+const FORM_ID = "admin-edit-role-form";
 
 type RoleDialogProps = {
   user: Accessor<SelectUser>;
 };
 
 export function RoleDialog(props: RoleDialogProps): JSX.Element {
-  let dialogRef!: HTMLDialogElement;
+  const [open, setOpen] = createSignal(false);
   const submission = useSubmission(
     setUserRole,
     ([formData]) => formData.get("userId") === props.user().id,
@@ -36,7 +36,7 @@ export function RoleDialog(props: RoleDialogProps): JSX.Element {
 
   createEffect(() => {
     if (submission.result && "ok" in submission.result) {
-      dialogRef.close();
+      setOpen(false);
       toast.success("Role updated");
       revalidate(getUserByIdQuery.keyFor(props.user().id));
       submission.clear();
@@ -51,50 +51,41 @@ export function RoleDialog(props: RoleDialogProps): JSX.Element {
   });
 
   return (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        command="show-modal"
-        commandfor={DIALOG_ID}
+    <ResponsiveDialog
+      open={open()}
+      onOpenChange={setOpen}
+      trigger="Change"
+      triggerVariant="outline"
+      triggerSize="sm"
+      title="Change role"
+      description="Select a new role for this user."
+      footer={
+        <Button type="submit" form={FORM_ID} disabled={submission.pending}>
+          Save
+        </Button>
+      }
+    >
+      <form
+        id={FORM_ID}
+        method="post"
+        action={setUserRole}
+        class="space-y-4 py-2"
+        onInput={() => {
+          if (submission.result) submission.clear();
+        }}
       >
-        Change
-      </Button>
-
-      <ResponsiveDialog
-        id={DIALOG_ID}
-        ref={(el) => dialogRef = el}
-        title="Change role"
-        description="Select a new role for this user."
-      >
-        <form
-          method="post"
-          action={setUserRole}
-          class="space-y-4 py-2"
-          onInput={() => {
-            if (submission.result) submission.clear();
-          }}
-        >
-          <input type="hidden" name="userId" value={props.user().id} />
-          <FieldGroup>
-            <SelectField
-              name="role"
-              label="Role"
-              value={props.user().role ?? "user"}
-              options={ROLE_OPTIONS}
-              error={fieldErrors().role}
-              disabled={submission.pending}
-            />
-          </FieldGroup>
-          <Button
-            type="submit"
-            class="w-full"
+        <input type="hidden" name="userId" value={props.user().id} />
+        <FieldGroup>
+          <SelectField
+            name="role"
+            label="Role"
+            defaultValue={props.user().role ?? "user"}
+            options={ROLE_OPTIONS}
+            error={fieldErrors().role}
             disabled={submission.pending}
-          >
-            Save
-          </Button>
-        </form>
-      </ResponsiveDialog>
-    </>
+          />
+        </FieldGroup>
+      </form>
+    </ResponsiveDialog>
   );
 }

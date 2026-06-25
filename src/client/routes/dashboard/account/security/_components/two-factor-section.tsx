@@ -3,9 +3,9 @@ import {
   confirmTwoFactorTotp,
   enableTwoFactor,
 } from "~/client/actions/auth.ts";
+import { ResponsiveDialog } from "~/client/components/responsive-dialog.tsx";
 import { Badge } from "~/client/components/ui/badge.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
-import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { OTPField } from "~/client/components/ui/form/otp-field.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
 import {
@@ -25,6 +25,7 @@ import {
 import {
   createEffect,
   createMemo,
+  createSignal,
   ErrorBoundary,
   type JSX,
   Match,
@@ -37,9 +38,10 @@ import { BackupCodesStep } from "./backup-codes-step.tsx";
 import { DisableTwoFactorDialog } from "./disable-two-factor-dialog.tsx";
 import { RegenerateBackupCodesDialog } from "./regenerate-backup-codes-dialog.tsx";
 
-const ENABLE_DIALOG_ID = "enable-two-factor-dialog";
-
 type EnableStep = "password" | "verify" | "backup-codes";
+
+const PASSWORD_FORM_ID = "enable-2fa-password-form";
+const VERIFY_FORM_ID = "enable-2fa-verify-form";
 
 export function TwoFactorSection(): JSX.Element {
   const session = useSession();
@@ -53,7 +55,7 @@ export function TwoFactorSection(): JSX.Element {
     { deferStream: true },
   );
 
-  let enableDialogRef!: HTMLDialogElement;
+  const [open, setOpen] = createSignal(false);
   let passwordFormRef: HTMLFormElement | undefined;
   let verifyFormRef: HTMLFormElement | undefined;
 
@@ -134,12 +136,12 @@ export function TwoFactorSection(): JSX.Element {
             <Show
               when={session.user.twoFactorEnabled}
               fallback={
-                <Badge variant="error" round>
+                <Badge variant="destructive">
                   Disabled
                 </Badge>
               }
             >
-              <Badge variant="success" round>
+              <Badge>
                 Enabled
               </Badge>
             </Show>
@@ -152,15 +154,112 @@ export function TwoFactorSection(): JSX.Element {
           <Show
             when={session.user.twoFactorEnabled}
             fallback={
-              <Button
-                variant="outline"
-                size="sm"
-                command="show-modal"
-                commandfor={ENABLE_DIALOG_ID}
-                onClick={resetEnableState}
+              <ResponsiveDialog
+                open={open()}
+                onOpenChange={(o) => {
+                  setOpen(o);
+                  if (o) resetEnableState();
+                  else handleEnableClose();
+                }}
+                trigger="Enable"
+                triggerVariant="outline"
+                triggerSize="sm"
+                title={enableStep() === "backup-codes"
+                  ? "Save backup codes"
+                  : "Enable two-factor authentication"}
+                description={enableStep() === "password"
+                  ? "Enter your password to enable two-factor authentication"
+                  : enableStep() === "verify"
+                  ? "Scan the QR code with your authenticator app, then enter the verification code"
+                  : "Store these codes in a safe place. You can use them to access your account if you lose your authenticator device."}
+                footer={
+                  <Switch>
+                    <Match when={enableStep() === "password"}>
+                      <Button
+                        type="submit"
+                        form={PASSWORD_FORM_ID}
+                        disabled={enableSubmission.pending}
+                      >
+                        Continue
+                      </Button>
+                    </Match>
+                    <Match when={enableStep() === "verify"}>
+                      <Button
+                        type="submit"
+                        form={VERIFY_FORM_ID}
+                        disabled={verifySubmission.pending}
+                      >
+                        Verify
+                      </Button>
+                    </Match>
+                    <Match when={enableStep() === "backup-codes"}>
+                      <Button onClick={() => setOpen(false)}>Done</Button>
+                    </Match>
+                  </Switch>
+                }
               >
-                Enable
-              </Button>
+                <Switch>
+                  <Match when={enableStep() === "password"}>
+                    <form
+                      id={PASSWORD_FORM_ID}
+                      ref={(el) => passwordFormRef = el}
+                      method="post"
+                      action={enableTwoFactor}
+                      class="space-y-4"
+                      onInput={() => {
+                        if (enableSubmission.result) enableSubmission.clear();
+                      }}
+                    >
+                      <TextField
+                        name="password"
+                        label="Password"
+                        type="password"
+                        placeholder="Current password"
+                        required
+                        hint="Enter your current password"
+                        error={passwordFieldErrors().password}
+                        disabled={enableSubmission.pending}
+                      />
+                    </form>
+                  </Match>
+                  <Match when={enableStep() === "verify"}>
+                    <form
+                      id={VERIFY_FORM_ID}
+                      ref={(el) => verifyFormRef = el}
+                      method="post"
+                      action={confirmTwoFactorTotp}
+                      class="space-y-6"
+                      onInput={() => {
+                        if (verifySubmission.result) verifySubmission.clear();
+                      }}
+                    >
+                      <Show when={enableData()?.qrSvg}>
+                        {(qrSvg) => (
+                          <div class="flex justify-center">
+                            <div class="rounded-lg bg-white p-3">
+                              <div
+                                class="size-[200px] [&>svg]:block [&>svg]:size-full"
+                                innerHTML={qrSvg()}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </Show>
+                      <OTPField
+                        name="code"
+                        label="Verification code"
+                        error={codeFieldErrors().code}
+                        disabled={verifySubmission.pending}
+                      />
+                    </form>
+                  </Match>
+                  <Match when={enableStep() === "backup-codes"}>
+                    <BackupCodesStep
+                      backupCodes={enableData()?.backupCodes ?? []}
+                    />
+                  </Match>
+                </Switch>
+              </ResponsiveDialog>
             }
           >
             <DisableTwoFactorDialog />
@@ -192,95 +291,6 @@ export function TwoFactorSection(): JSX.Element {
           </ItemActions>
         </Item>
       </Show>
-
-      <ResponsiveDialog
-        id={ENABLE_DIALOG_ID}
-        ref={(el) => enableDialogRef = el}
-        onClose={handleEnableClose}
-        title={enableStep() === "backup-codes"
-          ? "Save backup codes"
-          : "Enable two-factor authentication"}
-        description={enableStep() === "password"
-          ? "Enter your password to enable two-factor authentication"
-          : enableStep() === "verify"
-          ? "Scan the QR code with your authenticator app, then enter the verification code"
-          : "Store these codes in a safe place. You can use them to access your account if you lose your authenticator device."}
-      >
-        <Switch>
-          <Match when={enableStep() === "password"}>
-            <form
-              ref={(el) => passwordFormRef = el}
-              method="post"
-              action={enableTwoFactor}
-              class="space-y-4"
-              onInput={() => {
-                if (enableSubmission.result) enableSubmission.clear();
-              }}
-            >
-              <TextField
-                name="password"
-                label="Password"
-                type="password"
-                placeholder="Current password"
-                required
-                hint="Enter your current password"
-                error={passwordFieldErrors().password}
-                disabled={enableSubmission.pending}
-              />
-              <Button
-                type="submit"
-                class="w-full"
-                disabled={enableSubmission.pending}
-              >
-                Continue
-              </Button>
-            </form>
-          </Match>
-          <Match when={enableStep() === "verify"}>
-            <form
-              ref={(el) => verifyFormRef = el}
-              method="post"
-              action={confirmTwoFactorTotp}
-              class="space-y-6"
-              onInput={() => {
-                if (verifySubmission.result) verifySubmission.clear();
-              }}
-            >
-              <Show when={enableData()?.qrSvg}>
-                {(qrSvg) => (
-                  <div class="flex justify-center">
-                    <div class="rounded-lg bg-white p-3">
-                      <div
-                        class="size-[200px] [&>svg]:block [&>svg]:size-full"
-                        innerHTML={qrSvg()}
-                      />
-                    </div>
-                  </div>
-                )}
-              </Show>
-              <OTPField
-                name="code"
-                label="Verification code"
-                error={codeFieldErrors().code}
-                disabled={verifySubmission.pending}
-              />
-              <Button
-                type="submit"
-                class="w-full"
-                disabled={verifySubmission.pending}
-              >
-                Verify
-              </Button>
-            </form>
-          </Match>
-          <Match when={enableStep() === "backup-codes"}>
-            <BackupCodesStep
-              backupCodes={enableData()?.backupCodes ?? []}
-              onDone={() => enableDialogRef.close()}
-            />
-          </Match>
-        </Switch>
-      </ResponsiveDialog>
     </>
   );
 }

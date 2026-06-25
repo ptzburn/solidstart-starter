@@ -1,22 +1,29 @@
 import { revalidate, useSubmission } from "@solidjs/router";
 import { sendPhoneOtp, verifyPhoneNumber } from "~/client/actions/users.ts";
+import { ResponsiveDialog } from "~/client/components/responsive-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
-import { ResponsiveDialog } from "~/client/components/ui/dialog.tsx";
 import { OTPField } from "~/client/components/ui/form/otp-field.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
 import { getSessionQuery } from "~/client/queries/auth.ts";
-import { createEffect, createSignal, type JSX, onCleanup } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  type JSX,
+  onCleanup,
+  Show,
+} from "solid-js";
 import { toast } from "solid-sonner";
 
 type PhoneDialogProps = {
   currentPhoneNumber: string | null | undefined;
 };
 
-const DIALOG_ID = "edit-phone-dialog";
 const RESEND_COOLDOWN = 60;
+const SEND_FORM_ID = "phone-send-form";
+const VERIFY_FORM_ID = "phone-verify-form";
 
 export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
-  let dialogRef!: HTMLDialogElement;
+  const [open, setOpen] = createSignal(false);
   const [cooldown, setCooldown] = createSignal(0);
   let timer: ReturnType<typeof setInterval> | undefined;
 
@@ -73,7 +80,7 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
 
   createEffect(() => {
     if (verifySubmission.result && "ok" in verifySubmission.result) {
-      dialogRef.close();
+      setOpen(false);
       toast.success("Phone number updated");
       revalidate(getSessionQuery.key);
     }
@@ -96,100 +103,106 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
   }
 
   return (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        command="show-modal"
-        commandfor={DIALOG_ID}
-      >
-        {props.currentPhoneNumber ? "Edit phone number" : "Add phone number"}
-      </Button>
-
-      <ResponsiveDialog
-        id={DIALOG_ID}
-        ref={(el) => dialogRef = el}
-        onClose={handleClose}
-        title="Edit phone number"
-      >
-        {sentPhoneNumber() === undefined
-          ? (
+    <ResponsiveDialog
+      open={open()}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) handleClose();
+      }}
+      trigger={props.currentPhoneNumber
+        ? "Edit phone number"
+        : "Add phone number"}
+      triggerVariant="outline"
+      triggerSize="sm"
+      title="Edit phone number"
+      footer={
+        <Show
+          when={sentPhoneNumber() === undefined}
+          fallback={
+            <Button
+              type="submit"
+              form={VERIFY_FORM_ID}
+              disabled={verifySubmission.pending}
+            >
+              Verify
+            </Button>
+          }
+        >
+          <Button
+            type="submit"
+            form={SEND_FORM_ID}
+            disabled={sendSubmission.pending}
+          >
+            Send code
+          </Button>
+        </Show>
+      }
+    >
+      {sentPhoneNumber() === undefined
+        ? (
+          <form
+            id={SEND_FORM_ID}
+            method="post"
+            action={sendPhoneOtp}
+            class="space-y-4"
+            onInput={() => {
+              if (sendSubmission.result) sendSubmission.clear();
+            }}
+          >
+            <TextField
+              name="phoneNumber"
+              label="Phone number"
+              placeholder="+358401234567"
+              value={props.currentPhoneNumber ?? ""}
+              required
+              error={sendFieldErrors().phoneNumber}
+              disabled={sendSubmission.pending}
+            />
+          </form>
+        )
+        : (
+          <div class="space-y-4">
             <form
+              id={VERIFY_FORM_ID}
               method="post"
-              action={sendPhoneOtp}
+              action={verifyPhoneNumber}
               class="space-y-4"
               onInput={() => {
-                if (sendSubmission.result) sendSubmission.clear();
+                if (verifySubmission.result) verifySubmission.clear();
               }}
             >
-              <TextField
+              <input
+                type="hidden"
                 name="phoneNumber"
-                label="Phone number"
-                placeholder="+358401234567"
-                value={props.currentPhoneNumber ?? ""}
-                required
-                error={sendFieldErrors().phoneNumber}
-                disabled={sendSubmission.pending}
+                value={sentPhoneNumber()}
+              />
+              <OTPField
+                name="otp"
+                label="Verification code"
+                error={verifyFieldErrors().otp}
+                disabled={verifySubmission.pending}
+                autofocus
+              />
+            </form>
+            <form method="post" action={sendPhoneOtp}>
+              <input
+                type="hidden"
+                name="phoneNumber"
+                value={sentPhoneNumber()}
               />
               <Button
                 type="submit"
+                variant="ghost"
                 class="w-full"
-                disabled={sendSubmission.pending}
+                disabled={sendSubmission.pending || cooldown() > 0}
               >
-                Send code
+                {cooldown() > 0
+                  ? `Resend code (${cooldown()}s)`
+                  : "Resend code"}
               </Button>
             </form>
-          )
-          : (
-            <div class="space-y-4">
-              <form
-                method="post"
-                action={verifyPhoneNumber}
-                class="space-y-4"
-                onInput={() => {
-                  if (verifySubmission.result) verifySubmission.clear();
-                }}
-              >
-                <input
-                  type="hidden"
-                  name="phoneNumber"
-                  value={sentPhoneNumber()}
-                />
-                <OTPField
-                  name="otp"
-                  label="Verification code"
-                  error={verifyFieldErrors().otp}
-                  disabled={verifySubmission.pending}
-                  autofocus
-                />
-                <Button
-                  type="submit"
-                  class="w-full"
-                  disabled={verifySubmission.pending}
-                >
-                  Verify
-                </Button>
-              </form>
-              <form method="post" action={sendPhoneOtp}>
-                <input
-                  type="hidden"
-                  name="phoneNumber"
-                  value={sentPhoneNumber()}
-                />
-                <Button
-                  type="submit"
-                  variant="ghost"
-                  class="w-full"
-                  disabled={sendSubmission.pending || cooldown() > 0}
-                >
-                  {cooldown() > 0
-                    ? `Resend code (${cooldown()}s)`
-                    : "Resend code"}
-                </Button>
-              </form>
-            </div>
-          )}
-      </ResponsiveDialog>
-    </>
+          </div>
+        )}
+    </ResponsiveDialog>
   );
 }

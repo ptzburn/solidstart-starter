@@ -9,20 +9,12 @@ const Input: Component<ComponentProps<"input">> = (props) => {
       type={local.type}
       data-slot="input"
       class={cn(
-        // Base styles (same as React)
-        "selection:bg-primary selection:text-primary-foreground file:text-foreground placeholder:text-muted-foreground",
-        "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs dark:bg-input/30",
-        "outline-none transition-[color,box-shadow]",
-        "file:inline-flex file:h-7 file:border-0 file:bg-transparent file:font-medium file:text-sm",
-        "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
-        "md:text-sm",
-        // Focus styles
-        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-        // Error states (server-driven via aria-invalid, native via :user-invalid)
-        "dark:aria-invalid:ring-destructive/40 aria-invalid:ring-destructive/20",
-        "aria-invalid:border-destructive",
-        "dark:user-invalid:ring-destructive/40 user-invalid:ring-destructive/20",
-        "user-invalid:border-destructive",
+        // Matches the shadcn React original 1:1.
+        "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-colors file:inline-flex file:h-6 file:border-0 file:bg-transparent file:font-medium file:text-foreground file:text-sm placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20",
+        // Project additions: selection color + native (no-JS) validation feedback,
+        // mirroring the aria-invalid block above so native and server errors match.
+        "selection:bg-primary selection:text-primary-foreground",
+        "dark:user-invalid:border-destructive/50 dark:user-invalid:ring-destructive/40 user-invalid:border-destructive user-invalid:ring-3 user-invalid:ring-destructive/20",
         local.class,
       )}
       {...others}

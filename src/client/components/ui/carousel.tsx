@@ -3,8 +3,10 @@ import type { ButtonProps } from "~/client/components/ui/button.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 
 import { cn } from "~/client/lib/utils.ts";
-import type { CreateEmblaCarouselType } from "embla-carousel-solid";
+import ChevronLeft from "~icons/lucide/chevron-left";
 
+import ChevronRight from "~icons/lucide/chevron-right";
+import type { CreateEmblaCarouselType } from "embla-carousel-solid";
 import createEmblaCarousel from "embla-carousel-solid";
 import type { Accessor, Component, ComponentProps, VoidProps } from "solid-js";
 import {
@@ -146,6 +148,7 @@ const Carousel: Component<CarouselProps & ComponentProps<"div">> = (
         class={cn("relative", local.class)}
         role="region"
         aria-roledescription="carousel"
+        data-slot="carousel"
         {...others}
       >
         {local.children}
@@ -159,7 +162,7 @@ const CarouselContent: Component<ComponentProps<"div">> = (props) => {
   const { carouselRef, orientation } = useCarousel();
 
   return (
-    <div ref={carouselRef} class="overflow-hidden">
+    <div ref={carouselRef} class="overflow-hidden" data-slot="carousel-content">
       <div
         class={cn(
           "flex",
@@ -180,6 +183,7 @@ const CarouselItem: Component<ComponentProps<"div">> = (props) => {
     <div
       role="group"
       aria-roledescription="slide"
+      data-slot="carousel-item"
       class={cn(
         "min-w-0 shrink-0 grow-0 basis-full",
         orientation === "horizontal" ? "pl-4" : "pt-4",
@@ -195,19 +199,20 @@ type CarouselButtonProps = VoidProps<ButtonProps>;
 const CarouselPrevious: Component<CarouselButtonProps> = (rawProps) => {
   const props = mergeProps<CarouselButtonProps[]>({
     variant: "outline",
-    size: "icon",
+    size: "icon-sm",
   }, rawProps);
   const [local, others] = splitProps(props, ["class", "variant", "size"]);
   const { orientation, scrollPrev, canScrollPrev } = useCarousel();
 
   return (
     <Button
+      data-slot="carousel-previous"
       variant={local.variant}
       size={local.size}
       class={cn(
-        "absolute size-8 touch-manipulation rounded-full",
+        "absolute touch-manipulation rounded-full",
         orientation === "horizontal"
-          ? "-left-12 top-1/2 -translate-y-1/2"
+          ? "inset-y-0 -left-12 my-auto"
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
         local.class,
       )}
@@ -215,20 +220,7 @@ const CarouselPrevious: Component<CarouselButtonProps> = (rawProps) => {
       onClick={scrollPrev}
       {...others}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="size-4"
-      >
-        <path d="M5 12l14 0" />
-        <path d="M5 12l6 6" />
-        <path d="M5 12l6 -6" />
-      </svg>
+      <ChevronLeft class="cn-rtl-flip" />
       <span class="sr-only">Previous slide</span>
     </Button>
   );
@@ -237,19 +229,20 @@ const CarouselPrevious: Component<CarouselButtonProps> = (rawProps) => {
 const CarouselNext: Component<CarouselButtonProps> = (rawProps) => {
   const props = mergeProps<CarouselButtonProps[]>({
     variant: "outline",
-    size: "icon",
+    size: "icon-sm",
   }, rawProps);
   const [local, others] = splitProps(props, ["class", "variant", "size"]);
   const { orientation, scrollNext, canScrollNext } = useCarousel();
 
   return (
     <Button
+      data-slot="carousel-next"
       variant={local.variant}
       size={local.size}
       class={cn(
-        "absolute size-8 touch-manipulation rounded-full",
+        "absolute touch-manipulation rounded-full",
         orientation === "horizontal"
-          ? "-right-12 top-1/2 -translate-y-1/2"
+          ? "inset-y-0 -right-12 my-auto"
           : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
         local.class,
       )}
@@ -257,20 +250,7 @@ const CarouselNext: Component<CarouselButtonProps> = (rawProps) => {
       onClick={scrollNext}
       {...others}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="size-4"
-      >
-        <path d="M5 12l14 0" />
-        <path d="M13 18l6 -6" />
-        <path d="M13 6l6 6" />
-      </svg>
+      <ChevronRight class="cn-rtl-flip" />
       <span class="sr-only">Next slide</span>
     </Button>
   );

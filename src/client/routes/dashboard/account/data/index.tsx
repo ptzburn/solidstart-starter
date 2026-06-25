@@ -1,7 +1,6 @@
 import { useSubmission } from "@solidjs/router";
 import { deleteAccount } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
-import { Button } from "~/client/components/ui/button.tsx";
 import {
   Item,
   ItemActions,
@@ -11,18 +10,16 @@ import {
   ItemTitle,
 } from "~/client/components/ui/item.tsx";
 import Mail from "~icons/lucide/mail";
-import { createEffect, type JSX } from "solid-js";
+import { createEffect, createSignal, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
-const DELETE_ACCOUNT_DIALOG_ID = "delete-account-dialog";
-
 function AccountDataPage(): JSX.Element {
-  let dialogRef!: HTMLDialogElement;
+  const [open, setOpen] = createSignal(false);
   const submission = useSubmission(deleteAccount);
 
   createEffect(() => {
     if (submission.result && "ok" in submission.result) {
-      dialogRef.close();
+      setOpen(false);
       toast.success("Deletion link sent to your email");
       submission.clear();
     }
@@ -52,30 +49,24 @@ function AccountDataPage(): JSX.Element {
             </ItemDescription>
           </ItemContent>
           <ItemActions>
-            <Button
-              variant="outline"
-              size="sm"
-              command="show-modal"
-              commandfor={DELETE_ACCOUNT_DIALOG_ID}
-              disabled={submission.pending}
-            >
-              Delete account
-            </Button>
+            <ConfirmDialog
+              open={open()}
+              onOpenChange={setOpen}
+              trigger="Delete account"
+              triggerVariant="outline"
+              triggerSize="sm"
+              triggerDisabled={submission.pending}
+              variant="destructive"
+              title="Delete account"
+              description="We will send you an email with a link to delete your account. Clicking the link will permanently delete your account and all associated data. This action cannot be undone."
+              confirmText="Send deletion link"
+              icon={<Mail />}
+              isPending={submission.pending}
+              action={deleteAccount}
+            />
           </ItemActions>
         </Item>
       </ItemGroup>
-
-      <ConfirmDialog
-        id={DELETE_ACCOUNT_DIALOG_ID}
-        ref={(el) => dialogRef = el}
-        variant="destructive"
-        title="Delete account"
-        description="We will send you an email with a link to delete your account. Clicking the link will permanently delete your account and all associated data. This action cannot be undone."
-        confirmText="Send deletion link"
-        icon={<Mail />}
-        isPending={submission.pending}
-        action={deleteAccount}
-      />
     </div>
   );
 }
