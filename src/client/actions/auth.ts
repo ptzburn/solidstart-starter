@@ -5,6 +5,7 @@ import {
   getServerHeaders,
 } from "~/api/lib/server-headers.ts";
 import { composeName } from "~/client/lib/name.ts";
+import { assertResendCooldown } from "~/client/lib/otp-cooldown.ts";
 import { usePendingForgotPasswordSession } from "~/client/lib/pending-forgot-password-session.ts";
 import { usePendingResetPasswordSession } from "~/client/lib/pending-reset-password-session.ts";
 import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts";
@@ -56,7 +57,10 @@ export const signIn = action(async (formData: FormData) => {
       error instanceof APIError && error.body?.code === "EMAIL_NOT_VERIFIED"
     ) {
       const session = await usePendingSigninSession();
-      await session.update({ email: result.data.email });
+      await session.update({
+        email: result.data.email,
+        lastSentAt: Date.now(),
+      });
       return redirect("/auth/sign-in/verify-email");
     }
     throw error;
@@ -110,7 +114,7 @@ export const signUp = action(async (formData: FormData) => {
   });
 
   const session = await usePendingSigninSession();
-  await session.update({ email: result.data.email });
+  await session.update({ email: result.data.email, lastSentAt: Date.now() });
   return redirectWithCookies(authHeaders, "/auth/sign-in/verify-email");
 }, "signUp");
 
@@ -204,10 +208,13 @@ export const resendEmailOtp = action(async () => {
   const email = session.data.email;
   if (!email) return redirect("/auth/sign-in");
 
+  assertResendCooldown(session.data.lastSentAt);
+
   await auth.api.sendVerificationOTP({
     body: { email, type: "email-verification" },
     headers: getServerHeaders(),
   });
+  await session.update({ email, lastSentAt: Date.now() });
   return { ok: true };
 }, "resendEmailOtp");
 

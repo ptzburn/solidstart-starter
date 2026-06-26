@@ -2,6 +2,8 @@ import { action } from "@solidjs/router";
 import { auth } from "~/api/lib/auth.ts";
 import { getServerHeaders } from "~/api/lib/server-headers.ts";
 import { composeName } from "~/client/lib/name.ts";
+import { assertResendCooldown } from "~/client/lib/otp-cooldown.ts";
+import { usePendingPhoneSession } from "~/client/lib/pending-phone-session.ts";
 import {
   RequestEmailChangeSchema,
   SendPhoneOtpSchema,
@@ -78,10 +80,14 @@ export const sendPhoneOtp = action(async (formData: FormData) => {
   );
   if (conflict) return conflict;
 
+  const pending = await usePendingPhoneSession();
+  assertResendCooldown(pending.data.lastSentAt);
+
   await auth.api.sendPhoneNumberOTP({
     body: { phoneNumber: result.data.phoneNumber },
     headers,
   });
+  await pending.update({ lastSentAt: Date.now() });
 
   return { ok: true as const, phoneNumber: result.data.phoneNumber };
 }, "sendPhoneOtp");
@@ -103,6 +109,9 @@ export const verifyPhoneNumber = action(async (formData: FormData) => {
     },
     headers: getServerHeaders(),
   });
+
+  const pending = await usePendingPhoneSession();
+  await pending.clear();
 
   return { ok: true as const };
 }, "verifyPhoneNumber");

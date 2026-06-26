@@ -6,42 +6,20 @@ import {
   useSubmissionError,
   useSubmissionSuccess,
 } from "~/client/hooks/use-submission.ts";
-import { createSignal, type JSX, onCleanup, onMount } from "solid-js";
+import { createSignal, type JSX } from "solid-js";
 import { AuthHeader } from "./auth-header.tsx";
-
-const RESEND_COOLDOWN = 60;
 
 export function OTPValidation(props: { email: string }): JSX.Element {
   const [otp, setOtp] = createSignal("");
-  const [cooldown, setCooldown] = createSignal(RESEND_COOLDOWN);
-  let timer: ReturnType<typeof setInterval> | undefined;
 
   const verify = useSubmission(verifyEmailOtp);
   const resend = useSubmission(resendEmailOtp);
 
-  function startCooldown(): void {
-    setCooldown(RESEND_COOLDOWN);
-    clearInterval(timer);
-    timer = setInterval(() => {
-      setCooldown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }
-
-  onMount(() => startCooldown());
-  onCleanup(() => clearInterval(timer));
-
   useSubmissionError(verify, "Verification failed");
 
-  useSubmissionSuccess(resend, {
-    successMessage: "OTP sent successfully",
-    onSuccess: () => startCooldown(),
-  });
+  // The resend cooldown is enforced server-side (see ~/client/lib/otp-cooldown.ts);
+  // resending too soon surfaces as an error toast below.
+  useSubmissionSuccess(resend, { successMessage: "OTP sent successfully" });
   useSubmissionError(resend, "Failed to send OTP");
 
   return (
@@ -81,9 +59,9 @@ export function OTPValidation(props: { email: string }): JSX.Element {
           type="submit"
           variant="link"
           class="h-auto p-0 text-sm"
-          disabled={resend.pending || cooldown() > 0}
+          disabled={resend.pending}
         >
-          {cooldown() > 0 ? `Resend (${cooldown()}s)` : "Resend"}
+          Resend
         </Button>
       </form>
       <A href="/auth/sign-in" class="w-full">
