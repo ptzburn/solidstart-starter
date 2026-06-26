@@ -1,6 +1,6 @@
 import { action } from "@solidjs/router";
+import { orpcClient } from "~/api/lib/orpc-client.ts";
 import { parseFields } from "~/client/utils/form-errors.ts";
-import { orpcClient } from "~/shared/orpc-client.ts";
 import { z } from "zod";
 
 const NewTaskSchema = z.object({

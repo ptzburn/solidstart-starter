@@ -1,5 +1,5 @@
 import { passkeyClient } from "@better-auth/passkey/client";
-import type { auth } from "~/shared/auth.ts";
+import type { auth } from "~/api/lib/auth.ts";
 import {
   adminClient,
   emailOTPClient,

@@ -5,6 +5,7 @@ import {
   useSubmission,
   useSubmissions,
 } from "@solidjs/router";
+import type { SelectTask } from "~/api/types/task.ts";
 import {
   createTaskAction,
   deleteTaskAction,
@@ -26,7 +27,6 @@ import { Separator } from "~/client/components/ui/separator.tsx";
 import { Skeleton } from "~/client/components/ui/skeleton.tsx";
 import { cn } from "~/client/lib/utils.ts";
 import { getTasksQuery } from "~/client/queries/tasks.ts";
-import type { SelectTask } from "~/shared/types.ts";
 import CircleCheckBig from "~icons/lucide/circle-check-big";
 import ClipboardList from "~icons/lucide/clipboard-list";
 import Plus from "~icons/lucide/plus";

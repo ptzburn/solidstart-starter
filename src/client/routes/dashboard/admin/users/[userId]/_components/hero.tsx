@@ -1,12 +1,12 @@
+import type { SelectUser } from "~/api/types/auth.ts";
+
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "~/client/components/ui/avatar.tsx";
-
 import { Card } from "~/client/components/ui/card.tsx";
 import { getFileUrl, getInitials } from "~/client/lib/utils.ts";
-import type { SelectUser } from "~/shared/types/auth.ts";
 import type { Accessor, JSX } from "solid-js";
 
 type HeroProps = {

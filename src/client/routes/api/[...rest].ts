@@ -3,9 +3,9 @@ import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import type { APIEvent } from "@solidjs/start/server";
+import { auth } from "~/api/lib/auth.ts";
+import logger from "~/api/lib/logger.ts";
 import router from "~/api/router/index.ts";
-import { auth } from "~/shared/auth.ts";
-import logger from "~/shared/logger.ts";
 
 const orpcHandler = new OpenAPIHandler(router, {
   plugins: [

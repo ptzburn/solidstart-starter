@@ -1,3 +1,4 @@
+import type { SelectUser } from "~/api/types/auth.ts";
 import {
   Item,
   ItemActions,
@@ -7,7 +8,6 @@ import {
   ItemSeparator,
   ItemTitle,
 } from "~/client/components/ui/item.tsx";
-import type { SelectUser } from "~/shared/types/auth.ts";
 import ALargeSmall from "~icons/lucide/a-large-small";
 import Calendar from "~icons/lucide/calendar";
 import Mail from "~icons/lucide/mail";

@@ -1,5 +1,5 @@
+import { auth } from "~/api/lib/auth.ts";
 import { base } from "~/api/os.ts";
-import { auth } from "~/shared/auth.ts";
 
 export const authMiddleware = base.middleware(
   async ({ context, next, errors }) => {

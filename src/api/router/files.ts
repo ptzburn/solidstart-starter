@@ -1,7 +1,7 @@
 import { ORPCError } from "@orpc/server";
+import { auth } from "~/api/lib/auth.ts";
 import { authProcedure } from "~/api/router/builder.ts";
 import * as filesService from "~/api/services/files.ts";
-import { auth } from "~/shared/auth.ts";
 import { z } from "zod";
 
 const ImageFileSchema = z.object({

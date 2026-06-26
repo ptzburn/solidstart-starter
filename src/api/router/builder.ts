@@ -1,6 +1,6 @@
 import { authMiddleware } from "~/api/middlewares/auth.ts";
 import { base, type InitialContext } from "~/api/os.ts";
-import type { SelectSession, SelectUser } from "~/shared/types/auth.ts";
+import type { SelectSession, SelectUser } from "~/api/types/auth.ts";
 
 export type AuthedContext = InitialContext & {
   user: SelectUser;

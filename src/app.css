@@ -34,18 +34,6 @@
 
     --destructive: oklch(0.577 0.245 27.325);
 
-    --info: hsl(204 94% 94%);
-    --info-foreground: hsl(199 89% 48%);
-
-    --success: hsl(149 80% 90%);
-    --success-foreground: hsl(160 84% 39%);
-
-    --warning: hsl(48 96% 89%);
-    --warning-foreground: hsl(25 95% 53%);
-
-    --error: hsl(0 93% 94%);
-    --error-foreground: hsl(0 84% 60%);
-
     --ring: oklch(0.708 0 0);
 
     --chart-1: oklch(0.87 0 0);
@@ -92,18 +80,6 @@
 
     --destructive: oklch(0.704 0.191 22.216);
 
-    --info: hsl(226.2 57% 21%);
-    --info-foreground: hsl(199 89% 48%);
-
-    --success: hsl(165.7 91.3% 9%);
-    --success-foreground: hsl(160 84% 39%);
-
-    --warning: hsl(26 83.3% 14.1%);
-    --warning-foreground: hsl(25 95% 53%);
-
-    --error: hsl(0 74.7% 15.5%);
-    --error-foreground: hsl(0 84% 60%);
-
     --ring: oklch(0.556 0 0);
 
     --chart-1: oklch(0.87 0 0);
@@ -129,6 +105,10 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  html {
+    @apply font-sans;
   }
 
   button:not(:disabled), [role="button"]:not(:disabled) {
@@ -186,18 +166,6 @@
   --color-secondary-foreground: var(--secondary-foreground);
 
   --color-destructive: var(--destructive);
-
-  --color-info: var(--info);
-  --color-info-foreground: var(--info-foreground);
-
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-
-  --color-error: var(--error);
-  --color-error-foreground: var(--error-foreground);
 
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
@@ -296,10 +264,6 @@
   --animate-content-show: content-show 0.2s ease-out;
   --animate-content-hide: content-hide 0.2s ease-out;
   --animate-caret-blink: caret-blink 1.25s ease-out infinite;
-}
-
-@utility cn-font-heading {
-  font-family: var(--font-heading);
 }
 
 @utility cn-input-otp {

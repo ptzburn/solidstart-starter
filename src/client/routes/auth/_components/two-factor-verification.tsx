@@ -166,6 +166,7 @@ function BackupCodeForm(props: {
           label="Backup Code"
           required
           placeholder="Enter your backup code"
+          hint="Enter your backup code"
           error={fieldErrors().code}
           disabled={submission.pending}
         />

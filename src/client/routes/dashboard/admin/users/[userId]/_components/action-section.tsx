@@ -1,4 +1,5 @@
 import { useSubmission } from "@solidjs/router";
+import type { SelectUser } from "~/api/types/auth.ts";
 import { impersonateUser, removeUser } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
@@ -9,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/client/components/ui/card.tsx";
-import type { SelectUser } from "~/shared/types/auth.ts";
 import Drama from "~icons/lucide/drama";
 import LoaderCircle from "~icons/lucide/loader-circle";
 import Trash2 from "~icons/lucide/trash-2";

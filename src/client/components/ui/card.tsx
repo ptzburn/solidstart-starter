@@ -40,7 +40,7 @@ const CardTitle: Component<ComponentProps<"div">> = (props) => {
     <div
       data-slot="card-title"
       class={cn(
-        "cn-font-heading font-medium text-base leading-snug group-data-[size=sm]/card:text-sm",
+        "font-heading font-medium text-base leading-snug group-data-[size=sm]/card:text-sm",
         local.class,
       )}
       {...others}

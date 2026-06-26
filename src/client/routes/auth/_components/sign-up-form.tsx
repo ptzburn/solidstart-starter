@@ -87,6 +87,7 @@ export default function SignUpForm(): JSX.Element {
           minlength={8}
           required
           placeholder="••••••••"
+          hint="Password must be at least 8 characters"
           error={fieldErrors().confirmPassword}
           disabled={submission.pending}
         />
