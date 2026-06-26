@@ -22,6 +22,7 @@ import {
   PaginationPrevious,
 } from "~/client/components/ui/pagination.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
+import { Typography } from "~/client/components/ui/typography.tsx";
 import { listUsersQuery, USERS_PAGE_SIZE } from "~/client/queries/auth.ts";
 import UsersIcon from "~icons/lucide/users";
 import {
@@ -86,7 +87,7 @@ export default function UsersPage(): JSX.Element {
   return (
     <div class="flex flex-1 flex-col gap-6">
       <div class="flex flex-col gap-2">
-        <h2>Users</h2>
+        <Typography variant="h2">Users</Typography>
         <p class="text-muted-foreground">
           Manage users and their permissions.
         </p>

@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/client/components/ui/table.tsx";
+import { Typography } from "~/client/components/ui/typography.tsx";
 import { useSession } from "~/client/contexts/session-context.tsx";
 import { listSessionsQuery } from "~/client/queries/auth.ts";
 import LogOut from "~icons/lucide/log-out";
@@ -148,7 +149,7 @@ export default function SessionsRoute(): JSX.Element {
   return (
     <div class="flex flex-1 flex-col gap-4">
       <div>
-        <h2>Sessions</h2>
+        <Typography variant="h2">Sessions</Typography>
         <p class="text-muted-foreground">
           Manage your active sessions.
         </p>

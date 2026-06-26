@@ -15,6 +15,7 @@ import {
 } from "~/client/components/ui/item.tsx";
 import { Skeleton } from "~/client/components/ui/skeleton.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
+import { Typography } from "~/client/components/ui/typography.tsx";
 import { authClient } from "~/client/lib/auth-client.ts";
 import { listPasskeysQuery } from "~/client/queries/auth.ts";
 import Fingerprint from "~icons/lucide/fingerprint-pattern";
@@ -121,9 +122,9 @@ export function PasskeySection(): JSX.Element {
                       <ItemSeparator />
                       <Item size="sm">
                         <ItemContent>
-                          <p class="text-muted-foreground text-sm">
+                          <Typography variant="muted">
                             No passkeys registered
-                          </p>
+                          </Typography>
                         </ItemContent>
                       </Item>
                     </>

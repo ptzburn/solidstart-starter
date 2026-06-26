@@ -8,6 +8,7 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "~/client/components/ui/input-otp.tsx";
+import { Typography } from "~/client/components/ui/typography.tsx";
 import {
   createEffect,
   createSignal,
@@ -67,9 +68,9 @@ export function OTPValidation(props: { email: string }): JSX.Element {
     <div class="space-y-8">
       <div class="flex flex-col items-center gap-2 text-center">
         <h1 class="font-bold text-2xl">OTP Verification</h1>
-        <p class="text-balance text-muted-foreground text-sm">
+        <Typography variant="muted" class="text-balance">
           Enter the code sent to {props.email} to verify your account.
-        </p>
+        </Typography>
       </div>
       <form
         method="post"

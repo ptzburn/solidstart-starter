@@ -3,6 +3,7 @@ import { A, useSubmission } from "@solidjs/router";
 import { requestPasswordReset } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
+import { Typography } from "~/client/components/ui/typography.tsx";
 import { createEffect, createSignal, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
 
@@ -37,9 +38,9 @@ export default function ForgotPasswordPage(): JSX.Element {
     >
       <div class="flex flex-col items-center gap-2 text-center">
         <h1 class="font-bold text-2xl">Forgot Password</h1>
-        <p class="text-balance text-muted-foreground text-sm">
+        <Typography variant="muted" class="text-balance">
           Enter your email to request a password reset.
-        </p>
+        </Typography>
       </div>
       <div class="grid gap-6">
         <TextField

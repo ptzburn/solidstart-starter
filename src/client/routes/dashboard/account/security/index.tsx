@@ -11,6 +11,7 @@ import {
   ItemTitle,
 } from "~/client/components/ui/item.tsx";
 import { Skeleton } from "~/client/components/ui/skeleton.tsx";
+import { Typography } from "~/client/components/ui/typography.tsx";
 import { listAccountsQuery, listPasskeysQuery } from "~/client/queries/auth.ts";
 import { ErrorBoundary, type JSX, Show, Suspense } from "solid-js";
 import { ChangePasswordDialog } from "./_components/change-password-dialog.tsx";
@@ -65,7 +66,7 @@ export default function SecurityPage(): JSX.Element {
   return (
     <div class="flex flex-1 flex-col gap-10">
       <div>
-        <h2>Security</h2>
+        <Typography variant="h2">Security</Typography>
         <p class="text-muted-foreground">
           Manage your account security settings
         </p>

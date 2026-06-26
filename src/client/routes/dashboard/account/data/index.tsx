@@ -9,6 +9,7 @@ import {
   ItemGroup,
   ItemTitle,
 } from "~/client/components/ui/item.tsx";
+import { Typography } from "~/client/components/ui/typography.tsx";
 import Mail from "~icons/lucide/mail";
 import { createEffect, createSignal, type JSX } from "solid-js";
 import { toast } from "solid-sonner";
@@ -35,7 +36,7 @@ function AccountDataPage(): JSX.Element {
   return (
     <div class="flex flex-1 flex-col gap-10">
       <div>
-        <h2>Data</h2>
+        <Typography variant="h2">Data</Typography>
         <p class="text-muted-foreground">
           Manage your account data.
         </p>

@@ -25,6 +25,7 @@ import { Input } from "~/client/components/ui/input.tsx";
 import { Progress } from "~/client/components/ui/progress.tsx";
 import { Separator } from "~/client/components/ui/separator.tsx";
 import { Skeleton } from "~/client/components/ui/skeleton.tsx";
+import { Typography } from "~/client/components/ui/typography.tsx";
 import { cn } from "~/client/lib/utils.ts";
 import { getTasksQuery } from "~/client/queries/tasks.ts";
 import CircleCheckBig from "~icons/lucide/circle-check-big";
@@ -203,7 +204,7 @@ export default function Main(): JSX.Element {
   return (
     <div class="flex flex-1 flex-col gap-6">
       <div class="flex flex-col gap-2">
-        <h2>Tasks</h2>
+        <Typography variant="h2">Tasks</Typography>
         <p class="text-muted-foreground">
           Manage your to-do list and track your progress.
         </p>

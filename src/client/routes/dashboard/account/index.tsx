@@ -10,6 +10,7 @@ import {
   ItemSeparator,
   ItemTitle,
 } from "~/client/components/ui/item.tsx";
+import { Typography } from "~/client/components/ui/typography.tsx";
 
 import { useSession } from "~/client/contexts/session-context.tsx";
 
@@ -43,7 +44,7 @@ export default function AccountIndexRoute(): JSX.Element {
     <div class="flex flex-1 flex-col gap-10">
       <div class="flex w-full items-center justify-between gap-4">
         <div>
-          <h2>Account</h2>
+          <Typography variant="h2">Account</Typography>
           <p class="text-muted-foreground">
             Manage your account settings and preferences.
           </p>

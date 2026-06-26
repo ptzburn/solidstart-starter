@@ -19,6 +19,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/client/components/ui/tooltip.tsx";
+import { Typography } from "~/client/components/ui/typography.tsx";
 import CircleQuestionMark from "~icons/lucide/circle-question-mark";
 import {
   type Accessor,
@@ -75,9 +76,9 @@ function TotpForm(props: {
     <div class="space-y-8">
       <div class="flex flex-col items-center gap-2 text-center">
         <h1 class="font-bold text-2xl">Two-Factor Authentication</h1>
-        <p class="text-balance text-muted-foreground text-sm">
+        <Typography variant="muted" class="text-balance">
           Enter the code from your authenticator app.
-        </p>
+        </Typography>
       </div>
       <form
         method="post"
@@ -149,9 +150,9 @@ function BackupCodeForm(props: {
     <div class="space-y-8">
       <div class="flex flex-col items-center gap-2 text-center">
         <h1 class="font-bold text-2xl">Two-Factor Authentication</h1>
-        <p class="text-balance text-muted-foreground text-sm">
+        <Typography variant="muted" class="text-balance">
           Enter one of the backup codes you saved when enabling 2FA.
-        </p>
+        </Typography>
       </div>
       <form
         method="post"

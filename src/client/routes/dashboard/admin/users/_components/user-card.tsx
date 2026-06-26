@@ -15,6 +15,7 @@ import {
   CardFooter,
   CardHeader,
 } from "~/client/components/ui/card.tsx";
+import { Typography } from "~/client/components/ui/typography.tsx";
 
 import { getFileUrl, getInitials } from "~/client/lib/utils.ts";
 import Drama from "~icons/lucide/drama";
@@ -64,10 +65,12 @@ export function UserCard(props: UserCardProps): JSX.Element {
             <AvatarFallback>{getInitials(props.user.name)}</AvatarFallback>
           </Avatar>
           <div class="flex min-w-0 flex-1 flex-col gap-1">
-            <h3 class="truncate font-semibold">{props.user.name}</h3>
-            <p class="truncate text-muted-foreground text-sm">
+            <Typography variant="h3" class="truncate font-semibold">
+              {props.user.name}
+            </Typography>
+            <Typography variant="muted" class="truncate">
               {props.user.email}
-            </p>
+            </Typography>
           </div>
           <Badge class="border border-border bg-card text-foreground">
             {getRoleLabel(props.user.role)}

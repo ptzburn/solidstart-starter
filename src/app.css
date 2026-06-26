@@ -115,13 +115,6 @@
     cursor: pointer;
   }
 
-  h2 {
-    @apply text-xl tracking-wide font-medium md:text-2xl;
-  }
-  h3 {
-    @apply text-lg tracking-wide font-medium md:text-xl;
-  }
-
   @media (max-width: 640px) {
     .container {
       @apply px-4;

@@ -2,6 +2,7 @@ import { A, useLocation, useSubmission } from "@solidjs/router";
 import { resetPassword } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
+import { Typography } from "~/client/components/ui/typography.tsx";
 import { createEffect, type JSX, Show } from "solid-js";
 import { toast } from "solid-sonner";
 
@@ -28,9 +29,9 @@ export default function ResetPasswordPage(): JSX.Element {
         <div class="space-y-6">
           <div class="flex flex-col items-center gap-2 text-center">
             <h1 class="font-bold text-2xl">Invalid Link</h1>
-            <p class="text-balance text-muted-foreground text-sm">
+            <Typography variant="muted" class="text-balance">
               The link is invalid or has expired.
-            </p>
+            </Typography>
           </div>
           <div class="text-center">
             <A
@@ -55,9 +56,9 @@ export default function ResetPasswordPage(): JSX.Element {
           <input type="hidden" name="token" value={t()} />
           <div class="flex flex-col items-center gap-2 text-center">
             <h1 class="font-bold text-2xl">Reset Password</h1>
-            <p class="text-balance text-muted-foreground text-sm">
+            <Typography variant="muted" class="text-balance">
               Enter your new password below.
-            </p>
+            </Typography>
           </div>
           <div class="grid gap-6">
             <TextField
