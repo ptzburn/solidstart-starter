@@ -32,3 +32,13 @@ export function parseFields<T extends z.ZodObject>(
   }
   return { data: parsed.data };
 }
+
+// For trusted hidden fields (ids, tokens) that the user never types: there is no
+// inline-error UX to deliver, so guard presence and let the auth layer validate the value.
+export function requireField(formData: FormData, name: string): string {
+  const value = formData.get(name);
+  if (typeof value !== "string" || value.length === 0) {
+    throw new Error(`Missing required field: ${name}`);
+  }
+  return value;
+}

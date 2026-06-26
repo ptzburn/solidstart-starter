@@ -12,15 +12,9 @@ import {
   AdminUpdateUserNameSchema,
   ChangePasswordSchema,
   ConfirmTwoFactorTotpSchema,
-  DeletePasskeySchema,
-  DisableTwoFactorSchema,
-  EnableTwoFactorSchema,
   ForgotPasswordSchema,
-  GenerateBackupCodesSchema,
-  ImpersonateUserSchema,
-  RemoveUserSchema,
+  PasswordPromptSchema,
   ResetPasswordSchema,
-  RevokeSessionSchema,
   SetUserRoleSchema,
   SignInSchema,
   SignInSocialSchema,
@@ -29,7 +23,7 @@ import {
   VerifyTwoFactorBackupSchema,
   VerifyTwoFactorTotpSchema,
 } from "~/client/schemas/auth.ts";
-import { parseFields } from "~/client/utils/form-errors.ts";
+import { parseFields, requireField } from "~/client/utils/form-errors.ts";
 import { redirectWithCookies } from "~/client/utils/redirect.ts";
 import env from "~/env.ts";
 import { APIError } from "better-auth/api";
@@ -301,13 +295,8 @@ export const setUserRole = action(async (formData: FormData) => {
 
 export const impersonateUser = action(async (formData: FormData) => {
   "use server";
-  const result = parseFields(ImpersonateUserSchema, {
-    userId: formData.get("userId"),
-  });
-  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
-
   const { headers: authHeaders } = await auth.api.impersonateUser({
-    body: { userId: result.data.userId },
+    body: { userId: requireField(formData, "userId") },
     headers: getServerHeaders(),
     returnHeaders: true,
   });
@@ -317,13 +306,8 @@ export const impersonateUser = action(async (formData: FormData) => {
 
 export const removeUser = action(async (formData: FormData) => {
   "use server";
-  const result = parseFields(RemoveUserSchema, {
-    userId: formData.get("userId"),
-  });
-  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
-
   await auth.api.removeUser({
-    body: { userId: result.data.userId },
+    body: { userId: requireField(formData, "userId") },
     headers: getServerHeaders(),
   });
 
@@ -352,13 +336,8 @@ export const stopImpersonating = action(async () => {
 
 export const revokeSession = action(async (formData: FormData) => {
   "use server";
-  const result = parseFields(RevokeSessionSchema, {
-    token: formData.get("token"),
-  });
-  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
-
   await auth.api.revokeSession({
-    body: { token: result.data.token },
+    body: { token: requireField(formData, "token") },
     headers: getServerHeaders(),
   });
 
@@ -384,7 +363,7 @@ export const deleteAccount = action(async () => {
 
 export const enableTwoFactor = action(async (formData: FormData) => {
   "use server";
-  const result = parseFields(EnableTwoFactorSchema, {
+  const result = parseFields(PasswordPromptSchema, {
     password: formData.get("password"),
   });
   if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
@@ -418,7 +397,7 @@ export const confirmTwoFactorTotp = action(async (formData: FormData) => {
 
 export const disableTwoFactor = action(async (formData: FormData) => {
   "use server";
-  const result = parseFields(DisableTwoFactorSchema, {
+  const result = parseFields(PasswordPromptSchema, {
     password: formData.get("password"),
   });
   if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
@@ -435,7 +414,7 @@ export const disableTwoFactor = action(async (formData: FormData) => {
 
 export const generateBackupCodes = action(async (formData: FormData) => {
   "use server";
-  const result = parseFields(GenerateBackupCodesSchema, {
+  const result = parseFields(PasswordPromptSchema, {
     password: formData.get("password"),
   });
   if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
@@ -450,13 +429,8 @@ export const generateBackupCodes = action(async (formData: FormData) => {
 
 export const deletePasskey = action(async (formData: FormData) => {
   "use server";
-  const result = parseFields(DeletePasskeySchema, {
-    id: formData.get("id"),
-  });
-  if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
-
   await auth.api.deletePasskey({
-    body: { id: result.data.id },
+    body: { id: requireField(formData, "id") },
     headers: getServerHeaders(),
   });
 
