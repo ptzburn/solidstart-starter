@@ -62,6 +62,7 @@ export function EmailDialog(props: EmailDialogProps): JSX.Element {
           name="email"
           type="email"
           label="Email"
+          hint="Enter a valid email"
           placeholder="johndoe@example.com"
           value={props.currentEmail}
           required

@@ -151,10 +151,13 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
           >
             <TextField
               name="phoneNumber"
+              type="tel"
               label="Phone number"
               placeholder="+358401234567"
               value={props.currentPhoneNumber ?? ""}
               required
+              pattern="\+358\d{9}"
+              hint="Enter a Finnish number, e.g. +358401234567"
               error={sendFieldErrors().phoneNumber}
               disabled={sendSubmission.pending}
             />
