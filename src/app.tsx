@@ -3,10 +3,11 @@ import {
   ColorModeScript,
   cookieStorageManagerSSR,
 } from "@kobalte/core";
-import { MetaProvider } from "@solidjs/meta";
+import { Meta, MetaProvider, Title } from "@solidjs/meta";
 import { Router } from "@solidjs/router";
 import { getCookie } from "@solidjs/start/http";
 import { FileRoutes } from "@solidjs/start/router";
+import { SITE_NAME } from "~/client/components/seo.tsx";
 import { Toaster } from "~/client/components/ui/sonner.tsx";
 import { type JSX, Suspense } from "solid-js";
 
@@ -37,6 +38,15 @@ export default function App(): JSX.Element {
       singleFlight={false}
       root={(props) => (
         <MetaProvider>
+          {
+            /* Site-wide defaults. Routes override the title and set their own
+              description/OG via <Seo>; only constants that never vary per page
+              live here (see seo.tsx for the cascading caveat). */
+          }
+          <Title>{SITE_NAME}</Title>
+          <Meta property="og:type" content="website" />
+          <Meta property="og:site_name" content={SITE_NAME} />
+          <Meta name="twitter:card" content="summary_large_image" />
           <ColorModeScript storageType={storageManager.type} />
           <ColorModeProvider storageManager={storageManager}>
             <div class="flex h-dvh">
