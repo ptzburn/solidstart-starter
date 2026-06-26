@@ -1,4 +1,9 @@
 import { action, redirect } from "@solidjs/router";
+import { auth } from "~/api/lib/auth.ts";
+import {
+  forwardAuthCookies,
+  getServerHeaders,
+} from "~/api/lib/server-headers.ts";
 import { usePendingForgotPasswordSession } from "~/client/lib/pending-forgot-password-session.ts";
 import { usePendingResetPasswordSession } from "~/client/lib/pending-reset-password-session.ts";
 import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts";
@@ -27,11 +32,6 @@ import {
 import { parseFields } from "~/client/utils/form-errors.ts";
 import { redirectWithCookies } from "~/client/utils/redirect.ts";
 import env from "~/env.ts";
-import { auth } from "~/shared/auth.ts";
-import {
-  forwardAuthCookies,
-  getServerHeaders,
-} from "~/shared/server-headers.ts";
 import { APIError } from "better-auth/api";
 import QRCode from "qrcode";
 

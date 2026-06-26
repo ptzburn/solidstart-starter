@@ -1,7 +1,7 @@
 import { redirect } from "@solidjs/router";
 import { createMiddleware } from "@solidjs/start/middleware";
+import { auth } from "~/api/lib/auth.ts";
 import env from "~/env.ts";
-import { auth } from "~/shared/auth.ts";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS", "TRACE"]);
 

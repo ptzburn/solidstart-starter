@@ -1,4 +1,5 @@
 import { A, useSubmission } from "@solidjs/router";
+import type { SelectUser } from "~/api/types/auth.ts";
 import { impersonateUser } from "~/client/actions/auth.ts";
 import {
   Avatar,
@@ -7,6 +8,7 @@ import {
 } from "~/client/components/ui/avatar.tsx";
 import { Badge } from "~/client/components/ui/badge.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
+
 import {
   Card,
   CardContent,
@@ -15,8 +17,6 @@ import {
 } from "~/client/components/ui/card.tsx";
 
 import { getFileUrl, getInitials } from "~/client/lib/utils.ts";
-
-import type { SelectUser } from "~/shared/types/auth.ts";
 import Drama from "~icons/lucide/drama";
 import LoaderCircle from "~icons/lucide/loader-circle";
 import { format } from "date-fns";

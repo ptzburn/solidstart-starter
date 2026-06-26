@@ -1,7 +1,7 @@
 import { query } from "@solidjs/router";
-import { auth } from "~/shared/auth.ts";
-import { getServerHeaders } from "~/shared/server-headers.ts";
-import type { SelectUser } from "~/shared/types/auth.ts";
+import { auth } from "~/api/lib/auth.ts";
+import { getServerHeaders } from "~/api/lib/server-headers.ts";
+import type { SelectUser } from "~/api/types/auth.ts";
 
 export const getUserByIdQuery = query(async (userId: string) => {
   "use server";

@@ -1,10 +1,10 @@
 import { revalidate, useSubmission } from "@solidjs/router";
+import type { SelectUser } from "~/api/types/auth.ts";
 import { adminUpdateUserName } from "~/client/actions/auth.ts";
 import { ResponsiveDialog } from "~/client/components/responsive-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
 import { getUserByIdQuery } from "~/client/queries/users.ts";
-import type { SelectUser } from "~/shared/types/auth.ts";
 import { createEffect, createSignal, type JSX } from "solid-js";
 import type { Accessor } from "solid-js";
 import { toast } from "solid-sonner";

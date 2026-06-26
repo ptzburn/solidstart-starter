@@ -1,7 +1,7 @@
 import { createRouterClient, onError, ORPCError } from "@orpc/server";
+import logger from "~/api/lib/logger.ts";
+import { getServerHeaders } from "~/api/lib/server-headers.ts";
 import router from "~/api/router/index.ts";
-import logger from "~/shared/logger.ts";
-import { getServerHeaders } from "~/shared/server-headers.ts";
 
 export const orpcClient = createRouterClient(router, {
   context: () => ({ headers: getServerHeaders() }),

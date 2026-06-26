@@ -1,6 +1,6 @@
 import { useSession } from "@solidjs/start/http";
+import { COOKIE_PREFIX } from "~/api/lib/auth.ts";
 import env from "~/env.ts";
-import { COOKIE_PREFIX } from "~/shared/auth.ts";
 
 type PendingSigninSessionData = { email: string };
 

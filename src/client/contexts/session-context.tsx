@@ -1,4 +1,4 @@
-import type { SelectSession, SelectUser } from "~/shared/types/auth.ts";
+import type { SelectSession, SelectUser } from "~/api/types/auth.ts";
 
 import { createContext, type JSX, useContext } from "solid-js";
 

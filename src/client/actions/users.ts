@@ -1,4 +1,6 @@
 import { action } from "@solidjs/router";
+import { auth } from "~/api/lib/auth.ts";
+import { getServerHeaders } from "~/api/lib/server-headers.ts";
 import { capitalize } from "~/client/lib/utils.ts";
 import {
   type RequestEmailChangeFieldErrors,
@@ -9,8 +11,6 @@ import {
   VerifyPhoneOtpSchema,
 } from "~/client/schemas/users.ts";
 import { parseFields } from "~/client/utils/form-errors.ts";
-import { auth } from "~/shared/auth.ts";
-import { getServerHeaders } from "~/shared/server-headers.ts";
 
 export const updateUserName = action(async (formData: FormData) => {
   "use server";

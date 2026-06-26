@@ -1,11 +1,11 @@
 import { query, redirect } from "@solidjs/router";
 import { parseCookies } from "@solidjs/start/http";
+import { auth, COOKIE_PREFIX } from "~/api/lib/auth.ts";
+import { getServerHeaders } from "~/api/lib/server-headers.ts";
+import type { SelectUser } from "~/api/types/auth.ts";
 import { usePendingForgotPasswordSession } from "~/client/lib/pending-forgot-password-session.ts";
 import { usePendingResetPasswordSession } from "~/client/lib/pending-reset-password-session.ts";
 import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts";
-import { auth, COOKIE_PREFIX } from "~/shared/auth.ts";
-import { getServerHeaders } from "~/shared/server-headers.ts";
-import type { SelectUser } from "~/shared/types/auth.ts";
 
 export const getSessionQuery = query(async () => {
   "use server";
