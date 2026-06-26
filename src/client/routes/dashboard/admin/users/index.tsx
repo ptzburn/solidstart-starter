@@ -4,7 +4,8 @@ import {
   type RouteDefinition,
   useSearchParams,
 } from "@solidjs/router";
-import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
+import { DataBoundary } from "~/client/components/data-boundary.tsx";
+import { PageHeader } from "~/client/components/page-header.tsx";
 
 import {
   Empty,
@@ -24,14 +25,7 @@ import {
 import { Spinner } from "~/client/components/ui/spinner.tsx";
 import { listUsersQuery, USERS_PAGE_SIZE } from "~/client/queries/auth.ts";
 import UsersIcon from "~icons/lucide/users";
-import {
-  createMemo,
-  ErrorBoundary,
-  For,
-  type JSX,
-  Show,
-  Suspense,
-} from "solid-js";
+import { createMemo, For, type JSX, Show } from "solid-js";
 import { UserCard } from "./_components/user-card.tsx";
 import { UserSearch } from "./_components/user-search.tsx";
 
@@ -85,83 +79,78 @@ export default function UsersPage(): JSX.Element {
 
   return (
     <div class="flex flex-1 flex-col gap-6">
-      <div class="flex flex-col gap-2">
-        <h2>Users</h2>
-        <p class="text-muted-foreground">
-          Manage users and their permissions.
-        </p>
-      </div>
+      <PageHeader
+        title="Users"
+        description="Manage users and their permissions."
+        class="flex flex-col gap-2"
+      />
 
       <div class="flex flex-1 flex-col gap-6">
         <UserSearch />
-        <ErrorBoundary
-          fallback={(error) => <ErrorBoundaryMessage error={error} />}
+        <DataBoundary
+          fallback={
+            <div class="flex flex-1 items-center justify-center">
+              <Spinner class="size-10" />
+            </div>
+          }
         >
-          <Suspense
-            fallback={
-              <div class="flex flex-1 items-center justify-center">
-                <Spinner class="size-10" />
-              </div>
-            }
-          >
-            <Show when={data()}>
-              {(result) => (
-                <Show
-                  when={result().users.length !== 0}
-                  fallback={
-                    <Empty>
-                      <EmptyHeader>
-                        <EmptyMedia variant="icon">
-                          <UsersIcon />
-                        </EmptyMedia>
-                        <EmptyTitle>No users found</EmptyTitle>
-                        <EmptyDescription>
-                          No users found.
-                        </EmptyDescription>
-                      </EmptyHeader>
-                    </Empty>
-                  }
-                >
-                  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <For each={result().users}>
-                      {(user) => <UserCard user={user} />}
-                    </For>
-                  </div>
+          <Show when={data()}>
+            {(result) => (
+              <Show
+                when={result().users.length !== 0}
+                fallback={
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <UsersIcon />
+                      </EmptyMedia>
+                      <EmptyTitle>No users found</EmptyTitle>
+                      <EmptyDescription>
+                        No users found.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                }
+              >
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <For each={result().users}>
+                    {(user) => <UserCard user={user} />}
+                  </For>
+                </div>
 
-                  <Show when={totalPages() > 1}>
-                    <Pagination
-                      count={totalPages()}
-                      page={page()}
-                      itemComponent={(props) => (
-                        <PaginationItem
-                          page={props.page}
-                          as={A}
-                          href={buildHref(filters(), props.page)}
-                        >
-                          {props.page}
-                        </PaginationItem>
+                <Show when={totalPages() > 1}>
+                  <Pagination
+                    count={totalPages()}
+                    page={page()}
+                    itemComponent={(props) => (
+                      <PaginationItem
+                        page={props.page}
+                        as={A}
+                        href={buildHref(filters(), props.page)}
+                      >
+                        {props.page}
+                      </PaginationItem>
+                    )}
+                    ellipsisComponent={() => <PaginationEllipsis />}
+                  >
+                    <PaginationPrevious
+                      as={A}
+                      href={buildHref(filters(), Math.max(1, page() - 1))}
+                    />
+                    <PaginationItems />
+                    <PaginationNext
+                      as={A}
+                      href={buildHref(
+                        filters(),
+                        Math.min(totalPages(), page() + 1),
                       )}
-                      ellipsisComponent={() => <PaginationEllipsis />}
-                    >
-                      <PaginationPrevious
-                        as={A}
-                        href={buildHref(filters(), Math.max(1, page() - 1))}
-                      />
-                      <PaginationItems />
-                      <PaginationNext
-                        as={A}
-                        href={buildHref(
-                          filters(),
-                          Math.min(totalPages(), page() + 1),
-                        )}
-                      />
-                    </Pagination>
-                  </Show>
+                    />
+                  </Pagination>
                 </Show>
-              )}
-            </Show>
-          </Suspense>
-        </ErrorBoundary>
+              </Show>
+            )}
+          </Show>
+        </DataBoundary>
       </div>
     </div>
   );

@@ -1,29 +1,21 @@
-import { Turnstile, type TurnstileRef } from "@nerimity/solid-turnstile";
+import { Turnstile } from "@nerimity/solid-turnstile";
 import { A, useSubmission } from "@solidjs/router";
 import { signIn } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
-import { createEffect, createSignal, type JSX } from "solid-js";
-import { toast } from "solid-sonner";
+import {
+  useFormFieldErrors,
+  useSubmissionError,
+} from "~/client/hooks/use-submission.ts";
+import type { JSX } from "solid-js";
+import { useTurnstile } from "./use-turnstile.ts";
 
 export default function SignInForm(): JSX.Element {
-  const [turnstileToken, setTurnstileToken] = createSignal<string>();
   const submission = useSubmission(signIn);
-  const fieldErrors = () => submission.result?.fieldErrors ?? {};
-  let turnstileRef: TurnstileRef | undefined;
+  const fieldErrors = useFormFieldErrors(submission);
+  const turnstile = useTurnstile();
 
-  const resetTurnstile = (): void => {
-    setTurnstileToken(undefined);
-    turnstileRef?.reset();
-  };
-
-  createEffect(() => {
-    if (submission.error) {
-      toast.error(submission.error.message || "Sign in failed");
-      resetTurnstile();
-      submission.clear();
-    }
-  });
+  useSubmissionError(submission, "Sign in failed", turnstile.reset);
 
   return (
     <form
@@ -66,9 +58,9 @@ export default function SignInForm(): JSX.Element {
         />
         <div class="flex justify-center">
           <Turnstile
-            ref={(r) => (turnstileRef = r)}
+            ref={turnstile.setRef}
             sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-            onVerify={setTurnstileToken}
+            onVerify={turnstile.setToken}
             autoResetOnExpire
           />
         </div>
@@ -76,7 +68,7 @@ export default function SignInForm(): JSX.Element {
           <Button
             type="submit"
             class="w-full"
-            disabled={submission.pending || !turnstileToken()}
+            disabled={submission.pending || !turnstile.token()}
           >
             Sign in
           </Button>

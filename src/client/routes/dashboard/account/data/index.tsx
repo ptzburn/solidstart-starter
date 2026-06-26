@@ -1,6 +1,7 @@
 import { useSubmission } from "@solidjs/router";
 import { deleteAccount } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
+import { PageHeader } from "~/client/components/page-header.tsx";
 import {
   Item,
   ItemActions,
@@ -9,37 +10,26 @@ import {
   ItemGroup,
   ItemTitle,
 } from "~/client/components/ui/item.tsx";
+import {
+  useSubmissionError,
+  useSubmissionSuccess,
+} from "~/client/hooks/use-submission.ts";
 import Mail from "~icons/lucide/mail";
-import { createEffect, createSignal, type JSX } from "solid-js";
-import { toast } from "solid-sonner";
+import { createSignal, type JSX } from "solid-js";
 
 function AccountDataPage(): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const submission = useSubmission(deleteAccount);
 
-  createEffect(() => {
-    if (submission.result && "ok" in submission.result) {
-      setOpen(false);
-      toast.success("Deletion link sent to your email");
-      submission.clear();
-    }
+  useSubmissionSuccess(submission, {
+    successMessage: "Deletion link sent to your email",
+    onSuccess: () => setOpen(false),
   });
-
-  createEffect(() => {
-    if (submission.error) {
-      toast.error(submission.error.message || "Failed to delete account");
-      submission.clear();
-    }
-  });
+  useSubmissionError(submission, "Failed to delete account");
 
   return (
     <div class="flex flex-1 flex-col gap-10">
-      <div>
-        <h2>Data</h2>
-        <p class="text-muted-foreground">
-          Manage your account data.
-        </p>
-      </div>
+      <PageHeader title="Data" description="Manage your account data." />
       <ItemGroup class="rounded-lg border bg-card">
         <Item>
           <ItemContent>
@@ -54,7 +44,7 @@ function AccountDataPage(): JSX.Element {
               onOpenChange={setOpen}
               trigger="Delete account"
               triggerVariant="outline"
-              triggerSize="sm"
+              triggerSize="default"
               triggerDisabled={submission.pending}
               variant="destructive"
               title="Delete account"

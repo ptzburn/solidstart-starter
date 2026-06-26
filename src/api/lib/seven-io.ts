@@ -1,7 +1,7 @@
 import { Client, SmsResource, type SmsResponse } from "@seven.io/client";
 import env from "~/env.ts";
 
-export const client = new Client({
+const client = new Client({
   apiKey: env.SEVEN_IO_API_KEY,
 });
 

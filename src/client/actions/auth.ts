@@ -4,10 +4,10 @@ import {
   forwardAuthCookies,
   getServerHeaders,
 } from "~/api/lib/server-headers.ts";
+import { composeName } from "~/client/lib/name.ts";
 import { usePendingForgotPasswordSession } from "~/client/lib/pending-forgot-password-session.ts";
 import { usePendingResetPasswordSession } from "~/client/lib/pending-reset-password-session.ts";
 import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts";
-import { capitalize } from "~/client/lib/utils.ts";
 import {
   AdminUpdateUserNameSchema,
   ChangePasswordSchema,
@@ -23,6 +23,7 @@ import {
   VerifyTwoFactorBackupSchema,
   VerifyTwoFactorTotpSchema,
 } from "~/client/schemas/auth.ts";
+import { getCaptchaHeaders } from "~/client/utils/captcha-headers.ts";
 import { parseFields, requireField } from "~/client/utils/form-errors.ts";
 import { redirectWithCookies } from "~/client/utils/redirect.ts";
 import env from "~/env.ts";
@@ -37,9 +38,7 @@ export const signIn = action(async (formData: FormData) => {
   });
   if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
 
-  const captchaToken = (formData.get("cf-turnstile-response") as string) ?? "";
-  const headers = new Headers(getServerHeaders());
-  headers.set("x-captcha-response", captchaToken);
+  const headers = getCaptchaHeaders(formData);
 
   try {
     const { response, headers: authHeaders } = await auth.api.signInEmail({
@@ -96,13 +95,9 @@ export const signUp = action(async (formData: FormData) => {
   });
   if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
 
-  const captchaToken = (formData.get("cf-turnstile-response") as string) ?? "";
-  const headers = new Headers(getServerHeaders());
-  headers.set("x-captcha-response", captchaToken);
+  const headers = getCaptchaHeaders(formData);
 
-  const name = `${capitalize(result.data.firstName)} ${
-    capitalize(result.data.lastName)
-  }`.trim();
+  const name = composeName(result.data.firstName, result.data.lastName);
 
   const { headers: authHeaders } = await auth.api.signUpEmail({
     body: {
@@ -148,9 +143,7 @@ export const requestPasswordReset = action(async (formData: FormData) => {
   });
   if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
 
-  const captchaToken = (formData.get("cf-turnstile-response") as string) ?? "";
-  const headers = new Headers(getServerHeaders());
-  headers.set("x-captcha-response", captchaToken);
+  const headers = getCaptchaHeaders(formData);
 
   await auth.api.requestPasswordReset({
     body: {
@@ -265,9 +258,7 @@ export const adminUpdateUserName = action(async (formData: FormData) => {
   });
   if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
 
-  const name = `${capitalize(result.data.firstName)} ${
-    capitalize(result.data.lastName)
-  }`.trim();
+  const name = composeName(result.data.firstName, result.data.lastName);
 
   await auth.api.adminUpdateUser({
     body: { userId: result.data.userId, data: { name } },

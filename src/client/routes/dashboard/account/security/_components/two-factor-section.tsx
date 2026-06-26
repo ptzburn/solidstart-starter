@@ -1,4 +1,4 @@
-import { createAsync, revalidate, useSubmission } from "@solidjs/router";
+import { createAsync, useSubmission } from "@solidjs/router";
 import {
   confirmTwoFactorTotp,
   enableTwoFactor,
@@ -19,11 +19,15 @@ import {
 import { Skeleton } from "~/client/components/ui/skeleton.tsx";
 import { useSession } from "~/client/contexts/session-context.tsx";
 import {
+  useFormFieldErrors,
+  useSubmissionError,
+  useSubmissionSuccess,
+} from "~/client/hooks/use-submission.ts";
+import {
   getSessionQuery,
   viewNumberOfBackupCodesQuery,
 } from "~/client/queries/auth.ts";
 import {
-  createEffect,
   createMemo,
   createSignal,
   ErrorBoundary,
@@ -68,15 +72,8 @@ export function TwoFactorSection(): JSX.Element {
       : undefined
   );
 
-  const passwordFieldErrors = (): Record<string, string | undefined> =>
-    enableSubmission.result && "fieldErrors" in enableSubmission.result
-      ? enableSubmission.result.fieldErrors ?? {}
-      : {};
-
-  const codeFieldErrors = (): Record<string, string | undefined> =>
-    verifySubmission.result && "fieldErrors" in verifySubmission.result
-      ? verifySubmission.result.fieldErrors ?? {}
-      : {};
+  const passwordFieldErrors = useFormFieldErrors(enableSubmission);
+  const codeFieldErrors = useFormFieldErrors(verifySubmission);
 
   const verified = (): boolean =>
     !!(verifySubmission.result && "ok" in verifySubmission.result);
@@ -87,30 +84,17 @@ export function TwoFactorSection(): JSX.Element {
     return "password";
   };
 
-  createEffect(() => {
-    if (enableSubmission.error) {
-      toast.error(
-        enableSubmission.error.message ||
-          "Failed to enable two-factor authentication",
-      );
-      enableSubmission.clear();
-    }
-  });
-
-  createEffect(() => {
-    if (verifySubmission.error) {
-      toast.error(
-        verifySubmission.error.message ||
-          "Failed to verify two-factor authentication",
-      );
-      verifySubmission.clear();
-    }
-  });
-
-  createEffect(() => {
-    if (verified()) {
-      revalidate(getSessionQuery.key);
-    }
+  useSubmissionError(
+    enableSubmission,
+    "Failed to enable two-factor authentication",
+  );
+  useSubmissionError(
+    verifySubmission,
+    "Failed to verify two-factor authentication",
+  );
+  useSubmissionSuccess(verifySubmission, {
+    revalidateKey: getSessionQuery.key,
+    clearOnSuccess: false,
   });
 
   function resetEnableState(): void {
@@ -163,7 +147,7 @@ export function TwoFactorSection(): JSX.Element {
                 }}
                 trigger="Enable"
                 triggerVariant="outline"
-                triggerSize="sm"
+                triggerSize="default"
                 title={enableStep() === "backup-codes"
                   ? "Save backup codes"
                   : "Enable two-factor authentication"}

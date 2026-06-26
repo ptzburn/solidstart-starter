@@ -3,28 +3,20 @@ import { signUpSocial } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { Separator } from "~/client/components/ui/separator.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
+import { useSubmissionError } from "~/client/hooks/use-submission.ts";
 import SimpleIconsGithub from "~icons/simple-icons/github";
 import SimpleIconsGoogle from "~icons/simple-icons/google";
-import { createEffect, type JSX, Show } from "solid-js";
-import { toast } from "solid-sonner";
+import { type JSX, Show } from "solid-js";
+import { AuthHeader } from "../_components/auth-header.tsx";
 
 export default function SignUpPage(): JSX.Element {
   const submission = useSubmission(signUpSocial);
 
-  createEffect(() => {
-    if (submission.error) {
-      toast.error(
-        submission.error.message || "An error occurred while signing up",
-      );
-      submission.clear();
-    }
-  });
+  useSubmissionError(submission, "An error occurred while signing up");
 
   return (
     <div class="space-y-8">
-      <div class="flex flex-col items-center gap-2 text-center">
-        <h1 class="font-bold text-2xl">Sign up</h1>
-      </div>
+      <AuthHeader title="Sign up" />
       <div class="grid gap-6">
         <form method="post" action={signUpSocial}>
           <input type="hidden" name="provider" value="github" />

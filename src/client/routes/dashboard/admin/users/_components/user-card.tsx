@@ -15,13 +15,13 @@ import {
   CardFooter,
   CardHeader,
 } from "~/client/components/ui/card.tsx";
-
+import { Typography } from "~/client/components/ui/typography.tsx";
+import { useSubmissionError } from "~/client/hooks/use-submission.ts";
 import { getFileUrl, getInitials } from "~/client/lib/utils.ts";
 import Drama from "~icons/lucide/drama";
 import LoaderCircle from "~icons/lucide/loader-circle";
 import { format } from "date-fns";
-import { createEffect, type JSX, Match, Switch } from "solid-js";
-import { toast } from "solid-sonner";
+import { type JSX, Match, Switch } from "solid-js";
 
 const getRoleLabel = (role: SelectUser["role"]): string => {
   switch (role) {
@@ -42,12 +42,7 @@ export function UserCard(props: UserCardProps): JSX.Element {
     ([formData]) => formData.get("userId") === props.user.id,
   );
 
-  createEffect(() => {
-    if (submission.error) {
-      toast.error(submission.error.message || "Failed to impersonate user");
-      submission.clear();
-    }
-  });
+  useSubmissionError(submission, "Failed to impersonate user");
 
   return (
     <Card class="gap-0 pt-0">
@@ -64,10 +59,12 @@ export function UserCard(props: UserCardProps): JSX.Element {
             <AvatarFallback>{getInitials(props.user.name)}</AvatarFallback>
           </Avatar>
           <div class="flex min-w-0 flex-1 flex-col gap-1">
-            <h3 class="truncate font-semibold">{props.user.name}</h3>
-            <p class="truncate text-muted-foreground text-sm">
+            <Typography variant="h3" class="truncate">
+              {props.user.name}
+            </Typography>
+            <Typography variant="muted" class="truncate">
               {props.user.email}
-            </p>
+            </Typography>
           </div>
           <Badge class="border border-border bg-card text-foreground">
             {getRoleLabel(props.user.role)}

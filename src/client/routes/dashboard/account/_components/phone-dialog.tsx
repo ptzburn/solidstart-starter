@@ -1,18 +1,16 @@
-import { revalidate, useSubmission } from "@solidjs/router";
+import { useSubmission } from "@solidjs/router";
 import { sendPhoneOtp, verifyPhoneNumber } from "~/client/actions/users.ts";
 import { ResponsiveDialog } from "~/client/components/responsive-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import { OTPField } from "~/client/components/ui/form/otp-field.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
-import { getSessionQuery } from "~/client/queries/auth.ts";
 import {
-  createEffect,
-  createSignal,
-  type JSX,
-  onCleanup,
-  Show,
-} from "solid-js";
-import { toast } from "solid-sonner";
+  useFormFieldErrors,
+  useSubmissionError,
+  useSubmissionSuccess,
+} from "~/client/hooks/use-submission.ts";
+import { getSessionQuery } from "~/client/queries/auth.ts";
+import { createSignal, type JSX, onCleanup, Show } from "solid-js";
 
 type PhoneDialogProps = {
   currentPhoneNumber: string | null | undefined;
@@ -35,15 +33,8 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
       ? sendSubmission.result.phoneNumber
       : undefined;
 
-  const sendFieldErrors = (): Record<string, string | undefined> =>
-    sendSubmission.result && "fieldErrors" in sendSubmission.result
-      ? sendSubmission.result.fieldErrors ?? {}
-      : {};
-
-  const verifyFieldErrors = (): Record<string, string | undefined> =>
-    verifySubmission.result && "fieldErrors" in verifySubmission.result
-      ? verifySubmission.result.fieldErrors ?? {}
-      : {};
+  const sendFieldErrors = useFormFieldErrors(sendSubmission);
+  const verifyFieldErrors = useFormFieldErrors(verifySubmission);
 
   function startCooldown(): void {
     setCooldown(RESEND_COOLDOWN);
@@ -61,39 +52,23 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
 
   onCleanup(() => clearInterval(timer));
 
-  createEffect(() => {
-    if (sendSubmission.result && "ok" in sendSubmission.result) {
-      startCooldown();
-      toast.success("Code sent to the phone number");
-    }
+  useSubmissionSuccess(sendSubmission, {
+    successMessage: "Code sent to the phone number",
+    onSuccess: () => startCooldown(),
+    clearOnSuccess: false,
   });
+  useSubmissionError(
+    sendSubmission,
+    "Failed to send code to the phone number",
+  );
 
-  createEffect(() => {
-    if (sendSubmission.error) {
-      toast.error(
-        sendSubmission.error.message ||
-          "Failed to send code to the phone number",
-      );
-      sendSubmission.clear();
-    }
+  useSubmissionSuccess(verifySubmission, {
+    successMessage: "Phone number updated",
+    revalidateKey: getSessionQuery.key,
+    onSuccess: () => setOpen(false),
+    clearOnSuccess: false,
   });
-
-  createEffect(() => {
-    if (verifySubmission.result && "ok" in verifySubmission.result) {
-      setOpen(false);
-      toast.success("Phone number updated");
-      revalidate(getSessionQuery.key);
-    }
-  });
-
-  createEffect(() => {
-    if (verifySubmission.error) {
-      toast.error(
-        verifySubmission.error.message || "Failed to update phone number",
-      );
-      verifySubmission.clear();
-    }
-  });
+  useSubmissionError(verifySubmission, "Failed to update phone number");
 
   function handleClose(): void {
     clearInterval(timer);
@@ -113,7 +88,7 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
         ? "Edit phone number"
         : "Add phone number"}
       triggerVariant="outline"
-      triggerSize="sm"
+      triggerSize="default"
       title="Edit phone number"
       footer={
         <Show

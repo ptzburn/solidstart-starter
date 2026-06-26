@@ -67,10 +67,6 @@ export const ResetPasswordSchema = z.object({
   token: z.string().min(1, "Invalid or missing token"),
 }).superRefine(confirmPasswordMatches("password"));
 
-export type SignInSocialProvider = z.infer<
-  typeof SignInSocialSchema
->["provider"];
-
 // A sensitive action (enable/disable 2FA, regenerate backup codes) gated by
 // re-entering the current password. One shape, reused at every such call site.
 export const PasswordPromptSchema = z.object({

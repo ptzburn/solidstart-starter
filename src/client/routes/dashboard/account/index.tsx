@@ -1,5 +1,6 @@
 import { useSearchParams } from "@solidjs/router";
 import { AvatarUpload } from "~/client/components/avatar-upload.tsx";
+import { PageHeader } from "~/client/components/page-header.tsx";
 
 import {
   Item,
@@ -42,12 +43,10 @@ export default function AccountIndexRoute(): JSX.Element {
   return (
     <div class="flex flex-1 flex-col gap-10">
       <div class="flex w-full items-center justify-between gap-4">
-        <div>
-          <h2>Account</h2>
-          <p class="text-muted-foreground">
-            Manage your account settings and preferences.
-          </p>
-        </div>
+        <PageHeader
+          title="Account"
+          description="Manage your account settings and preferences."
+        />
         <AvatarUpload
           imageUrl={session.user.image}
           userName={session.user.name}

@@ -4,13 +4,15 @@ import { Badge } from "~/client/components/ui/badge.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import { Separator } from "~/client/components/ui/separator.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
+import { useSubmissionError } from "~/client/hooks/use-submission.ts";
 import { authClient } from "~/client/lib/auth-client.ts";
 import { getLastLoginMethodQuery } from "~/client/queries/auth.ts";
 import FingerprintPattern from "~icons/lucide/fingerprint-pattern";
 import SimpleIconsGithub from "~icons/simple-icons/github";
 import SimpleIconsGoogle from "~icons/simple-icons/google";
-import { createEffect, createSignal, type JSX, Show } from "solid-js";
+import { createSignal, type JSX, Show } from "solid-js";
 import { toast } from "solid-sonner";
+import { AuthHeader } from "../_components/auth-header.tsx";
 
 function LastUsedBadge(): JSX.Element {
   return (
@@ -29,14 +31,7 @@ function SignInPage(): JSX.Element {
 
   const anyPending = (): boolean => submission.pending || passkeyLoading();
 
-  createEffect(() => {
-    if (submission.error) {
-      toast.error(
-        submission.error.message || "An error occurred while signing in",
-      );
-      submission.clear();
-    }
-  });
+  useSubmissionError(submission, "An error occurred while signing in");
 
   async function handlePasskeySignIn(): Promise<void> {
     setPasskeyLoading(true);
@@ -58,9 +53,7 @@ function SignInPage(): JSX.Element {
   return (
     <>
       <div class="space-y-8">
-        <div class="flex flex-col items-center gap-2 text-center">
-          <h1 class="font-bold text-2xl">Sign in</h1>
-        </div>
+        <AuthHeader title="Sign in" />
         <div class="grid gap-6">
           <form method="post" action={signInSocial}>
             <input type="hidden" name="provider" value="github" />
