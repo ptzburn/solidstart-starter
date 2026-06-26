@@ -10,8 +10,15 @@ import { usePendingSigninSession } from "~/client/lib/pending-signin-session.ts"
 export const getSessionQuery = query(async () => {
   "use server";
   const headers = getServerHeaders();
+  // `disableCookieCache` makes this read authoritative: session.cookieCache
+  // (auth.ts) otherwise serves a signed snapshot for up to 5 minutes, so after
+  // a profile change (name, phone, avatar) the revalidated UI would show stale
+  // data. This is the single place the client reads the current user for
+  // display, so it must hit the DB; the cache still shortcuts other callers
+  // (e.g. the per-request middleware).
   const session = await auth.api.getSession({
     headers,
+    query: { disableCookieCache: true },
   });
 
   if (!session) {
