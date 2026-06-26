@@ -1,4 +1,5 @@
 import { A } from "@solidjs/router";
+import { Seo } from "~/client/components/seo.tsx";
 import { SiteFooter } from "~/client/components/site-footer.tsx";
 import { SiteHeader } from "~/client/components/site-header.tsx";
 import { Badge } from "~/client/components/ui/badge.tsx";
@@ -68,6 +69,12 @@ const features = [
 export default function LandingPage(): JSX.Element {
   return (
     <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <Seo
+        title="SolidStart Starter — full-stack Deno + Solid template with auth & oRPC"
+        description="An open-source, production-ready SolidStart template built for Deno, with Better Auth, an oRPC + OpenAPI API layer, Drizzle ORM, and shadcn-style UI. Clone it and start shipping."
+        path="/"
+        bareTitle
+      />
       <SiteHeader />
 
       <main class="flex flex-1 flex-col">
