@@ -29,23 +29,21 @@ export default function UserDetailPage(): JSX.Element {
     >
       <Show when={user()}>
         {(user) => (
-          <div class="flex min-w-0 flex-col gap-4 overflow-y-auto">
-            <div class="space-y-4 md:space-y-8">
-              {/* Hero Section */}
-              <Hero user={user} />
+          <div class="flex min-w-0 flex-1 flex-col gap-4 md:gap-8">
+            {/* Hero Section */}
+            <Hero user={user} />
 
-              {/* Main Content Grid */}
-              <div class="grid gap-6 md:grid-cols-3">
-                {/* Left Column - Main Info */}
-                <div class="space-y-6 md:col-span-2">
-                  <AccountDetails user={user} />
-                </div>
+            {/* Main Content Grid */}
+            <div class="grid gap-6 md:grid-cols-3">
+              {/* Left Column - Main Info */}
+              <div class="space-y-6 md:col-span-2">
+                <AccountDetails user={user} />
+              </div>
 
-                {/* Right Column - Actions & Status */}
-                <div class="space-y-6">
-                  <div class="sticky top-6 space-y-6">
-                    <ActionSection user={user} />
-                  </div>
+              {/* Right Column - Actions & Status */}
+              <div class="space-y-6">
+                <div class="sticky top-6 space-y-6">
+                  <ActionSection user={user} />
                 </div>
               </div>
             </div>

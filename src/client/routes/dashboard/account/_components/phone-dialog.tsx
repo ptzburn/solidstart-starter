@@ -10,51 +10,37 @@ import {
   useSubmissionSuccess,
 } from "~/client/hooks/use-submission.ts";
 import { getSessionQuery } from "~/client/queries/auth.ts";
-import { createSignal, type JSX, onCleanup, Show } from "solid-js";
+import { createSignal, type JSX, Show } from "solid-js";
 
 type PhoneDialogProps = {
   currentPhoneNumber: string | null | undefined;
 };
 
-const RESEND_COOLDOWN = 60;
 const SEND_FORM_ID = "phone-send-form";
 const VERIFY_FORM_ID = "phone-verify-form";
 
 export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
   const [open, setOpen] = createSignal(false);
-  const [cooldown, setCooldown] = createSignal(0);
-  let timer: ReturnType<typeof setInterval> | undefined;
+
+  // The phone number we advanced to the verify step with. Held in a signal
+  // rather than read off `sendSubmission.result` so that a failed resend (e.g.
+  // the server-enforced cooldown throwing) doesn't drop the result and snap the
+  // dialog back to the number-entry step.
+  const [sentPhoneNumber, setSentPhoneNumber] = createSignal<string>();
 
   const sendSubmission = useSubmission(sendPhoneOtp);
   const verifySubmission = useSubmission(verifyPhoneNumber);
 
-  const sentPhoneNumber = (): string | undefined =>
-    sendSubmission.result && "ok" in sendSubmission.result
-      ? sendSubmission.result.phoneNumber
-      : undefined;
-
   const sendFieldErrors = useFormFieldErrors(sendSubmission);
   const verifyFieldErrors = useFormFieldErrors(verifySubmission);
 
-  function startCooldown(): void {
-    setCooldown(RESEND_COOLDOWN);
-    clearInterval(timer);
-    timer = setInterval(() => {
-      setCooldown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }
-
-  onCleanup(() => clearInterval(timer));
-
+  // The resend cooldown is enforced server-side (see ~/client/lib/otp-cooldown.ts);
+  // sending too soon surfaces as an error toast.
   useSubmissionSuccess(sendSubmission, {
     successMessage: "Code sent to the phone number",
-    onSuccess: () => startCooldown(),
+    onSuccess: (result) => {
+      if ("phoneNumber" in result) setSentPhoneNumber(result.phoneNumber);
+    },
     clearOnSuccess: false,
   });
   useSubmissionError(
@@ -71,8 +57,7 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
   useSubmissionError(verifySubmission, "Failed to update phone number");
 
   function handleClose(): void {
-    clearInterval(timer);
-    setCooldown(0);
+    setSentPhoneNumber(undefined);
     sendSubmission.clear();
     verifySubmission.clear();
   }
@@ -172,11 +157,9 @@ export function PhoneDialog(props: PhoneDialogProps): JSX.Element {
                 type="submit"
                 variant="ghost"
                 class="w-full"
-                disabled={sendSubmission.pending || cooldown() > 0}
+                disabled={sendSubmission.pending}
               >
-                {cooldown() > 0
-                  ? `Resend code (${cooldown()}s)`
-                  : "Resend code"}
+                Resend code
               </Button>
             </form>
           </div>
