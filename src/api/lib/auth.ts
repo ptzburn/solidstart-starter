@@ -162,7 +162,13 @@ export const auth = betterAuth({
       expiresIn: 60 * 10,
       allowedAttempts: 3,
       storeOTP: "encrypted",
-      sendVerificationOnSignUp: true,
+      // NOTE: do not enable `sendVerificationOnSignUp` here. Core sign-up
+      // already sends one verification OTP (its `sendOnSignUp ??
+      // requireEmailVerification` branch calls our `emailVerification.
+      // sendVerificationEmail`, which is re-routed to sendVerificationOTP).
+      // This plugin's own after-/sign-up hook would send a *second*, different
+      // code — the cause of users receiving two OTPs at once. Sign-in uses the
+      // same core path via `sendOnSignIn`, so verification stays single-source.
       // deno-lint-ignore require-await
       async sendVerificationOTP({ email, otp, type }): Promise<void> {
         if (env.NODE_ENV !== "test") {

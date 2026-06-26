@@ -135,8 +135,15 @@ export function TwoFactorSection(): JSX.Element {
           </ItemDescription>
         </ItemContent>
         <ItemActions>
+          {
+            /* Stay on the enable dialog while it's open (`!open()`). Confirming
+              the TOTP code flips `twoFactorEnabled` to true via session
+              revalidation; without the `!open()` guard this <Show> would swap in
+              the disable dialog and unmount the enable dialog before its final
+              backup-codes step ever renders. */
+          }
           <Show
-            when={session.user.twoFactorEnabled}
+            when={session.user.twoFactorEnabled && !open()}
             fallback={
               <ResponsiveDialog
                 open={open()}
