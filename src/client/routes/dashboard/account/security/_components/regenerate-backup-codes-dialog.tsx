@@ -44,6 +44,9 @@ export function RegenerateBackupCodesDialog(): JSX.Element {
   });
 
   function handleDialogClose(): void {
+    if (codes().length > 0) {
+      toast.success("Backup codes regenerated");
+    }
     formRef?.reset();
     submission.clear();
   }

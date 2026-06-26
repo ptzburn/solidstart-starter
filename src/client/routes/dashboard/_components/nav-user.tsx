@@ -36,6 +36,7 @@ export function NavUser(): JSX.Element {
   const { colorMode, setColorMode } = useColorMode();
 
   const stopSubmission = useSubmission(stopImpersonating);
+  const signOutSubmission = useSubmission(signOut);
 
   createEffect(() => {
     if (stopSubmission.error) {
@@ -43,6 +44,13 @@ export function NavUser(): JSX.Element {
         stopSubmission.error.message || "Failed to stop impersonating",
       );
       stopSubmission.clear();
+    }
+  });
+
+  createEffect(() => {
+    if (signOutSubmission.error) {
+      toast.error(signOutSubmission.error.message || "Failed to sign out");
+      signOutSubmission.clear();
     }
   });
 

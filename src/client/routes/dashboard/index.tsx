@@ -138,6 +138,7 @@ export default function Main(): JSX.Element {
     if (createSubmission.result && "ok" in createSubmission.result) {
       revalidate(getTasksQuery.key);
       formRef.reset();
+      toast.success("Task added");
       createSubmission.clear();
     }
   });
@@ -169,18 +170,38 @@ export default function Main(): JSX.Element {
     return false;
   };
 
-  // Revalidate + surface errors for toggle/delete submissions (covers both the
+  // Revalidate + surface success/errors for toggle submissions (covers both the
   // optimistic JS path and, harmlessly, the no-JS redirect path).
   createEffect(() => {
-    for (const sub of [...toggleSubmissions, ...deleteSubmissions]) {
+    for (const sub of toggleSubmissions) {
       if (sub.result !== undefined) {
         revalidate(getTasksQuery.key);
+        if (sub.input[0].get("done") === "true") {
+          toast.success("Task completed");
+        }
         sub.clear();
       } else if (sub.error) {
         toast.error(
           Error.isError(sub.error)
             ? sub.error.message
             : "Failed to update task",
+        );
+        sub.clear();
+      }
+    }
+  });
+
+  createEffect(() => {
+    for (const sub of deleteSubmissions) {
+      if (sub.result !== undefined) {
+        revalidate(getTasksQuery.key);
+        toast.success("Task deleted");
+        sub.clear();
+      } else if (sub.error) {
+        toast.error(
+          Error.isError(sub.error)
+            ? sub.error.message
+            : "Failed to delete task",
         );
         sub.clear();
       }
