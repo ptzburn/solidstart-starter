@@ -1,22 +1,13 @@
 import { A, useSubmission } from "@solidjs/router";
 import { resendEmailOtp, verifyEmailOtp } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
+import { SixDigitOtpInput } from "~/client/components/ui/form/six-digit-otp-input.tsx";
 import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPInput,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "~/client/components/ui/input-otp.tsx";
-import { Typography } from "~/client/components/ui/typography.tsx";
-import {
-  createEffect,
-  createSignal,
-  type JSX,
-  onCleanup,
-  onMount,
-} from "solid-js";
-import { toast } from "solid-sonner";
+  useSubmissionError,
+  useSubmissionSuccess,
+} from "~/client/hooks/use-submission.ts";
+import { createSignal, type JSX, onCleanup, onMount } from "solid-js";
+import { AuthHeader } from "./auth-header.tsx";
 
 const RESEND_COOLDOWN = 60;
 
@@ -45,55 +36,33 @@ export function OTPValidation(props: { email: string }): JSX.Element {
   onMount(() => startCooldown());
   onCleanup(() => clearInterval(timer));
 
-  createEffect(() => {
-    if (verify.error) {
-      toast.error(verify.error.message || "Verification failed");
-      verify.clear();
-    }
-  });
+  useSubmissionError(verify, "Verification failed");
 
-  createEffect(() => {
-    if (resend.result?.ok) {
-      toast.success("OTP sent successfully");
-      startCooldown();
-      resend.clear();
-    }
-    if (resend.error) {
-      toast.error(resend.error.message || "Failed to send OTP");
-      resend.clear();
-    }
+  useSubmissionSuccess(resend, {
+    successMessage: "OTP sent successfully",
+    onSuccess: () => startCooldown(),
   });
+  useSubmissionError(resend, "Failed to send OTP");
 
   return (
     <div class="space-y-8">
-      <div class="flex flex-col items-center gap-2 text-center">
-        <h1 class="font-bold text-2xl">OTP Verification</h1>
-        <Typography variant="muted" class="text-balance">
-          Enter the code sent to {props.email} to verify your account.
-        </Typography>
-      </div>
+      <AuthHeader
+        title="OTP Verification"
+        subtitle={
+          <>Enter the code sent to {props.email} to verify your account.</>
+        }
+      />
       <form
         method="post"
         action={verifyEmailOtp}
         class="grid gap-6"
       >
-        <div class="flex justify-center">
-          <InputOTP
-            maxLength={6}
-            value={otp()}
-            onValueChange={(v) => setOtp(v.replace(/\D/g, "").slice(0, 6))}
-            autofocus
-          >
-            <InputOTPGroup>
-              {[0, 1, 2].map((i) => <InputOTPSlot index={i} />)}
-            </InputOTPGroup>
-            <InputOTPSeparator />
-            <InputOTPGroup>
-              {[3, 4, 5].map((i) => <InputOTPSlot index={i} />)}
-            </InputOTPGroup>
-            <InputOTPInput name="otp" />
-          </InputOTP>
-        </div>
+        <SixDigitOtpInput
+          name="otp"
+          value={otp()}
+          onValueChange={setOtp}
+          autofocus
+        />
         <Button
           type="submit"
           class="w-full"

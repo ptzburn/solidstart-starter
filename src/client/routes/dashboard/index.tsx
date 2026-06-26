@@ -12,6 +12,7 @@ import {
   toggleTaskAction,
 } from "~/client/actions/tasks.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
+import { PageHeader } from "~/client/components/page-header.tsx";
 import { Badge } from "~/client/components/ui/badge.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import {
@@ -25,7 +26,11 @@ import { Input } from "~/client/components/ui/input.tsx";
 import { Progress } from "~/client/components/ui/progress.tsx";
 import { Separator } from "~/client/components/ui/separator.tsx";
 import { Skeleton } from "~/client/components/ui/skeleton.tsx";
-import { Typography } from "~/client/components/ui/typography.tsx";
+import {
+  useFormFieldErrors,
+  useSubmissionError,
+  useSubmissionSuccess,
+} from "~/client/hooks/use-submission.ts";
 import { cn } from "~/client/lib/utils.ts";
 import { getTasksQuery } from "~/client/queries/tasks.ts";
 import CircleCheckBig from "~icons/lucide/circle-check-big";
@@ -106,7 +111,7 @@ function TaskItem(props: {
       <ConfirmDialog
         trigger={<Trash class="size-4" />}
         triggerVariant="ghost"
-        triggerSize="icon-sm"
+        triggerSize="icon"
         triggerAriaLabel="Delete"
         triggerClass="shrink-0 text-muted-foreground/50 transition-colors hover:text-destructive"
         variant="destructive"
@@ -129,28 +134,15 @@ export default function Main(): JSX.Element {
 
   let formRef!: HTMLFormElement;
 
-  const nameError = (): string | undefined =>
-    createSubmission.result && "fieldErrors" in createSubmission.result
-      ? createSubmission.result.fieldErrors?.name
-      : undefined;
+  const fieldErrors = useFormFieldErrors(createSubmission);
+  const nameError = (): string | undefined => fieldErrors().name;
 
-  createEffect(() => {
-    if (createSubmission.result && "ok" in createSubmission.result) {
-      revalidate(getTasksQuery.key);
-      formRef.reset();
-      toast.success("Task added");
-      createSubmission.clear();
-    }
+  useSubmissionSuccess(createSubmission, {
+    successMessage: "Task added",
+    revalidateKey: getTasksQuery.key,
+    onSuccess: () => formRef.reset(),
   });
-
-  createEffect(() => {
-    if (createSubmission.error) {
-      toast.error(
-        createSubmission.error.message || "Failed to create task",
-      );
-      createSubmission.clear();
-    }
-  });
+  useSubmissionError(createSubmission, "Failed to create task");
 
   // Optimistic done state: while a toggle for this task is in flight, show the
   // value being submitted; otherwise show the canonical value from the list.
@@ -224,12 +216,11 @@ export default function Main(): JSX.Element {
 
   return (
     <div class="flex flex-1 flex-col gap-6">
-      <div class="flex flex-col gap-2">
-        <Typography variant="h2">Tasks</Typography>
-        <p class="text-muted-foreground">
-          Manage your to-do list and track your progress.
-        </p>
-      </div>
+      <PageHeader
+        title="Tasks"
+        description="Manage your to-do list and track your progress."
+        class="flex flex-col gap-2"
+      />
 
       <Suspense
         fallback={

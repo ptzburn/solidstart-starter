@@ -1,10 +1,15 @@
-import { revalidate, useSubmission } from "@solidjs/router";
+import { useSubmission } from "@solidjs/router";
 import { generateBackupCodes } from "~/client/actions/auth.ts";
 import { ResponsiveDialog } from "~/client/components/responsive-dialog.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
+import {
+  useFormFieldErrors,
+  useSubmissionError,
+  useSubmissionSuccess,
+} from "~/client/hooks/use-submission.ts";
 import { viewNumberOfBackupCodesQuery } from "~/client/queries/auth.ts";
-import { createEffect, createSignal, type JSX, Match, Switch } from "solid-js";
+import { createSignal, type JSX, Match, Switch } from "solid-js";
 import { toast } from "solid-sonner";
 import { BackupCodesStep } from "./backup-codes-step.tsx";
 
@@ -15,10 +20,7 @@ export function RegenerateBackupCodesDialog(): JSX.Element {
   let formRef!: HTMLFormElement;
   const submission = useSubmission(generateBackupCodes);
 
-  const fieldErrors = (): Record<string, string | undefined> =>
-    submission.result && "fieldErrors" in submission.result
-      ? submission.result.fieldErrors ?? {}
-      : {};
+  const fieldErrors = useFormFieldErrors(submission);
 
   const codes = (): string[] =>
     submission.result && "ok" in submission.result
@@ -28,20 +30,11 @@ export function RegenerateBackupCodesDialog(): JSX.Element {
   const step = (): "password" | "codes" =>
     codes().length > 0 ? "codes" : "password";
 
-  createEffect(() => {
-    if (submission.result && "ok" in submission.result) {
-      revalidate(viewNumberOfBackupCodesQuery.key);
-    }
+  useSubmissionSuccess(submission, {
+    revalidateKey: viewNumberOfBackupCodesQuery.key,
+    clearOnSuccess: false,
   });
-
-  createEffect(() => {
-    if (submission.error) {
-      toast.error(
-        submission.error.message || "Failed to regenerate backup codes",
-      );
-      submission.clear();
-    }
-  });
+  useSubmissionError(submission, "Failed to regenerate backup codes");
 
   function handleDialogClose(): void {
     if (codes().length > 0) {
@@ -60,7 +53,7 @@ export function RegenerateBackupCodesDialog(): JSX.Element {
       }}
       trigger="Regenerate"
       triggerVariant="outline"
-      triggerSize="sm"
+      triggerSize="default"
       title={step() === "codes"
         ? "Save your new backup codes"
         : "Regenerate backup codes"}

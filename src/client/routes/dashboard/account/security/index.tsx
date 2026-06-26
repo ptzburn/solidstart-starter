@@ -1,5 +1,6 @@
 import { createAsync, type RouteDefinition } from "@solidjs/router";
-import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
+import { DataBoundary } from "~/client/components/data-boundary.tsx";
+import { PageHeader } from "~/client/components/page-header.tsx";
 
 import {
   Item,
@@ -11,9 +12,8 @@ import {
   ItemTitle,
 } from "~/client/components/ui/item.tsx";
 import { Skeleton } from "~/client/components/ui/skeleton.tsx";
-import { Typography } from "~/client/components/ui/typography.tsx";
 import { listAccountsQuery, listPasskeysQuery } from "~/client/queries/auth.ts";
-import { ErrorBoundary, type JSX, Show, Suspense } from "solid-js";
+import { type JSX, Show } from "solid-js";
 import { ChangePasswordDialog } from "./_components/change-password-dialog.tsx";
 import { PasskeySection } from "./_components/passkey-section.tsx";
 import { TwoFactorSection } from "./_components/two-factor-section.tsx";
@@ -65,42 +65,36 @@ export default function SecurityPage(): JSX.Element {
 
   return (
     <div class="flex flex-1 flex-col gap-10">
-      <div>
-        <Typography variant="h2">Security</Typography>
-        <p class="text-muted-foreground">
-          Manage your account security settings
-        </p>
-      </div>
+      <PageHeader
+        title="Security"
+        description="Manage your account security settings"
+      />
 
-      <ErrorBoundary
-        fallback={(error) => <ErrorBoundaryMessage error={error} />}
-      >
-        <Suspense fallback={<SecuritySkeleton />}>
-          <Show
-            when={accounts()?.some(
-              (a: { providerId: string }) => a.providerId === "credential",
-            )}
-          >
-            <ItemGroup class="rounded-lg border bg-card py-4">
-              <Item>
-                <ItemContent>
-                  <ItemTitle>
-                    Password sign in
-                  </ItemTitle>
-                  <ItemDescription>
-                    Manage the password for signing in to your account
-                  </ItemDescription>
-                </ItemContent>
-                <ItemActions>
-                  <ChangePasswordDialog />
-                </ItemActions>
-              </Item>
-              <ItemSeparator />
-              <TwoFactorSection />
-            </ItemGroup>
-          </Show>
-        </Suspense>
-      </ErrorBoundary>
+      <DataBoundary fallback={<SecuritySkeleton />}>
+        <Show
+          when={accounts()?.some(
+            (a: { providerId: string }) => a.providerId === "credential",
+          )}
+        >
+          <ItemGroup class="rounded-lg border bg-card py-4">
+            <Item>
+              <ItemContent>
+                <ItemTitle>
+                  Password sign in
+                </ItemTitle>
+                <ItemDescription>
+                  Manage the password for signing in to your account
+                </ItemDescription>
+              </ItemContent>
+              <ItemActions>
+                <ChangePasswordDialog />
+              </ItemActions>
+            </Item>
+            <ItemSeparator />
+            <TwoFactorSection />
+          </ItemGroup>
+        </Show>
+      </DataBoundary>
 
       <PasskeySection />
     </div>

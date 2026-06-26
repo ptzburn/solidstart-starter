@@ -1,4 +1,4 @@
-import { revalidate, useSubmission } from "@solidjs/router";
+import { useSubmission } from "@solidjs/router";
 import { uploadImageAction } from "~/client/actions/files.ts";
 import {
   Avatar,
@@ -6,9 +6,13 @@ import {
   AvatarImage,
 } from "~/client/components/ui/avatar.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
+import {
+  useSubmissionError,
+  useSubmissionSuccess,
+} from "~/client/hooks/use-submission.ts";
 import { getFileUrl, getInitials } from "~/client/lib/utils.ts";
 import { getSessionQuery } from "~/client/queries/auth.ts";
-import { createEffect, type JSX, Show } from "solid-js";
+import { type JSX, Show } from "solid-js";
 import { toast } from "solid-sonner";
 
 const MAX_SIZE_BYTES = 10 * 1024 * 1024;
@@ -21,22 +25,12 @@ type AvatarUploadProps = {
 export function AvatarUpload(props: AvatarUploadProps): JSX.Element {
   const submission = useSubmission(uploadImageAction);
 
-  createEffect(() => {
-    if (submission.result && "fileKey" in submission.result) {
-      toast.success("Profile picture updated");
-      revalidate(getSessionQuery.key);
-      submission.clear();
-    }
+  useSubmissionSuccess(submission, {
+    successMessage: "Profile picture updated",
+    revalidateKey: getSessionQuery.key,
+    isSuccess: (result) => "fileKey" in result,
   });
-
-  createEffect(() => {
-    if (submission.error) {
-      toast.error(
-        submission.error.message || "Failed to update profile picture",
-      );
-      submission.clear();
-    }
-  });
+  useSubmissionError(submission, "Failed to update profile picture");
 
   const onFilePicked = (
     event: Event & { currentTarget: HTMLInputElement },

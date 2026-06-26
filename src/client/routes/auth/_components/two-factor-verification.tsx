@@ -5,31 +5,21 @@ import {
 } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { Checkbox } from "~/client/components/ui/checkbox.tsx";
+import { SixDigitOtpInput } from "~/client/components/ui/form/six-digit-otp-input.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPInput,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "~/client/components/ui/input-otp.tsx";
 import { Label } from "~/client/components/ui/label.tsx";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "~/client/components/ui/tooltip.tsx";
-import { Typography } from "~/client/components/ui/typography.tsx";
-import CircleQuestionMark from "~icons/lucide/circle-question-mark";
 import {
-  type Accessor,
-  createEffect,
-  createSignal,
-  type JSX,
-  Match,
-  Switch,
-} from "solid-js";
-import { toast } from "solid-sonner";
+  useFormFieldErrors,
+  useSubmissionError,
+} from "~/client/hooks/use-submission.ts";
+import CircleQuestionMark from "~icons/lucide/circle-question-mark";
+import { type Accessor, createSignal, type JSX, Match, Switch } from "solid-js";
+import { AuthHeader } from "./auth-header.tsx";
 
 type TwoFactorMethod = "totp" | "backup";
 
@@ -65,43 +55,25 @@ function TotpForm(props: {
   const [code, setCode] = createSignal("");
   const submission = useSubmission(verifyTwoFactorTotp);
 
-  createEffect(() => {
-    if (submission.error) {
-      toast.error(submission.error.message || "Verification failed");
-      submission.clear();
-    }
-  });
+  useSubmissionError(submission, "Verification failed");
 
   return (
     <div class="space-y-8">
-      <div class="flex flex-col items-center gap-2 text-center">
-        <h1 class="font-bold text-2xl">Two-Factor Authentication</h1>
-        <Typography variant="muted" class="text-balance">
-          Enter the code from your authenticator app.
-        </Typography>
-      </div>
+      <AuthHeader
+        title="Two-Factor Authentication"
+        subtitle="Enter the code from your authenticator app."
+      />
       <form
         method="post"
         action={verifyTwoFactorTotp}
         class="grid gap-6"
       >
-        <div class="flex justify-center">
-          <InputOTP
-            maxLength={6}
-            value={code()}
-            onValueChange={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))}
-            autofocus
-          >
-            <InputOTPGroup>
-              {[0, 1, 2].map((i) => <InputOTPSlot index={i} />)}
-            </InputOTPGroup>
-            <InputOTPSeparator />
-            <InputOTPGroup>
-              {[3, 4, 5].map((i) => <InputOTPSlot index={i} />)}
-            </InputOTPGroup>
-            <InputOTPInput name="code" />
-          </InputOTP>
-        </div>
+        <SixDigitOtpInput
+          name="code"
+          value={code()}
+          onValueChange={setCode}
+          autofocus
+        />
         <Button
           variant="link"
           class="h-auto p-0 text-sm"
@@ -137,23 +109,16 @@ function BackupCodeForm(props: {
   onUseTotp: () => void;
 }): JSX.Element {
   const submission = useSubmission(verifyTwoFactorBackup);
-  const fieldErrors = () => submission.result?.fieldErrors ?? {};
+  const fieldErrors = useFormFieldErrors(submission);
 
-  createEffect(() => {
-    if (submission.error) {
-      toast.error(submission.error.message || "Verification failed");
-      submission.clear();
-    }
-  });
+  useSubmissionError(submission, "Verification failed");
 
   return (
     <div class="space-y-8">
-      <div class="flex flex-col items-center gap-2 text-center">
-        <h1 class="font-bold text-2xl">Two-Factor Authentication</h1>
-        <Typography variant="muted" class="text-balance">
-          Enter one of the backup codes you saved when enabling 2FA.
-        </Typography>
-      </div>
+      <AuthHeader
+        title="Two-Factor Authentication"
+        subtitle="Enter one of the backup codes you saved when enabling 2FA."
+      />
       <form
         method="post"
         action={verifyTwoFactorBackup}

@@ -1,20 +1,8 @@
 import { useSession } from "@solidjs/start/http";
-import { COOKIE_PREFIX } from "~/api/lib/auth.ts";
-import env from "~/env.ts";
-
-type PendingSigninSessionData = { email: string };
+import { pendingSessionConfig } from "~/client/lib/pending-session-factory.ts";
 
 export function usePendingSigninSession(): ReturnType<
-  typeof useSession<PendingSigninSessionData>
+  typeof useSession<{ email: string }>
 > {
-  return useSession<PendingSigninSessionData>({
-    name: `${COOKIE_PREFIX}.pending-signin`,
-    password: env.BETTER_AUTH_SECRET,
-    maxAge: 60 * 15,
-    cookie: {
-      httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "lax",
-    },
-  });
+  return useSession<{ email: string }>(pendingSessionConfig("pending-signin"));
 }

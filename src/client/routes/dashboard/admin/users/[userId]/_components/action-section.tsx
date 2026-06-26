@@ -10,12 +10,12 @@ import {
   CardHeader,
   CardTitle,
 } from "~/client/components/ui/card.tsx";
+import { useSubmissionError } from "~/client/hooks/use-submission.ts";
 import Drama from "~icons/lucide/drama";
 import LoaderCircle from "~icons/lucide/loader-circle";
 import Trash2 from "~icons/lucide/trash-2";
-import { createEffect, type JSX, Show } from "solid-js";
+import { type JSX, Show } from "solid-js";
 import type { Accessor } from "solid-js";
-import { toast } from "solid-sonner";
 
 type ImpersonateSectionProps = {
   user: Accessor<SelectUser>;
@@ -28,23 +28,8 @@ export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
   );
   const removeSubmission = useSubmission(removeUser);
 
-  createEffect(() => {
-    if (impersonateSubmission.error) {
-      toast.error(
-        impersonateSubmission.error.message || "Failed to impersonate user",
-      );
-      impersonateSubmission.clear();
-    }
-  });
-
-  createEffect(() => {
-    if (removeSubmission.error) {
-      toast.error(
-        removeSubmission.error.message || "Failed to delete user",
-      );
-      removeSubmission.clear();
-    }
-  });
+  useSubmissionError(impersonateSubmission, "Failed to impersonate user");
+  useSubmissionError(removeSubmission, "Failed to delete user");
 
   return (
     <Card>

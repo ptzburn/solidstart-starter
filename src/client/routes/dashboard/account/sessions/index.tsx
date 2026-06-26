@@ -1,12 +1,12 @@
 import {
   createAsync,
-  revalidate,
   type RouteDefinition,
   useSubmission,
 } from "@solidjs/router";
 import { revokeOtherSessions, revokeSession } from "~/client/actions/auth.ts";
 import { ConfirmDialog } from "~/client/components/confirm-dialog.tsx";
-import { ErrorBoundaryMessage } from "~/client/components/error-boundary-message.tsx";
+import { DataBoundary } from "~/client/components/data-boundary.tsx";
+import { PageHeader } from "~/client/components/page-header.tsx";
 import { Badge } from "~/client/components/ui/badge.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
 
@@ -18,25 +18,17 @@ import {
   TableHeader,
   TableRow,
 } from "~/client/components/ui/table.tsx";
-import { Typography } from "~/client/components/ui/typography.tsx";
 import { useSession } from "~/client/contexts/session-context.tsx";
+import {
+  useSubmissionError,
+  useSubmissionSuccess,
+} from "~/client/hooks/use-submission.ts";
 import { listSessionsQuery } from "~/client/queries/auth.ts";
 import LogOut from "~icons/lucide/log-out";
 import Monitor from "~icons/lucide/monitor";
 import Smartphone from "~icons/lucide/smartphone";
 import Tablet from "~icons/lucide/tablet";
-import {
-  createEffect,
-  createSignal,
-  ErrorBoundary,
-  For,
-  type JSX,
-  Match,
-  Show,
-  Suspense,
-  Switch,
-} from "solid-js";
-import { toast } from "solid-sonner";
+import { createSignal, For, type JSX, Match, Show, Switch } from "solid-js";
 
 export const route = {
   preload: () => listSessionsQuery(),
@@ -111,193 +103,162 @@ export default function SessionsRoute(): JSX.Element {
   const hasOtherSessions = () =>
     (sessions() ?? []).some((s) => s.token !== session.session.token);
 
-  createEffect(() => {
-    if (revokeSubmission.result && "ok" in revokeSubmission.result) {
-      revalidate(listSessionsQuery.key);
-      toast.success("Session revoked successfully");
-      revokeSubmission.clear();
-    }
+  useSubmissionSuccess(revokeSubmission, {
+    successMessage: "Session revoked successfully",
+    revalidateKey: listSessionsQuery.key,
   });
+  useSubmissionError(revokeSubmission, "Failed to revoke session");
 
-  createEffect(() => {
-    if (revokeSubmission.error) {
-      toast.error(
-        revokeSubmission.error.message || "Failed to revoke session",
-      );
-      revokeSubmission.clear();
-    }
+  useSubmissionSuccess(revokeAllSubmission, {
+    successMessage: "All other sessions have been revoked",
+    revalidateKey: listSessionsQuery.key,
+    onSuccess: () => setRevokeAllOpen(false),
   });
-
-  createEffect(() => {
-    if (revokeAllSubmission.result && "ok" in revokeAllSubmission.result) {
-      revalidate(listSessionsQuery.key);
-      toast.success("All other sessions have been revoked");
-      setRevokeAllOpen(false);
-      revokeAllSubmission.clear();
-    }
-  });
-
-  createEffect(() => {
-    if (revokeAllSubmission.error) {
-      toast.error(
-        revokeAllSubmission.error.message || "Failed to revoke sessions",
-      );
-      revokeAllSubmission.clear();
-    }
-  });
+  useSubmissionError(revokeAllSubmission, "Failed to revoke sessions");
 
   return (
     <div class="flex flex-1 flex-col gap-4">
-      <div>
-        <Typography variant="h2">Sessions</Typography>
-        <p class="text-muted-foreground">
-          Manage your active sessions.
-        </p>
-      </div>
+      <PageHeader title="Sessions" description="Manage your active sessions." />
 
-      <ErrorBoundary
-        fallback={(error) => <ErrorBoundaryMessage error={error} />}
-      >
-        <Suspense
-          fallback={
-            <div class="flex flex-1 items-center justify-center">
-              <Spinner class="size-10" />
-            </div>
-          }
-        >
-          <div class="rounded-lg border bg-card">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead class="text text-text">
-                    Device
-                  </TableHead>
-                  <TableHead class="hidden text-text sm:table-cell">
-                    IP Address
-                  </TableHead>
-                  <TableHead class="hidden text-text md:table-cell">
-                    Signed in
-                  </TableHead>
-                  <TableHead class="text-text">
-                    Expires
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <Show when={sessions()}>
-                  {(sessions) => (
-                    <Show
-                      when={sessions().length > 0}
-                      fallback={
-                        <TableRow>
-                          <TableCell
-                            colSpan={5}
-                            class="py-8 text-center text-muted-foreground"
-                          >
-                            No active sessions found
-                          </TableCell>
-                        </TableRow>
-                      }
-                    >
-                      <For each={sessions()}>
-                        {(s) => {
-                          const parsed = parseUserAgent(s.userAgent);
-                          const isCurrent = () =>
-                            s.token === session.session.token;
-
-                          return (
-                            <TableRow>
-                              <TableCell>
-                                <div class="flex items-center gap-3">
-                                  <DeviceIcon
-                                    device={parsed.device}
-                                    class="size-5 shrink-0 text-muted-foreground"
-                                  />
-                                  <div class="flex flex-col gap-0.5">
-                                    <div class="flex items-center gap-2">
-                                      <span class="font-medium">
-                                        {parsed.browser}
-                                      </span>
-                                      <Show when={isCurrent()}>
-                                        <Badge class="px-1.5 py-0 text-[10px]">
-                                          Current
-                                        </Badge>
-                                      </Show>
-                                    </div>
-                                    <span class="text-muted-foreground text-xs">
-                                      {parsed.os}
-                                    </span>
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell class="hidden text-muted-foreground sm:table-cell">
-                                {s.ipAddress ?? "—"}
-                              </TableCell>
-                              <TableCell class="hidden text-muted-foreground md:table-cell">
-                                {formatDate(s.createdAt)}
-                              </TableCell>
-                              <TableCell class="text-muted-foreground">
-                                {formatDate(s.expiresAt)}
-                              </TableCell>
-                              <TableCell class="text-right">
-                                <Show when={!isCurrent()}>
-                                  <ConfirmDialog
-                                    trigger={
-                                      <>
-                                        <LogOut class="size-4" />
-                                        <span class="hidden sm:inline">
-                                          Revoke
-                                        </span>
-                                      </>
-                                    }
-                                    triggerVariant="outline"
-                                    triggerSize="sm"
-                                    variant="destructive"
-                                    title="Revoke session?"
-                                    description="This will sign out the device associated with this session. This action cannot be undone."
-                                    confirmText="Revoke"
-                                    isPending={revokeSubmission.pending}
-                                    action={revokeSession}
-                                    hiddenFields={{ token: s.token }}
-                                  />
-                                </Show>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        }}
-                      </For>
-                    </Show>
-                  )}
-                </Show>
-              </TableBody>
-            </Table>
+      <DataBoundary
+        fallback={
+          <div class="flex flex-1 items-center justify-center">
+            <Spinner class="size-10" />
           </div>
+        }
+      >
+        <div class="rounded-lg border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead class="text text-text">
+                  Device
+                </TableHead>
+                <TableHead class="hidden text-text sm:table-cell">
+                  IP Address
+                </TableHead>
+                <TableHead class="hidden text-text md:table-cell">
+                  Signed in
+                </TableHead>
+                <TableHead class="text-text">
+                  Expires
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <Show when={sessions()}>
+                {(sessions) => (
+                  <Show
+                    when={sessions().length > 0}
+                    fallback={
+                      <TableRow>
+                        <TableCell
+                          colSpan={5}
+                          class="py-8 text-center text-muted-foreground"
+                        >
+                          No active sessions found
+                        </TableCell>
+                      </TableRow>
+                    }
+                  >
+                    <For each={sessions()}>
+                      {(s) => {
+                        const parsed = parseUserAgent(s.userAgent);
+                        const isCurrent = () =>
+                          s.token === session.session.token;
 
-          <Show when={hasOtherSessions()}>
-            <ConfirmDialog
-              open={revokeAllOpen()}
-              onOpenChange={setRevokeAllOpen}
-              trigger={
-                <>
-                  <Show when={revokeAllSubmission.pending}>
-                    <Spinner class="size-4" />
+                        return (
+                          <TableRow>
+                            <TableCell>
+                              <div class="flex items-center gap-3">
+                                <DeviceIcon
+                                  device={parsed.device}
+                                  class="size-5 shrink-0 text-muted-foreground"
+                                />
+                                <div class="flex flex-col gap-0.5">
+                                  <div class="flex items-center gap-2">
+                                    <span class="font-medium">
+                                      {parsed.browser}
+                                    </span>
+                                    <Show when={isCurrent()}>
+                                      <Badge class="px-1.5 py-0 text-[10px]">
+                                        Current
+                                      </Badge>
+                                    </Show>
+                                  </div>
+                                  <span class="text-muted-foreground text-xs">
+                                    {parsed.os}
+                                  </span>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell class="hidden text-muted-foreground sm:table-cell">
+                              {s.ipAddress ?? "—"}
+                            </TableCell>
+                            <TableCell class="hidden text-muted-foreground md:table-cell">
+                              {formatDate(s.createdAt)}
+                            </TableCell>
+                            <TableCell class="text-muted-foreground">
+                              {formatDate(s.expiresAt)}
+                            </TableCell>
+                            <TableCell class="text-right">
+                              <Show when={!isCurrent()}>
+                                <ConfirmDialog
+                                  trigger={
+                                    <>
+                                      <LogOut class="size-4" />
+                                      <span class="hidden sm:inline">
+                                        Revoke
+                                      </span>
+                                    </>
+                                  }
+                                  triggerVariant="outline"
+                                  triggerSize="default"
+                                  variant="destructive"
+                                  title="Revoke session?"
+                                  description="This will sign out the device associated with this session. This action cannot be undone."
+                                  confirmText="Revoke"
+                                  isPending={revokeSubmission.pending}
+                                  action={revokeSession}
+                                  hiddenFields={{ token: s.token }}
+                                />
+                              </Show>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }}
+                    </For>
                   </Show>
-                  Revoke all other sessions
-                </>
-              }
-              triggerVariant="secondary"
-              triggerClass="w-fit"
-              triggerDisabled={revokeAllSubmission.pending}
-              variant="destructive"
-              title="Revoke all other sessions?"
-              description="This will sign out all devices except the current one. This action cannot be undone."
-              confirmText="Revoke all"
-              isPending={revokeAllSubmission.pending}
-              action={revokeOtherSessions}
-            />
-          </Show>
-        </Suspense>
-      </ErrorBoundary>
+                )}
+              </Show>
+            </TableBody>
+          </Table>
+        </div>
+
+        <Show when={hasOtherSessions()}>
+          <ConfirmDialog
+            open={revokeAllOpen()}
+            onOpenChange={setRevokeAllOpen}
+            trigger={
+              <>
+                <Show when={revokeAllSubmission.pending}>
+                  <Spinner class="size-4" />
+                </Show>
+                Revoke all other sessions
+              </>
+            }
+            triggerVariant="secondary"
+            triggerClass="w-fit"
+            triggerDisabled={revokeAllSubmission.pending}
+            variant="destructive"
+            title="Revoke all other sessions?"
+            description="This will sign out all devices except the current one. This action cannot be undone."
+            confirmText="Revoke all"
+            isPending={revokeAllSubmission.pending}
+            action={revokeOtherSessions}
+          />
+        </Show>
+      </DataBoundary>
     </div>
   );
 }

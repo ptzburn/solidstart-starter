@@ -1,15 +1,14 @@
 import { action } from "@solidjs/router";
 import { auth } from "~/api/lib/auth.ts";
 import { getServerHeaders } from "~/api/lib/server-headers.ts";
-import { capitalize } from "~/client/lib/utils.ts";
+import { composeName } from "~/client/lib/name.ts";
 import {
-  type RequestEmailChangeFieldErrors,
   RequestEmailChangeSchema,
-  type SendPhoneOtpFieldErrors,
   SendPhoneOtpSchema,
   UpdateUserNameSchema,
   VerifyPhoneOtpSchema,
 } from "~/client/schemas/users.ts";
+import { validateNotCurrentValue } from "~/client/utils/field-validation.ts";
 import { parseFields } from "~/client/utils/form-errors.ts";
 
 export const updateUserName = action(async (formData: FormData) => {
@@ -20,9 +19,7 @@ export const updateUserName = action(async (formData: FormData) => {
   });
   if (result.fieldErrors) return { fieldErrors: result.fieldErrors };
 
-  const name = `${capitalize(result.data.firstName)} ${
-    capitalize(result.data.lastName)
-  }`.trim();
+  const name = composeName(result.data.firstName, result.data.lastName);
 
   await auth.api.updateUser({
     body: { name },
@@ -42,13 +39,13 @@ export const requestEmailChange = action(async (formData: FormData) => {
   const headers = getServerHeaders();
   const session = await auth.api.getSession({ headers });
 
-  if (result.data.email === session?.user.email) {
-    return {
-      fieldErrors: {
-        email: "This is already your current email",
-      } satisfies RequestEmailChangeFieldErrors,
-    };
-  }
+  const conflict = validateNotCurrentValue(
+    "email",
+    result.data.email,
+    session?.user.email,
+    "This is already your current email",
+  );
+  if (conflict) return conflict;
 
   await auth.api.changeEmail({
     body: {
@@ -73,13 +70,13 @@ export const sendPhoneOtp = action(async (formData: FormData) => {
   const headers = getServerHeaders();
   const session = await auth.api.getSession({ headers });
 
-  if (result.data.phoneNumber === session?.user.phoneNumber) {
-    return {
-      fieldErrors: {
-        phoneNumber: "This is already your current phone number",
-      } satisfies SendPhoneOtpFieldErrors,
-    };
-  }
+  const conflict = validateNotCurrentValue(
+    "phoneNumber",
+    result.data.phoneNumber,
+    session?.user.phoneNumber,
+    "This is already your current phone number",
+  );
+  if (conflict) return conflict;
 
   await auth.api.sendPhoneNumberOTP({
     body: { phoneNumber: result.data.phoneNumber },

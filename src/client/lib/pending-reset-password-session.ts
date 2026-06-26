@@ -1,20 +1,10 @@
 import { useSession } from "@solidjs/start/http";
-import { COOKIE_PREFIX } from "~/api/lib/auth.ts";
-import env from "~/env.ts";
-
-type PendingResetPasswordSessionData = { completed: boolean };
+import { pendingSessionConfig } from "~/client/lib/pending-session-factory.ts";
 
 export function usePendingResetPasswordSession(): ReturnType<
-  typeof useSession<PendingResetPasswordSessionData>
+  typeof useSession<{ completed: boolean }>
 > {
-  return useSession<PendingResetPasswordSessionData>({
-    name: `${COOKIE_PREFIX}.pending-reset-password`,
-    password: env.BETTER_AUTH_SECRET,
-    maxAge: 60 * 15,
-    cookie: {
-      httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "lax",
-    },
-  });
+  return useSession<{ completed: boolean }>(
+    pendingSessionConfig("pending-reset-password"),
+  );
 }

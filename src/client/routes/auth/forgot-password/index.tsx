@@ -1,31 +1,26 @@
-import { Turnstile, type TurnstileRef } from "@nerimity/solid-turnstile";
+import { Turnstile } from "@nerimity/solid-turnstile";
 import { A, useSubmission } from "@solidjs/router";
 import { requestPasswordReset } from "~/client/actions/auth.ts";
 import { Button } from "~/client/components/ui/button.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
-import { Typography } from "~/client/components/ui/typography.tsx";
-import { createEffect, createSignal, type JSX } from "solid-js";
-import { toast } from "solid-sonner";
+import {
+  useFormFieldErrors,
+  useSubmissionError,
+} from "~/client/hooks/use-submission.ts";
+import type { JSX } from "solid-js";
+import { AuthHeader } from "../_components/auth-header.tsx";
+import { useTurnstile } from "../_components/use-turnstile.ts";
 
 export default function ForgotPasswordPage(): JSX.Element {
-  const [turnstileToken, setTurnstileToken] = createSignal<string>();
   const submission = useSubmission(requestPasswordReset);
-  const fieldErrors = (): Record<string, string | undefined> =>
-    submission.result?.fieldErrors ?? {};
-  let turnstileRef: TurnstileRef | undefined;
+  const fieldErrors = useFormFieldErrors(submission);
+  const turnstile = useTurnstile();
 
-  const resetTurnstile = (): void => {
-    setTurnstileToken(undefined);
-    turnstileRef?.reset();
-  };
-
-  createEffect(() => {
-    if (submission.error) {
-      toast.error(submission.error.message || "Password reset request failed");
-      resetTurnstile();
-      submission.clear();
-    }
-  });
+  useSubmissionError(
+    submission,
+    "Password reset request failed",
+    turnstile.reset,
+  );
 
   return (
     <form
@@ -36,12 +31,10 @@ export default function ForgotPasswordPage(): JSX.Element {
         if (submission.result) submission.clear();
       }}
     >
-      <div class="flex flex-col items-center gap-2 text-center">
-        <h1 class="font-bold text-2xl">Forgot Password</h1>
-        <Typography variant="muted" class="text-balance">
-          Enter your email to request a password reset.
-        </Typography>
-      </div>
+      <AuthHeader
+        title="Forgot Password"
+        subtitle="Enter your email to request a password reset."
+      />
       <div class="grid gap-6">
         <TextField
           name="email"
@@ -55,16 +48,16 @@ export default function ForgotPasswordPage(): JSX.Element {
         />
         <div class="flex justify-center">
           <Turnstile
-            ref={(r) => (turnstileRef = r)}
+            ref={turnstile.setRef}
             sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-            onVerify={setTurnstileToken}
+            onVerify={turnstile.setToken}
             autoResetOnExpire
           />
         </div>
         <Button
           type="submit"
           class="w-full"
-          disabled={submission.pending || !turnstileToken()}
+          disabled={submission.pending || !turnstile.token()}
         >
           Request Password Reset
         </Button>

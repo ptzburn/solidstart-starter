@@ -20,6 +20,7 @@ import {
   SidebarMenuItem,
 } from "~/client/components/ui/sidebar.tsx";
 import { useSession } from "~/client/contexts/session-context.tsx";
+import { useSubmissionError } from "~/client/hooks/use-submission.ts";
 import { getFileUrl, getInitials } from "~/client/lib/utils.ts";
 import ChevronsUpDown from "~icons/lucide/chevrons-up-down";
 import LogOut from "~icons/lucide/log-out";
@@ -27,8 +28,7 @@ import Moon from "~icons/lucide/moon";
 
 import Sun from "~icons/lucide/sun";
 import User from "~icons/lucide/user";
-import { createEffect, type JSX, Show } from "solid-js";
-import { toast } from "solid-sonner";
+import { type JSX, Show } from "solid-js";
 
 export function NavUser(): JSX.Element {
   const session = useSession();
@@ -38,21 +38,8 @@ export function NavUser(): JSX.Element {
   const stopSubmission = useSubmission(stopImpersonating);
   const signOutSubmission = useSubmission(signOut);
 
-  createEffect(() => {
-    if (stopSubmission.error) {
-      toast.error(
-        stopSubmission.error.message || "Failed to stop impersonating",
-      );
-      stopSubmission.clear();
-    }
-  });
-
-  createEffect(() => {
-    if (signOutSubmission.error) {
-      toast.error(signOutSubmission.error.message || "Failed to sign out");
-      signOutSubmission.clear();
-    }
-  });
+  useSubmissionError(stopSubmission, "Failed to stop impersonating");
+  useSubmissionError(signOutSubmission, "Failed to sign out");
 
   const toggleTheme = () => {
     const next = colorMode() === "light" ? "dark" : "light";
