@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-export function collectFieldErrors<T extends string>(
+function collectFieldErrors<T extends string>(
   issues: readonly z.core.$ZodIssue[],
 ): Partial<Record<T, string>> {
   const fieldErrors: Partial<Record<T, string>> = {};

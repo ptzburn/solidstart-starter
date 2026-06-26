@@ -1,4 +1,4 @@
-export type ResetPasswordVars = {
+type ResetPasswordVars = {
   userName: string;
   resetPasswordUrl: string;
 };

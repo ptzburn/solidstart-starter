@@ -1,4 +1,4 @@
-export type EmailChangeVars = {
+type EmailChangeVars = {
   userName: string;
   newEmail: string;
   emailChangeUrl: string;

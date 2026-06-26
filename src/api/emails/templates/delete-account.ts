@@ -1,4 +1,4 @@
-export type DeleteAccountVars = {
+type DeleteAccountVars = {
   userName: string;
   accountDeletionUrl: string;
 };

@@ -1,4 +1,4 @@
-export type SignUpAttemptVars = {
+type SignUpAttemptVars = {
   userName: string;
   signInUrl: string;
 };
