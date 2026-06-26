@@ -1,0 +1,119 @@
+import * as AccordionPrimitive from "@kobalte/core/accordion";
+import type { PolymorphicProps } from "@kobalte/core/polymorphic";
+
+import { cn } from "~/client/lib/utils.ts";
+import ChevronDownIcon from "~icons/lucide/chevron-down";
+import ChevronUpIcon from "~icons/lucide/chevron-up";
+import type { JSX, ValidComponent } from "solid-js";
+
+import { splitProps } from "solid-js";
+
+type AccordionProps<T extends ValidComponent = "div"> =
+  & AccordionPrimitive.AccordionRootProps<T>
+  & {
+    class?: string | undefined;
+  };
+
+const Accordion = <T extends ValidComponent = "div">(
+  props: PolymorphicProps<T, AccordionProps<T>>,
+) => {
+  const [local, others] = splitProps(props as AccordionProps, ["class"]);
+  return (
+    <AccordionPrimitive.Root
+      data-slot="accordion"
+      class={cn("flex w-full flex-col", local.class)}
+      {...others}
+    />
+  );
+};
+
+type AccordionItemProps<T extends ValidComponent = "div"> =
+  & AccordionPrimitive.AccordionItemProps<T>
+  & {
+    class?: string | undefined;
+  };
+
+const AccordionItem = <T extends ValidComponent = "div">(
+  props: PolymorphicProps<T, AccordionItemProps<T>>,
+) => {
+  const [local, others] = splitProps(props as AccordionItemProps, ["class"]);
+  return (
+    <AccordionPrimitive.Item
+      data-slot="accordion-item"
+      class={cn("not-last:border-b", local.class)}
+      {...others}
+    />
+  );
+};
+
+type AccordionTriggerProps<T extends ValidComponent = "button"> =
+  & AccordionPrimitive.AccordionTriggerProps<T>
+  & {
+    class?: string | undefined;
+    children?: JSX.Element;
+  };
+
+const AccordionTrigger = <T extends ValidComponent = "button">(
+  props: PolymorphicProps<T, AccordionTriggerProps<T>>,
+) => {
+  const [local, others] = splitProps(props as AccordionTriggerProps, [
+    "class",
+    "children",
+  ]);
+  return (
+    <AccordionPrimitive.Header class="flex">
+      <AccordionPrimitive.Trigger
+        data-slot="accordion-trigger"
+        class={cn(
+          "group/accordion-trigger relative flex flex-1 items-start justify-between rounded-lg border border-transparent py-2.5 text-left font-medium text-sm outline-none transition-all hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:after:border-ring disabled:pointer-events-none disabled:opacity-50 **:data-[slot=accordion-trigger-icon]:ml-auto **:data-[slot=accordion-trigger-icon]:size-4 **:data-[slot=accordion-trigger-icon]:text-muted-foreground",
+          local.class,
+        )}
+        {...others}
+      >
+        {local.children}
+        <ChevronDownIcon
+          data-slot="accordion-trigger-icon"
+          class="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden"
+        />
+        <ChevronUpIcon
+          data-slot="accordion-trigger-icon"
+          class="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline"
+        />
+      </AccordionPrimitive.Trigger>
+    </AccordionPrimitive.Header>
+  );
+};
+
+type AccordionContentProps<T extends ValidComponent = "div"> =
+  & AccordionPrimitive.AccordionContentProps<T>
+  & {
+    class?: string | undefined;
+    children?: JSX.Element;
+  };
+
+const AccordionContent = <T extends ValidComponent = "div">(
+  props: PolymorphicProps<T, AccordionContentProps<T>>,
+) => {
+  const [local, others] = splitProps(props as AccordionContentProps, [
+    "class",
+    "children",
+  ]);
+  return (
+    <AccordionPrimitive.Content
+      data-slot="accordion-content"
+      class="overflow-hidden text-sm data-[closed]:animate-accordion-up data-[expanded]:animate-accordion-down"
+      {...others}
+    >
+      <div
+        class={cn(
+          "h-(--kb-accordion-content-height) pt-0 pb-2.5 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
+          local.class,
+        )}
+      >
+        {local.children}
+      </div>
+    </AccordionPrimitive.Content>
+  );
+};
+
+export { Accordion, AccordionContent, AccordionItem, AccordionTrigger };

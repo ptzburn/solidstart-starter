@@ -161,7 +161,7 @@ const DialogTitle = <T extends ValidComponent = "h2">(
     <DialogPrimitive.Title
       data-slot="dialog-title"
       class={cn(
-        "cn-font-heading font-medium text-base leading-none",
+        "font-heading font-medium text-base leading-none",
         local.class,
       )}
       {...rest}

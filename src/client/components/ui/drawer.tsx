@@ -133,7 +133,7 @@ const DrawerTitle = <T extends ValidComponent = "div">(
     <DrawerPrimitive.Label
       data-slot="drawer-title"
       class={cn(
-        "cn-font-heading font-medium text-base text-foreground",
+        "font-heading font-medium text-base text-foreground",
         props.class,
       )}
       {...rest}

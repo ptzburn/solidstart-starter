@@ -74,7 +74,7 @@ const EmptyTitle: Component<ComponentProps<"div">> = (props) => {
     <div
       data-slot="empty-title"
       class={cn(
-        "cn-font-heading font-medium text-sm tracking-tight",
+        "font-heading font-medium text-sm tracking-tight",
         local.class,
       )}
       {...others}

@@ -136,7 +136,7 @@ const AlertDialogTitle = <T extends ValidComponent = "h2">(
     <AlertDialogPrimitive.Title
       data-slot="alert-dialog-title"
       class={cn(
-        "cn-font-heading font-medium text-base sm:group-data-[size=default]/alert-dialog-content:group-has-data-[slot=alert-dialog-media]/alert-dialog-content:col-start-2",
+        "font-heading font-medium text-base sm:group-data-[size=default]/alert-dialog-content:group-has-data-[slot=alert-dialog-media]/alert-dialog-content:col-start-2",
         local.class,
       )}
       {...others}
