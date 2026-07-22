@@ -65,7 +65,7 @@
     "unplugin-icons": "npm:unplugin-icons@^23.0.1",
     "~/": "./src/",
     "@nerimity/solid-turnstile": "npm:@nerimity/solid-turnstile@^1.1.0",
-    "@orpc/client": "npm:@orpc/client@^1.14.8",
+    "@orpc/client": "npm:@orpc/client@^2.0.0",
     "@orpc/experimental-pino": "npm:@orpc/experimental-pino@^1.14.8",
     "@orpc/openapi": "npm:@orpc/openapi@^1.14.8",
     "@orpc/openapi-client": "npm:@orpc/openapi-client@^1.14.8",
