@@ -38,7 +38,7 @@
     "npm:cmdk-solid@^1.1.2": "1.1.2_solid-js@1.9.14",
     "npm:date-fns@^4.4.0": "4.4.0",
     "npm:drizzle-kit@1.0.0-rc.4": "1.0.0-rc.4",
-    "npm:drizzle-orm@1.0.0-rc.4-de6c356": "1.0.0-rc.4-de6c356_@libsql+client@0.17.4_zod@4.4.3",
+    "npm:drizzle-orm@1.0.0-rc.4": "1.0.0-rc.4_@libsql+client@0.17.4_zod@4.4.3",
     "npm:drizzle-zod@1.0.0-beta.14-56703c9": "1.0.0-beta.14-56703c9_drizzle-orm@1.0.0-rc.4-de6c356__@libsql+client@0.17.4__zod@4.4.3_zod@4.4.3_@libsql+client@0.17.4",
     "npm:embla-carousel-solid@^8.6.0": "8.6.0_solid-js@1.9.14",
     "npm:lefthook@^2.1.10": "2.1.10",
@@ -3849,6 +3849,17 @@
         "zod"
       ]
     },
+    "drizzle-orm@1.0.0-rc.4_@libsql+client@0.17.4_zod@4.4.3": {
+      "integrity": "sha512-BT+pf+qoiYHqltoA88Jmf6ilGMXPlpfE0hEJKc2adRtMCAl25Swk/t5gXcWxZNAwdtf3F5gCd2FpeOyP/pT0Hw==",
+      "dependencies": [
+        "@libsql/client",
+        "zod"
+      ],
+      "optionalPeers": [
+        "@libsql/client",
+        "zod"
+      ]
+    },
     "drizzle-zod@1.0.0-beta.14-56703c9_drizzle-orm@1.0.0-rc.4-de6c356__@libsql+client@0.17.4__zod@4.4.3_zod@4.4.3_@libsql+client@0.17.4": {
       "integrity": "sha512-sipAZBLTu+Y6IU9275T3a682dXp7xHevbodsw7OgHSEg8FOht2TpjZFn3lEIlrV97yXdIlez4/v+0LXyJlgBLg==",
       "dependencies": [
@@ -6245,7 +6256,7 @@
       "npm:cmdk-solid@^1.1.2",
       "npm:date-fns@^4.4.0",
       "npm:drizzle-kit@1.0.0-rc.4",
-      "npm:drizzle-orm@1.0.0-rc.4-de6c356",
+      "npm:drizzle-orm@1.0.0-rc.4",
       "npm:drizzle-zod@1.0.0-beta.14-56703c9",
       "npm:embla-carousel-solid@^8.6.0",
       "npm:lefthook@^2.1.10",

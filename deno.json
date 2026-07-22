@@ -92,7 +92,7 @@
     "clsx": "npm:clsx@^2.1.1",
     "cmdk-solid": "npm:cmdk-solid@^1.1.2",
     "drizzle-kit": "npm:drizzle-kit@1.0.0-rc.4",
-    "drizzle-orm": "npm:drizzle-orm@1.0.0-rc.4-de6c356",
+    "drizzle-orm": "npm:drizzle-orm@1.0.0-rc.4",
     "drizzle-zod": "npm:drizzle-zod@1.0.0-beta.14-56703c9",
     "embla-carousel-solid": "npm:embla-carousel-solid@^8.6.0",
     "lefthook": "npm:lefthook@^2.1.10",
