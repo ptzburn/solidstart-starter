@@ -34,16 +34,6 @@ export default defineConfig({
       autoInstall: true,
     }),
     {
-      name: "deno-ssr-stream-fix",
-      enforce: "post",
-      configureServer() {
-        return () => {
-          (globalThis as Record<string, unknown>).USING_SOLID_START_DEV_SERVER =
-            false;
-        };
-      },
-    },
-    {
       // Workaround for @solidjs/start@2.0.0-alpha.3: its manifest plugin
       // reads the asset id from a query string in the resolved id, but Vite
       // strips the query before calling load. Returning the id verbatim from

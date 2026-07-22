@@ -19,11 +19,11 @@ jobs:
     env:
       DENO_V8_FLAGS: --max-old-space-size=6144
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.8.3
+          deno-version: v2.9.3
 
       - name: Cache Deno + node_modules
         uses: actions/cache@v5
