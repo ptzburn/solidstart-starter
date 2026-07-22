@@ -1,7 +1,6 @@
 import env from "~/env.ts";
 import { drizzle } from "drizzle-orm/libsql";
 import { relations } from "./relations.ts";
-import * as schema from "./schema/index.ts";
 
 const db = drizzle({
   connection: {
@@ -10,7 +9,6 @@ const db = drizzle({
       ? undefined
       : env.DATABASE_AUTH_TOKEN,
   },
-  schema,
   relations,
 });
 

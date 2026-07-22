@@ -1,6 +1,7 @@
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { passkey } from "@better-auth/passkey";
 import db from "~/api/db/index.ts";
+import * as schema from "~/api/db/schema/index.ts";
 import { sendSms } from "~/api/lib/seven-io.ts";
 
 import {
@@ -30,6 +31,10 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "sqlite",
     usePlural: true,
+    // drizzle-orm >= 1.0.0-rc.4 no longer exposes the schema on the db
+    // instance (`db._.fullSchema` was removed with relations v2), so the
+    // adapter can't discover it and it must be passed explicitly.
+    schema,
   }),
   appName: "Solid Starter Template",
   user: {

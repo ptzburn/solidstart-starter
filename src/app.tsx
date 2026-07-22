@@ -15,6 +15,7 @@ import { isServer } from "solid-js/web";
 import "./app.css";
 
 function getServerCookies(): string {
+  "use server";
   const colorMode = getCookie("kb-color-mode");
   return colorMode ? `kb-color-mode=${colorMode}` : "";
 }
