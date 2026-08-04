@@ -7,7 +7,7 @@ import {
 import { Button } from "~/client/components/ui/button.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
 import { requirePasswordResetCompletedQuery } from "~/client/queries/auth.ts";
-import CircleCheckBig from "~icons/lucide/circle-check-big";
+import CircleCheckBig from "~icons/ri/checkbox-circle-line";
 import { type JSX, Show, Suspense } from "solid-js";
 
 export default function ResetPasswordSuccessPage(): JSX.Element {

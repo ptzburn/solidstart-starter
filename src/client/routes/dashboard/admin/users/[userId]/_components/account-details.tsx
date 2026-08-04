@@ -8,11 +8,11 @@ import {
   ItemSeparator,
   ItemTitle,
 } from "~/client/components/ui/item.tsx";
-import ALargeSmall from "~icons/lucide/a-large-small";
-import Calendar from "~icons/lucide/calendar";
-import Mail from "~icons/lucide/mail";
-import User from "~icons/lucide/user";
-import UserKey from "~icons/lucide/user-key";
+import AdminIcon from "~icons/ri/admin-line";
+import Calendar from "~icons/ri/calendar-line";
+import FontSize from "~icons/ri/font-size";
+import Mail from "~icons/ri/mail-line";
+import User from "~icons/ri/user-line";
 
 import { format } from "date-fns";
 
@@ -31,7 +31,7 @@ export function AccountDetails(props: AccountDetailsProps): JSX.Element {
       <ItemGroup class="rounded-lg border bg-card py-4">
         <Item>
           <ItemMedia variant="icon">
-            <ALargeSmall />
+            <FontSize />
           </ItemMedia>
           <ItemContent>
             <ItemTitle class="font-medium text-muted-foreground">
@@ -67,7 +67,7 @@ export function AccountDetails(props: AccountDetailsProps): JSX.Element {
                 <User />
               </Match>
               <Match when={props.user().role === "admin"}>
-                <UserKey />
+                <AdminIcon />
               </Match>
             </Switch>
           </ItemMedia>

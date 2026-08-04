@@ -3,9 +3,9 @@ import type { ButtonProps } from "~/client/components/ui/button.tsx";
 import { Button } from "~/client/components/ui/button.tsx";
 
 import { cn } from "~/client/lib/utils.ts";
-import ChevronLeft from "~icons/lucide/chevron-left";
+import ChevronLeft from "~icons/ri/arrow-left-s-line";
 
-import ChevronRight from "~icons/lucide/chevron-right";
+import ChevronRight from "~icons/ri/arrow-right-s-line";
 import type { CreateEmblaCarouselType } from "embla-carousel-solid";
 import createEmblaCarousel from "embla-carousel-solid";
 import type { Accessor, Component, ComponentProps, VoidProps } from "solid-js";

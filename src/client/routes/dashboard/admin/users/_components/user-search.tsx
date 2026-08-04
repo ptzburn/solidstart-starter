@@ -5,8 +5,8 @@ import { FieldGroup, FieldSet } from "~/client/components/ui/field.tsx";
 import { SelectField } from "~/client/components/ui/form/select-field.tsx";
 import { TextField } from "~/client/components/ui/form/text-field.tsx";
 import { Separator } from "~/client/components/ui/separator.tsx";
-import Plus from "~icons/lucide/plus";
-import Search from "~icons/lucide/search";
+import Plus from "~icons/ri/add-line";
+import Search from "~icons/ri/search-line";
 import { createMemo, createSignal, type JSX, Show } from "solid-js";
 
 const FORM_ID = "user-search-form";

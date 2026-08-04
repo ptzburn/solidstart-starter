@@ -9,8 +9,8 @@ import {
   useSidebar,
 } from "~/client/components/ui/sidebar.tsx";
 import { AccountNav } from "~/client/routes/dashboard/_components/account-nav.tsx";
-import ChevronLeftIcon from "~icons/lucide/chevron-left";
-import ChevronRightIcon from "~icons/lucide/chevron-right";
+import ChevronLeftIcon from "~icons/ri/arrow-left-s-line";
+import ChevronRightIcon from "~icons/ri/arrow-right-s-line";
 import { createEffect, type JSX, on, Show } from "solid-js";
 import { NavMain } from "./nav-main.tsx";
 import { NavUser } from "./nav-user.tsx";

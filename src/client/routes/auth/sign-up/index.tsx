@@ -4,8 +4,8 @@ import { Button } from "~/client/components/ui/button.tsx";
 import { Separator } from "~/client/components/ui/separator.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
 import { useSubmissionError } from "~/client/hooks/use-submission.ts";
-import SimpleIconsGithub from "~icons/simple-icons/github";
-import SimpleIconsGoogle from "~icons/simple-icons/google";
+import GithubIcon from "~icons/ri/github-fill";
+import GoogleIcon from "~icons/ri/google-fill";
 import { type JSX, Show } from "solid-js";
 import { AuthHeader } from "../_components/auth-header.tsx";
 
@@ -28,7 +28,7 @@ export default function SignUpPage(): JSX.Element {
           >
             <Show
               when={submission.pending}
-              fallback={<SimpleIconsGithub class="size-5" />}
+              fallback={<GithubIcon class="size-5" />}
             >
               <Spinner />
             </Show>
@@ -46,7 +46,7 @@ export default function SignUpPage(): JSX.Element {
           >
             <Show
               when={submission.pending}
-              fallback={<SimpleIconsGoogle class="size-5" />}
+              fallback={<GoogleIcon class="size-5" />}
             >
               <Spinner />
             </Show>

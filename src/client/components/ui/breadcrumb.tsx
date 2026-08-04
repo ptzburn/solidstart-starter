@@ -2,8 +2,8 @@ import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import { Polymorphic } from "@kobalte/core/polymorphic";
 
 import { cn } from "~/client/lib/utils.ts";
-import ChevronRight from "~icons/lucide/chevron-right";
-import MoreHorizontal from "~icons/lucide/more-horizontal";
+import ChevronRight from "~icons/ri/arrow-right-s-line";
+import MoreHorizontal from "~icons/ri/more-fill";
 import type { Component, ComponentProps, ValidComponent } from "solid-js";
 
 import { Show, splitProps } from "solid-js";

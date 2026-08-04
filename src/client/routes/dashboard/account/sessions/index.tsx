@@ -24,10 +24,10 @@ import {
   useSubmissionSuccess,
 } from "~/client/hooks/use-submission.ts";
 import { listSessionsQuery } from "~/client/queries/auth.ts";
-import LogOut from "~icons/lucide/log-out";
-import Monitor from "~icons/lucide/monitor";
-import Smartphone from "~icons/lucide/smartphone";
-import Tablet from "~icons/lucide/tablet";
+import Monitor from "~icons/ri/computer-line";
+import LogOut from "~icons/ri/logout-box-r-line";
+import Smartphone from "~icons/ri/smartphone-line";
+import Tablet from "~icons/ri/tablet-line";
 import { createSignal, For, type JSX, Match, Show, Switch } from "solid-js";
 
 export const route = {

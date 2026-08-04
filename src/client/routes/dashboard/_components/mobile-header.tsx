@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { SidebarTrigger } from "~/client/components/ui/sidebar.tsx";
-import Menu from "~icons/lucide/menu";
+import Menu from "~icons/ri/menu-line";
 import type { JSX } from "solid-js";
 
 export default function MobileHeader(): JSX.Element {

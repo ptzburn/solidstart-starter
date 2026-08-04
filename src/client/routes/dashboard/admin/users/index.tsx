@@ -24,7 +24,7 @@ import {
 } from "~/client/components/ui/pagination.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
 import { listUsersQuery, USERS_PAGE_SIZE } from "~/client/queries/auth.ts";
-import UsersIcon from "~icons/lucide/users";
+import UsersIcon from "~icons/ri/group-line";
 import { createMemo, For, type JSX, Show } from "solid-js";
 import { UserCard } from "./_components/user-card.tsx";
 import { UserSearch } from "./_components/user-search.tsx";

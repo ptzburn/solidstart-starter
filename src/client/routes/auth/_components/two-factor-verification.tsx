@@ -17,7 +17,7 @@ import {
   useFormFieldErrors,
   useSubmissionError,
 } from "~/client/hooks/use-submission.ts";
-import CircleQuestionMark from "~icons/lucide/circle-question-mark";
+import CircleQuestionMark from "~icons/ri/question-line";
 import { type Accessor, createSignal, type JSX, Match, Switch } from "solid-js";
 import { AuthHeader } from "./auth-header.tsx";
 

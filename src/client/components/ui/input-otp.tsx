@@ -2,7 +2,7 @@ import type { DynamicProps, InputProps, RootProps } from "@corvu/otp-field";
 import OtpField from "@corvu/otp-field";
 
 import { cn } from "~/client/lib/utils.ts";
-import Minus from "~icons/lucide/minus";
+import Minus from "~icons/ri/subtract-line";
 import type { Component, ComponentProps, ValidComponent } from "solid-js";
 
 import { Show, splitProps } from "solid-js";

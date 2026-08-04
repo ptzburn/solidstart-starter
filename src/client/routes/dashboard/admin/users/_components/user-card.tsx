@@ -18,8 +18,8 @@ import {
 import { Typography } from "~/client/components/ui/typography.tsx";
 import { useSubmissionError } from "~/client/hooks/use-submission.ts";
 import { getFileUrl, getInitials } from "~/client/lib/utils.ts";
-import Drama from "~icons/lucide/drama";
-import LoaderCircle from "~icons/lucide/loader-circle";
+import LoaderCircle from "~icons/ri/loader-4-line";
+import Spy from "~icons/ri/spy-line";
 import { format } from "date-fns";
 import { type JSX, Match, Switch } from "solid-js";
 
@@ -87,7 +87,7 @@ export function UserCard(props: UserCardProps): JSX.Element {
             class="w-full"
             variant="outline"
           >
-            <Drama class="mr-2 size-4" />
+            <Spy class="mr-2 size-4" />
             <Switch>
               <Match when={submission.pending}>
                 <LoaderCircle class="size-4 animate-spin" />

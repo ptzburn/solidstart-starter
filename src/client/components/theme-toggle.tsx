@@ -10,9 +10,9 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "~/client/components/ui/toggle-group.tsx";
-import Monitor from "~icons/lucide/monitor";
-import Moon from "~icons/lucide/moon";
-import Sun from "~icons/lucide/sun";
+import Monitor from "~icons/ri/computer-line";
+import Moon from "~icons/ri/moon-line";
+import Sun from "~icons/ri/sun-line";
 import type { JSX } from "solid-js";
 
 interface ThemeToggleProps {

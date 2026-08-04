@@ -22,12 +22,12 @@ import {
 import { useSession } from "~/client/contexts/session-context.tsx";
 import { useSubmissionError } from "~/client/hooks/use-submission.ts";
 import { getFileUrl, getInitials } from "~/client/lib/utils.ts";
-import ChevronsUpDown from "~icons/lucide/chevrons-up-down";
-import LogOut from "~icons/lucide/log-out";
-import Moon from "~icons/lucide/moon";
+import ChevronsUpDown from "~icons/ri/expand-up-down-line";
+import LogOut from "~icons/ri/logout-box-r-line";
+import Moon from "~icons/ri/moon-line";
 
-import Sun from "~icons/lucide/sun";
-import User from "~icons/lucide/user";
+import Sun from "~icons/ri/sun-line";
+import User from "~icons/ri/user-line";
 import { type JSX, Show } from "solid-js";
 
 export function NavUser(): JSX.Element {

@@ -11,12 +11,12 @@ import {
   CardTitle,
 } from "~/client/components/ui/card.tsx";
 import { Separator } from "~/client/components/ui/separator.tsx";
-import ArrowRight from "~icons/lucide/arrow-right";
-import Webhook from "~icons/lucide/webhook";
+import ArrowRight from "~icons/ri/arrow-right-line";
+import GithubIcon from "~icons/ri/github-fill";
+import Webhook from "~icons/ri/webhook-line";
 import SimpleIconsBetterauth from "~icons/simple-icons/betterauth";
 import SimpleIconsDeno from "~icons/simple-icons/deno";
 import SimpleIconsDrizzle from "~icons/simple-icons/drizzle";
-import SimpleIconsGithub from "~icons/simple-icons/github";
 import SimpleIconsShadcnui from "~icons/simple-icons/shadcnui";
 import SimpleIconsSolid from "~icons/simple-icons/solid";
 import { For, type JSX } from "solid-js";
@@ -107,7 +107,7 @@ export default function LandingPage(): JSX.Element {
               variant="ghost"
               size="lg"
             >
-              <SimpleIconsGithub class="size-8" />
+              <GithubIcon class="size-8" />
             </Button>
           </div>
         </section>
@@ -170,7 +170,7 @@ export default function LandingPage(): JSX.Element {
               variant="ghost"
               size="lg"
             >
-              <SimpleIconsGithub class="size-8" />
+              <GithubIcon class="size-8" />
             </Button>
           </div>
         </section>
