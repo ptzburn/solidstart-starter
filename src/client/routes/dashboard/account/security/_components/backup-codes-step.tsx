@@ -1,5 +1,5 @@
 import { Button } from "~/client/components/ui/button.tsx";
-import Copy from "~icons/lucide/copy";
+import Copy from "~icons/ri/file-copy-line";
 
 import type { JSX } from "solid-js";
 import { toast } from "solid-sonner";

@@ -3,9 +3,9 @@ import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 
 import { Button } from "~/client/components/ui/button.tsx";
 import { cn } from "~/client/lib/utils.ts";
-import CheckIcon from "~icons/lucide/check";
-import ChevronDownIcon from "~icons/lucide/chevron-down";
-import XIcon from "~icons/lucide/x";
+import ChevronDownIcon from "~icons/ri/arrow-down-s-line";
+import CheckIcon from "~icons/ri/check-line";
+import XIcon from "~icons/ri/close-line";
 import type { Component, ComponentProps, JSX, ValidComponent } from "solid-js";
 
 import { Show, splitProps } from "solid-js";

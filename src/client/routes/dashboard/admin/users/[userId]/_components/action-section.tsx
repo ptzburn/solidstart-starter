@@ -11,9 +11,9 @@ import {
   CardTitle,
 } from "~/client/components/ui/card.tsx";
 import { useSubmissionError } from "~/client/hooks/use-submission.ts";
-import Drama from "~icons/lucide/drama";
-import LoaderCircle from "~icons/lucide/loader-circle";
-import Trash2 from "~icons/lucide/trash-2";
+import Trash2 from "~icons/ri/delete-bin-6-line";
+import LoaderCircle from "~icons/ri/loader-4-line";
+import Spy from "~icons/ri/spy-line";
 import { type JSX, Show } from "solid-js";
 import type { Accessor } from "solid-js";
 
@@ -49,7 +49,7 @@ export function ActionSection(props: ImpersonateSectionProps): JSX.Element {
             class="w-full"
             variant="outline"
           >
-            <Drama class="mr-2 size-4" />
+            <Spy class="mr-2 size-4" />
             <Show
               when={impersonateSubmission.pending}
               fallback="Impersonate user"

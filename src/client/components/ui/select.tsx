@@ -2,8 +2,8 @@ import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import * as SelectPrimitive from "@kobalte/core/select";
 
 import { cn } from "~/client/lib/utils.ts";
-import CheckIcon from "~icons/lucide/check";
-import ChevronDownIcon from "~icons/lucide/chevron-down";
+import ChevronDownIcon from "~icons/ri/arrow-down-s-line";
+import CheckIcon from "~icons/ri/check-line";
 import { cva } from "class-variance-authority";
 
 import type { JSX, ValidComponent } from "solid-js";

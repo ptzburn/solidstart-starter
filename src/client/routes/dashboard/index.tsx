@@ -33,10 +33,10 @@ import {
 } from "~/client/hooks/use-submission.ts";
 import { cn } from "~/client/lib/utils.ts";
 import { getTasksQuery } from "~/client/queries/tasks.ts";
-import CircleCheckBig from "~icons/lucide/circle-check-big";
-import ClipboardList from "~icons/lucide/clipboard-list";
-import Plus from "~icons/lucide/plus";
-import Trash from "~icons/lucide/trash";
+import Plus from "~icons/ri/add-line";
+import CircleCheckBig from "~icons/ri/checkbox-circle-line";
+import ClipboardList from "~icons/ri/clipboard-line";
+import Trash from "~icons/ri/delete-bin-line";
 import {
   createEffect,
   createMemo,

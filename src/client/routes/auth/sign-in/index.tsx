@@ -7,9 +7,9 @@ import { Spinner } from "~/client/components/ui/spinner.tsx";
 import { useSubmissionError } from "~/client/hooks/use-submission.ts";
 import { authClient } from "~/client/lib/auth-client.ts";
 import { getLastLoginMethodQuery } from "~/client/queries/auth.ts";
-import FingerprintPattern from "~icons/lucide/fingerprint-pattern";
-import SimpleIconsGithub from "~icons/simple-icons/github";
-import SimpleIconsGoogle from "~icons/simple-icons/google";
+import FingerprintPattern from "~icons/ri/fingerprint-line";
+import GithubIcon from "~icons/ri/github-fill";
+import GoogleIcon from "~icons/ri/google-fill";
 import { createSignal, type JSX, Show } from "solid-js";
 import { toast } from "solid-sonner";
 import { AuthHeader } from "../_components/auth-header.tsx";
@@ -65,7 +65,7 @@ function SignInPage(): JSX.Element {
             >
               <Show
                 when={anyPending()}
-                fallback={<SimpleIconsGithub class="size-5" />}
+                fallback={<GithubIcon class="size-5" />}
               >
                 <Spinner />
               </Show>
@@ -86,7 +86,7 @@ function SignInPage(): JSX.Element {
             >
               <Show
                 when={anyPending()}
-                fallback={<SimpleIconsGoogle class="size-5" />}
+                fallback={<GoogleIcon class="size-5" />}
               >
                 <Spinner />
               </Show>

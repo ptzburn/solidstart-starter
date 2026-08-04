@@ -14,7 +14,7 @@ import {
   useSubmissionError,
   useSubmissionSuccess,
 } from "~/client/hooks/use-submission.ts";
-import Mail from "~icons/lucide/mail";
+import Mail from "~icons/ri/mail-line";
 import { createSignal, type JSX } from "solid-js";
 
 function AccountDataPage(): JSX.Element {

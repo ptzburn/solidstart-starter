@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { Button } from "~/client/components/ui/button.tsx";
-import CircleAlert from "~icons/lucide/circle-alert";
+import CircleAlert from "~icons/ri/error-warning-line";
 import type { JSX } from "solid-js";
 
 export default function AuthErrorFallback(props: {

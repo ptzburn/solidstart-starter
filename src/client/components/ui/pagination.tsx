@@ -3,9 +3,9 @@ import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 
 import { buttonVariants } from "~/client/components/ui/button.tsx";
 import { cn } from "~/client/lib/utils.ts";
-import ChevronLeftIcon from "~icons/lucide/chevron-left";
-import ChevronRightIcon from "~icons/lucide/chevron-right";
-import MoreHorizontalIcon from "~icons/lucide/more-horizontal";
+import ChevronLeftIcon from "~icons/ri/arrow-left-s-line";
+import ChevronRightIcon from "~icons/ri/arrow-right-s-line";
+import MoreHorizontalIcon from "~icons/ri/more-fill";
 
 import type { JSX, ValidComponent } from "solid-js";
 import { Show, splitProps } from "solid-js";

@@ -1,6 +1,6 @@
 import deno from "@deno/vite-plugin";
 import { solidStart } from "@solidjs/start/config";
-import { nitroV2Plugin as nitro } from "@solidjs/vite-plugin-nitro-2";
+import { nitro } from "nitro/vite";
 import tailwindcss from "@tailwindcss/vite";
 import Icons from "unplugin-icons/vite";
 import { defineConfig } from "vite";
@@ -26,7 +26,7 @@ export default defineConfig({
     }),
     nitro({
       preset: "deno_server",
-      compatibilityDate: "2026-03-20",
+      compatibilityDate: "2026-08-03",
     }),
     deno(),
     Icons({

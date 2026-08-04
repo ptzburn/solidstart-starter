@@ -12,8 +12,8 @@ import {
 } from "~/client/components/ui/input-group.tsx";
 
 import { cn } from "~/client/lib/utils.ts";
-import CheckIcon from "~icons/lucide/check";
-import SearchIcon from "~icons/lucide/search";
+import CheckIcon from "~icons/ri/check-line";
+import SearchIcon from "~icons/ri/search-line";
 import * as CommandPrimitive from "cmdk-solid";
 
 import type {

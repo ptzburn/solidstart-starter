@@ -7,7 +7,7 @@ import {
 import { Button } from "~/client/components/ui/button.tsx";
 import { Spinner } from "~/client/components/ui/spinner.tsx";
 import { getPasswordResetSentEmailQuery } from "~/client/queries/auth.ts";
-import MailCheck from "~icons/lucide/mail-check";
+import MailCheck from "~icons/ri/mail-check-line";
 import { type JSX, Show, Suspense } from "solid-js";
 
 export default function ForgotPasswordSentPage(): JSX.Element {

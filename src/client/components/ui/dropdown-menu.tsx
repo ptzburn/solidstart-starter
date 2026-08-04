@@ -2,8 +2,8 @@ import * as DropdownMenuPrimitive from "@kobalte/core/dropdown-menu";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 
 import { cn } from "~/client/lib/utils.ts";
-import CheckIcon from "~icons/lucide/check";
-import ChevronRightIcon from "~icons/lucide/chevron-right";
+import ChevronRightIcon from "~icons/ri/arrow-right-s-line";
+import CheckIcon from "~icons/ri/check-line";
 import type { Component, ComponentProps, JSX, ValidComponent } from "solid-js";
 
 import { mergeProps, splitProps } from "solid-js";

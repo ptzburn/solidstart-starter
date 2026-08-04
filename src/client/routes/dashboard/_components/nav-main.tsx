@@ -8,8 +8,8 @@ import {
 
 import { useSession } from "~/client/contexts/session-context.tsx";
 
-import House from "~icons/lucide/house";
-import UsersIcon from "~icons/lucide/users";
+import UsersIcon from "~icons/ri/group-line";
+import House from "~icons/ri/home-line";
 import { For, type JSX, Show } from "solid-js";
 
 const items = (

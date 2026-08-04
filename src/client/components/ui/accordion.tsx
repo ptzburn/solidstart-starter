@@ -2,8 +2,8 @@ import * as AccordionPrimitive from "@kobalte/core/accordion";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 
 import { cn } from "~/client/lib/utils.ts";
-import ChevronDownIcon from "~icons/lucide/chevron-down";
-import ChevronUpIcon from "~icons/lucide/chevron-up";
+import ChevronDownIcon from "~icons/ri/arrow-down-s-line";
+import ChevronUpIcon from "~icons/ri/arrow-up-s-line";
 import type { JSX, ValidComponent } from "solid-js";
 
 import { splitProps } from "solid-js";

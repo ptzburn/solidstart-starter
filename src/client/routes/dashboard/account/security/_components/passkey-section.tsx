@@ -22,8 +22,8 @@ import {
 } from "~/client/hooks/use-submission.ts";
 import { authClient } from "~/client/lib/auth-client.ts";
 import { listPasskeysQuery } from "~/client/queries/auth.ts";
-import Fingerprint from "~icons/lucide/fingerprint-pattern";
-import Trash from "~icons/lucide/trash";
+import Trash from "~icons/ri/delete-bin-line";
+import Fingerprint from "~icons/ri/fingerprint-line";
 import { createSignal, For, type JSX, Show } from "solid-js";
 import { toast } from "solid-sonner";
 

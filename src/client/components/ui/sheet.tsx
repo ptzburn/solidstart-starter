@@ -3,7 +3,7 @@ import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 
 import { buttonVariants } from "~/client/components/ui/button.tsx";
 import { cn } from "~/client/lib/utils.ts";
-import XIcon from "~icons/lucide/x";
+import XIcon from "~icons/ri/close-line";
 import type { Component, ComponentProps, JSX, ValidComponent } from "solid-js";
 
 import { mergeProps, Show, splitProps } from "solid-js";

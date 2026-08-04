@@ -6,10 +6,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/client/components/ui/sidebar.tsx";
-import Database from "~icons/lucide/database";
-import GlobeLock from "~icons/lucide/globe-lock";
-import Shield from "~icons/lucide/shield";
-import User from "~icons/lucide/user";
+import Database from "~icons/ri/database-2-line";
+import Globe from "~icons/ri/global-line";
+import Shield from "~icons/ri/shield-line";
+import User from "~icons/ri/user-line";
 import { For, type JSX } from "solid-js";
 
 const NAV_ITEMS = [
@@ -30,7 +30,7 @@ const NAV_ITEMS = [
   },
   {
     label: "Sessions",
-    icon: GlobeLock,
+    icon: Globe,
     href: "/dashboard/account/sessions",
   },
 ];

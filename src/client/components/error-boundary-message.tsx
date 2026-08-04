@@ -1,5 +1,5 @@
 import { useNavigate } from "@solidjs/router";
-import ArrowLeft from "~icons/lucide/arrow-left";
+import ArrowLeft from "~icons/ri/arrow-left-line";
 import type { JSX } from "solid-js";
 import { Button } from "./ui/button.tsx";
 

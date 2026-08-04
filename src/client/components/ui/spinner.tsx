@@ -1,5 +1,5 @@
 import { cn } from "~/client/lib/utils.ts";
-import LoaderCircle from "~icons/lucide/loader-circle";
+import LoaderCircle from "~icons/ri/loader-4-line";
 
 import { type Component, type ComponentProps, splitProps } from "solid-js";
 
